@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QLabel>
+#include <QLineEdit>
 
 #include "extern_hsc.h"
 
@@ -55,7 +56,8 @@ private:
     bool registerNSKInfo_view_always(int num_reg) const;
     bool registerVSKInfo_view_always(int num_reg) const;
 
-    void switchReg(int num_reg, QLabel *labelText, QLabel *labelInd, char* description[2], char* name[2], int num);
+    void switchRegisterAsgmt(int num_reg, QLabel *labelHeader, QLabel *labelTextL, QLabel *labelTextH,
+             QLineEdit *lineL, QLineEdit *lineH, QLabel *labelInd, QString* description, QString* name, int num);
 
 private slots:
     void onEditRegVSK(int,int);

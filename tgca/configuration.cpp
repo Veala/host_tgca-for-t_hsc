@@ -21,35 +21,29 @@ enum REG_COL_NUM
 
 #define NUM_ADDR_2_NUM_REG(addr) ((addr)/4-32)
 
-static char* TXT_lvl_sync_kf_rx_msw_OR_prcs_max_sync_msw[2] = {
-    "Регистр уровня корреляционной функции, СЗC",
-    "Регистр уровня максимума точной синхронизации, СЗC" };
+const QString HeaderPrefix("• Регистры уровня ");
 
-static char* TXT_lvl_sync_kf_rx_lsw_OR_prcs_max_sync_lsw[2] = {
-    "Регистр уровня корреляционной функции, МЗC",
-    "Регистр уровня максимума точной синхронизации, МЗC" };
+static QString TXT_lvl_sync_kf_rx_OR_prcs_max_sync[4] = {
+    "Регистр уровня корреляционной функции",
+    "Регистр уровня максимума точной синхронизации",
+    "корреляционной функции",
+    "максимума точной синхронизации" };
 
-static char* KEY_lvl_sync_kf_rx_msw_OR_prcs_max_sync_msw[2] = {
+static QString KEY_lvl_sync_kf_rx_OR_prcs_max_sync[4] = {
     "lvl_sync_kf_rx_msw",
-    "prcs_max_sync_msw" };
-
-static char* KEY_lvl_sync_kf_rx_lsw_OR_prcs_max_sync_lsw[2] = {
+    "prcs_max_sync_msw",
     "lvl_sync_kf_rx_lsw",
     "prcs_max_sync_lsw" };
 
-static char* TXT_lvl_sync_pre_rx_msw_OR_prs_level_max_rn_msw[2] = {
-    "Регистр уровня предварительной синхронизации, СЗC",
-    "Регистр уровня максимума Rn, СЗC" };
+static QString TXT_lvl_sync_pre_rx_OR_prs_level_max_rn[4] = {
+    "Регистр уровня предварительной синхронизации",
+    "Регистр уровня максимума Rn",
+    "Регистры уровня предварительной синхронизации",
+    "Регистры уровня максимума Rn" };
 
-static char* TXT_lvl_sync_pre_rx_lsw_OR_prs_level_max_rn_lsw[2] = {
-    "Регистр уровня предварительной синхронизации, МЗC",
-    "Регистр уровня максимума Rn, МЗC" };
-
-static char* KEY_lvl_sync_pre_rx_msw_OR_prs_level_max_rn_msw[2] = {
+static QString KEY_lvl_sync_pre_rx_OR_prs_level_max_rn[4] = {
     "lvl_sync_pre_rx_msw",
-    "prs_level_max_rn_msw" };
-
-static char* KEY_lvl_sync_pre_rx_lsw_OR_prs_level_max_rn_lsw[2] = {
+    "prs_level_max_rn_msw",
     "lvl_sync_pre_rx_lsw",
     "prs_level_max_rn_lsw" };
 
@@ -101,7 +95,7 @@ void buildTable(QTableWidget *tab)
 {
     for (int row=0; row < tab->rowCount(); row++)
     {
-        for (int col=0; col <REG_COL_NUM::rcn_End; col++)
+        for (int col=0; col < REG_COL_NUM::rcn_End; col++)
         {
             QTableWidgetItem *pItem = tab->item(row, col);
             if (pItem == NULL)
@@ -113,42 +107,6 @@ void buildTable(QTableWidget *tab)
             }
         }
     }
-}
-
-void setRegView(QLineEdit* win, QLabel *label, QLabel *mark, bool ena)
-{
-    label->setEnabled(ena);
-    mark->setEnabled(!ena);
-    mark->setVisible(!ena);
-    QFont f = win->font();
-    f.setBold(ena);
-    win->setFont(f);
-    QPalette p = win->palette();
-    if (ena)
-        p.setColor(QPalette::Base, Qt::white);
-    else
-        p.setColor(QPalette::Base, qRgb(241, 241, 241));
-    win->setPalette(p);
-     //   win->setStyleSheet("QLabel { background-color : yellow;}");//rgb(241, 241, 241); }");
-}
-
-void Configuration::switchReg(int num_reg, QLabel *labelText, QLabel *labelInd, char* description[2], char* name[2], int num)
-{
-    ui->tableWidgetVSK->item(num_reg, rcn_Descr)->setText(description[num]);
-    ui->tableWidgetVSK->item(num_reg, rcn_Name)->setText(name[num]);
-    labelText->setText(description[num]);
-    labelInd->setVisible(num);
-    labelInd->setEnabled(num);
-    QFont f = labelText->font();
-    f.setBold(num);
-    labelText->setFont(f);
-    QPalette p = labelText->palette();
-    if (num)
-        p.setColor(QPalette::Base, Qt::white);
-    else
-        p.setColor(QPalette::Base, qRgb(241, 241, 241));
-    labelText->setPalette(p);
-    regVSKRO[num_reg] = num;
 }
 
 void Configuration::initVSK()
@@ -168,45 +126,112 @@ void Configuration::initNSK()
     resizeCol(ui->tableWidgetNSK);
 }
 
+/////////////////////////////////////////////////////////////
+/// "ПЕРЕКРАШИВАНИЕ" ЗАВИСИМЫХ ПОЛЕЙ
+
+void markRegisterEnabled(QLineEdit* win, QLabel *label, QLabel *mark, bool ena)
+{
+    label->setEnabled(ena);
+    mark->setEnabled(!ena);
+    mark->setVisible(!ena);
+    QFont f = win->font();
+    f.setBold(ena);
+    win->setFont(f);
+    QPalette p = win->palette();
+    p.setColor(QPalette::Base, ena ? Qt::white : qRgb(241, 241, 241));
+    win->setPalette(p);
+    /*
+    if (ena)
+        p.setColor(QPalette::Base, Qt::white);
+    else
+        p.setColor(QPalette::Base, qRgb(241, 241, 241));
+    win->setPalette(p);
+     //   win->setStyleSheet("QLabel { background-color : yellow;}");//rgb(241, 241, 241); }");
+     */
+}
+
+void Configuration::switchRegisterAsgmt(int num_reg, QLabel *labelHeader, QLabel *labelTextL, QLabel *labelTextH,
+                 QLineEdit *lineL, QLineEdit *lineH, QLabel *labelInd, QString* description, QString* name, int num)
+{
+    ui->tableWidgetVSK->item(num_reg, rcn_Descr)->setText(description[num] + QString(", СЗС"));
+    ui->tableWidgetVSK->item(num_reg+1, rcn_Descr)->setText(description[num] + QString(", МЗС"));
+    ui->tableWidgetVSK->item(num_reg, rcn_Name)->setText(name[num]);
+    ui->tableWidgetVSK->item(num_reg+1, rcn_Name)->setText(name[num+2]);
+    labelHeader->setText(HeaderPrefix + description[num+2]);
+    labelInd->setVisible(num);
+    labelInd->setEnabled(num);
+    QFont f = labelTextL->font();
+    f.setBold(num==0);
+    //labelHeader->setFont(f);
+    labelTextL->setFont(f);
+    labelTextH->setFont(f);
+    lineL->setFont(f);
+    lineH->setFont(f);
+    QPalette p = lineL->palette();
+    if (num)
+        p.setColor(QPalette::Base, qRgb(241, 241, 241));
+    else
+        p.setColor(QPalette::Base, Qt::white);
+    lineL->setPalette(p);
+    lineH->setPalette(p);
+    regVSKRO[num_reg] = num;
+}
+
+
 /// Эта функция пересчитывает заполнение всех окон, относящихся к данному регистру,
 ///  учитывая зависимости от других регистров.
 void Configuration::updateRegVSK(int num_reg, char *values)
 {
     int addr = REGVSKADDRFROM + num_reg*4;
-
     QString value = (QString("%1").arg(memToWord16(values, addr), 4, 16, QChar('0'))).toUpper();
 
     switch (addr)
     {
-    case REG_VSK_ram_tx_rx:
-        ui->lineEditRAM->setText(value);
+    case REG_VSK_ram_tx_rx:               // 0x80 (0x20)
+    {
+        word16_t val = memToWord16(values, addr);
+
+        val = 5;
+        ui->checkBox_2->setChecked(val & 1);
+        ui->checkBox_3->setChecked(val & (1 << 1));
+        ui->checkBox_4->setChecked(val & (1 << 2));
+        ui->checkBox_5->setChecked(val & (1 << 3));
+        ui->checkBox_6->setChecked(val & (1 << 4));
+        ui->checkBox_7->setChecked(val & (1 << 5));
+        ui->checkBox_8->setChecked(val & (1 << 6));
+        ui->checkBox_9->setChecked(val & (1 << 7));
+        ui->checkBox_10->setChecked(val & (1 << 8));
         regVSKUse[num_reg] = true;
+    }
         break;
 
-    case REG_VSK_id:
+    case REG_VSK_id:                      // 0x88 (0x22)
         regVSKRO[num_reg] = true;
         /// LLL !!! надо вписать значение в поле на дополнительных страницах, которого пока нет
         break;
 
-    case REG_VSK_status:
+    case REG_VSK_status:                  // 0x8C (0x23)
         regVSKRO[num_reg] = true;
         /// LLL !!! надо заполнить виджет статуса, которого пока нет
         regVSKUse[num_reg] = true;
         break;
 
-    case REG_VSK_cfg:
+    case REG_VSK_cfg:                     // 0x90 (0x24)
     {
         regVSKUse[num_reg] = true;
-        word16_t val = 1;//memToWord16(values, addr);
+        word16_t val = memToWord16(values, addr);
         ui->comboBoxEnaMemVsk->setCurrentIndex(val & fl_REG_CFG_ena_mem_vsk ? 1 : 0);
-        setRegView(ui->lineEditRAM, ui->labelRAM, ui->labelMarkRAM, val & fl_REG_CFG_ena_mem_vsk);
+
+        ui->groupBoxRAM->setEnabled(val & fl_REG_CFG_ena_mem_vsk);
+        ui->checkBox_2->setEnabled(true);
+        ui->checkBox_3->setEnabled(true);
 
         int man_type = val & FL_REG_CFG_type_man;
         ui->comboBoxManType->setCurrentIndex(man_type == val_REG_CFG_type_man_ERROR ? -1 : man_type);
-        setRegView(ui->lineEditQ16, ui->labelQ16, ui->labelMarkQ16, man_type == val_REG_CFG_type_man_QAM16);
-        setRegView(ui->lineEditQ64l, ui->labelQ64l, ui->labelMarkQ64l, man_type == val_REG_CFG_type_man_QAM64);
-        setRegView(ui->lineEditQ64m, ui->labelQ64m, ui->labelMarkQ64m, man_type == val_REG_CFG_type_man_QAM64);
-        setRegView(ui->lineEditQ64h, ui->labelQ64h, ui->labelMarkQ64h, man_type == val_REG_CFG_type_man_QAM64);
+        markRegisterEnabled(ui->lineEditQ16, ui->labelQ16, ui->labelMarkQ16, man_type == val_REG_CFG_type_man_QAM16);
+        markRegisterEnabled(ui->lineEditQ64l, ui->labelQ64l, ui->labelMarkQ64l, man_type == val_REG_CFG_type_man_QAM64);
+        markRegisterEnabled(ui->lineEditQ64m, ui->labelQ64m, ui->labelMarkQ64m, man_type == val_REG_CFG_type_man_QAM64);
+        markRegisterEnabled(ui->lineEditQ64h, ui->labelQ64h, ui->labelMarkQ64h, man_type == val_REG_CFG_type_man_QAM64);
         regVSKUse[NUM_ADDR_2_NUM_REG(REG_VSK_lvl_qam16)] = (man_type == val_REG_CFG_type_man_QAM16);
         regVSKUse[NUM_ADDR_2_NUM_REG(REG_VSK_lvl_qam64_low)] = (man_type == val_REG_CFG_type_man_QAM64);
         regVSKUse[NUM_ADDR_2_NUM_REG(REG_VSK_lvl_qam64_middle)] = (man_type == val_REG_CFG_type_man_QAM64);
@@ -215,7 +240,8 @@ void Configuration::updateRegVSK(int num_reg, char *values)
         ui->checkBoxCodec->setChecked(val & fl_REG_CFG_ena_codec);
         ui->checkBoxEnaAru->setChecked(val & fl_REG_CFG_ena_aru);
 
-        ui->comboBox_BC_RT->setCurrentIndex(val & fl_REG_CFG_mode_rt_bc ? 1 : 0);
+        bool rt = ((val & fl_REG_CFG_mode_rt_bc) != 0);
+        ui->comboBox_BC_RT->setCurrentIndex(rt ? 1 : 0);
         ui->checkBoxEnaInt->setText(ui->checkBoxEnaInt->text() + QString(val & fl_REG_CFG_mode_rt_bc ? "ОУ" : "КШ"));
         ui->checkBoxEnaInt->setChecked(val & fl_REG_CFG_en_rt_bc_int);
 
@@ -223,6 +249,7 @@ void Configuration::updateRegVSK(int num_reg, char *values)
         ui->checkBoxEnaRtaVSK->setChecked(b);
         ui->comboBoxRTA->setCurrentIndex((val&FL_REG_CFG_rtavsk)>>7);
         QFont f = ui->comboBoxRTA->font();
+        b = b && rt;
         f.setBold(b);
         ui->comboBoxRTA->setFont(f);
         QPalette p = ui->comboBoxRTA->palette();
@@ -234,77 +261,79 @@ void Configuration::updateRegVSK(int num_reg, char *values)
     }
         break;
 
-    case REG_VSK_tx_cntr:
+    case REG_VSK_tx_cntr:                  // 0x94 (0x25)
         break;
 
-    case REG_VSK_rx_cntr:
+    case REG_VSK_rx_cntr:                  // 0x9C (0x27)
     {
         regVSKUse[num_reg] = true;
-        word16_t val = 0;// memToWord16(values, addr);
+        word16_t val = memToWord16(values, addr);
         int num1 = val & fl_REG_RX_CNTR_max_Rn_sync_pre ? 1 : 0;
-        int num2 = val & fl_REG_RX_CNTR_prcs_max_sync ? 1 : 0;
         ui->comboBoxLvlPre->setCurrentIndex(num1);
+
+        switchRegisterAsgmt(NUM_ADDR_2_NUM_REG(REG_VSK_lvl_sync_pre_rx_msw), ui->label_20, ui->label_8, ui->label_9,
+                  ui->lineEdit_10, ui->lineEdit_11, ui->label_18, TXT_lvl_sync_pre_rx_OR_prs_level_max_rn,
+                  KEY_lvl_sync_pre_rx_OR_prs_level_max_rn, num1);
+
+        int num2 = val & fl_REG_RX_CNTR_prcs_max_sync ? 1 : 0;
         ui->comboBoxLvlCor->setCurrentIndex(num2);
 
-        switchReg(NUM_ADDR_2_NUM_REG(REG_VSK_lvl_sync_kf_rx_msw), ui->label_26, ui->label_25,
-                  TXT_lvl_sync_kf_rx_msw_OR_prcs_max_sync_msw,
-                  KEY_lvl_sync_kf_rx_msw_OR_prcs_max_sync_msw, num2);
-        switchReg(NUM_ADDR_2_NUM_REG(REG_VSK_lvl_sync_kf_rx_lsw), ui->label_24, ui->label_23,
-                  TXT_lvl_sync_kf_rx_lsw_OR_prcs_max_sync_lsw,
-                  KEY_lvl_sync_kf_rx_lsw_OR_prcs_max_sync_lsw, num2);
-
-        switchReg(NUM_ADDR_2_NUM_REG(REG_VSK_lvl_sync_pre_rx_msw), ui->label_20, ui->label_22,
-                  TXT_lvl_sync_pre_rx_msw_OR_prs_level_max_rn_msw,
-                  KEY_lvl_sync_pre_rx_msw_OR_prs_level_max_rn_msw, num1);
-        switchReg(NUM_ADDR_2_NUM_REG(REG_VSK_lvl_sync_pre_rx_lsw), ui->label_17, ui->label_18,
-                  TXT_lvl_sync_pre_rx_lsw_OR_prs_level_max_rn_lsw,
-                  KEY_lvl_sync_pre_rx_lsw_OR_prs_level_max_rn_lsw, num1);
-
+        switchRegisterAsgmt(NUM_ADDR_2_NUM_REG(REG_VSK_lvl_sync_kf_rx_msw), ui->label_26, ui->label_6, ui->label_7,
+                  ui->lineEdit_9, ui->lineEdit_12, ui->label_25, TXT_lvl_sync_kf_rx_OR_prcs_max_sync,
+                  KEY_lvl_sync_kf_rx_OR_prcs_max_sync, num2);
     }
         break;
 
-   /* case REG_VSK_creg                  0xA0
+    case REG_VSK_creg:                //  0xA0 (0x28)
+    {
+        regVSKUse[num_reg] = true;
+        word16_t val = memToWord16(values, addr);
+        ui->checkBoxResetFL->setChecked(val & fl_REG_CREG_com_res);
+        ui->checkBoxResetFLT->setChecked(val & fl_REG_CREG_tx_res);
+        ui->checkBoxResetFLR->setChecked(val & fl_REG_CREG_rx_res);
+        ui->checkBoxStartBC->setChecked(val & fl_REG_CREG_start_bc);   /// LLL Здесь, возможно, надо изменить иконку этого чекбокса
+    }
+    break;
+/*
+    case REG_VSK_cr_spi                0xA4 (0x29)
     break;
 
-    case REG_VSK_cr_spi                0xA4
+    case REG_VSK_dr_spi_msw            0xA8 (0x2A)
     break;
 
-    case REG_VSK_dr_spi_msw            0xA8
+    case REG_VSK_dr_spi_lsw            0xAC (0x2B)
     break;
 
-    case REG_VSK_dr_spi_lsw            0xAC
+    case REG_VSK_time_rsp              0xB4 (0x2D)
     break;
 
-    case REG_VSK_time_rsp              0xB4
+    case REG_VSK_cnt_pct_tx_msw        0xB8 (0x2E)
     break;
 
-    case REG_VSK_cnt_pct_tx_msw        0xB8
+    case REG_VSK_cnt_pct_tx_lsw        0xBC (0x2F)
     break;
 
-    case REG_VSK_cnt_pct_tx_lsw        0xBC
+    case REG_VSK_cnt_pct_rx_msw        0xC0 (0x30)
     break;
 
-    case REG_VSK_cnt_pct_rx_msw        0xC0
+    case REG_VSK_cnt_pct_rx_lsw        0xC4 (0x31)
     break;
 
-    case REG_VSK_cnt_pct_rx_lsw        0xC4
-    break;
-
-    case REG_VSK_lvl_sync_kf_rx_msw    0xC8   // чтение/запись
+    case REG_VSK_lvl_sync_kf_rx_msw    0xC8 (0x32)  // чтение/запись
     case REG_VSK_prcs_max_sync_msw     0xC8   // только чтение
 
-    case REG_VSK_lvl_sync_kf_rx_lsw    0xCC   // чтение/запись
+    case REG_VSK_lvl_sync_kf_rx_lsw    0xCC  (0x33) // чтение/запись
     case REG_VSK_prcs_max_sync_lsw     0xCC   // только чтение
 
-    case REG_VSK_lvl_sync_pre_rx_msw   0xD0   // чтение/запись
+    case REG_VSK_lvl_sync_pre_rx_msw   0xD0  (0x34) // чтение/запись
     case REG_VSK_prs_level_max_rn_msw  0xD0   // только чтение
 
-    case REG_VSK_lvl_sync_pre_rx_lsw   0xD4   // чтение/запись
+    case REG_VSK_lvl_sync_pre_rx_lsw   0xD4  (0x35) // чтение/запись
     case REG_VSK_prs_level_max_rn_lsw  0xD4   // только чтение
 
     break;
 
-    case REG_VSK_lvl_qam16             0xD8
+    case REG_VSK_lvl_qam16             0xD8 (0x36)
     break;
 
     case REG_VSK_lvl_qam64_low         0xDC
@@ -320,7 +349,7 @@ void Configuration::updateRegVSK(int num_reg, char *values)
     case REG_VSK_g_1_sp_high           0xF4
     case REG_VSK_g_1_sp_low            0xF8
     case REG_VSK_pll_reg               0xFC*/
-        default:
+        default:                                     // 0x84, 0x98, 0xB0
             regVSKEd[num_reg] = false;
             break;
     }

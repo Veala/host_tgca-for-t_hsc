@@ -87,8 +87,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="act_Connection"/>
-   <addaction name="separator"/>
    <addaction name="act_Configuration"/>
   </widget>
   <widget class="QToolBar" name="addToolBar">
@@ -306,74 +304,10 @@
  <resources/>
  <connections>
   <connection>
-   <sender>act_Connection</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onPushConnect()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>548</x>
-     <y>363</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>act_LoadTests</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onPushLoadTests()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>548</x>
-     <y>363</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>act_Configuration</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>onPushConfig()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>548</x>
-     <y>363</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>act_Project</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onPushProject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>548</x>
-     <y>363</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>act_Report</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onPushReport()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
