@@ -26,6 +26,7 @@ public:
 
     Connection connection;
     Configuration configuration;
+    QTcpSocket rw_socket;
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -34,7 +35,6 @@ private:
     Ui::Device *ui;
     QMenu menu;
     void setName(QString);
-    QTcpSocket rw_socket;
 
 private slots:
     void showConfiguration(bool);

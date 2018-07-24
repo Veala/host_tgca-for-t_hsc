@@ -1,4 +1,5 @@
 build-tgca-Desktop_Qt_5_6_0_GCC_64bit-Release/
+build-tgca-Desktop_Qt_5_6_0_GCC_64bit-Debug/
 tgca/*.user
 .svn/
 */.svn/

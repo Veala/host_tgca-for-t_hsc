@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/">
+        <file>../pictogram/1downarrow_4076.png</file>
+        <file>../pictogram/accessories-text-editor_7233.png</file>
+        <file>../pictogram/application_form_add_2955.png</file>
+        <file>../pictogram/application_form_edit_2379.png</file>
+        <file>../pictogram/bullet_delete_3633.png</file>
+        <file>../pictogram/bullet_go_1755.png</file>
+        <file>../pictogram/calculator_8158.png</file>
+        <file>../pictogram/close_5496_grey.png</file>
+        <file>../pictogram/disconnect_9550.png</file>
+        <file>../pictogram/disk_1286.png</file>
+        <file>../pictogram/drive_add_7644.png</file>
+        <file>../pictogram/filenew_5201.png</file>
+        <file>../pictogram/folder_explore_2684.png</file>
+        <file>../pictogram/gtk-media-pause_2289.png</file>
+        <file>../pictogram/gtk-media-play-ltr_8717.png</file>
+        <file>../pictogram/gtk-media-stop_9402.png</file>
+        <file>../pictogram/gwget_1245.png</file>
+        <file>../pictogram/hardware_8356.png</file>
+        <file>../pictogram/help_1739.png</file>
+        <file>../pictogram/kde-document-open_9221.png</file>
+        <file>../pictogram/newspaper_5855.png</file>
+        <file>../pictogram/printer_5065.png</file>
+        <file>../pictogram/report_9058.png</file>
+        <file>../pictogram/shield_red_2348.png</file>
+    </qresource>
+</RCC>

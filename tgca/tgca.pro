@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui uitools
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network
 
@@ -17,18 +17,25 @@ SOURCES += main.cpp\
     configuration.cpp \
     vskregview.cpp \
     device.cpp \
-    connection.cpp
+    connection.cpp \
+    abstracttest.cpp
 
 HEADERS  += mainwindow.h \
+    abstracttest.h \
     configuration.h \
+    connection.h \
+    ctableeditcol.h \
     vskregview.h \
     extern_hsc.h \
     device.h \
-    connection.h \
     registers.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
     vskregview.ui \
     device.ui \
-    connection.ui
+    connection.ui \
+    settingsregtest.ui
+
+RESOURCES += \
+    tgca.qrc

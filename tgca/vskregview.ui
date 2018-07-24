@@ -20,8 +20,8 @@
    <string>регистр </string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../pictogramms/hardware_8356.png</normaloff>../pictogramms/hardware_8356.png</iconset>
+   <iconset resource="tgca.qrc">
+    <normaloff>:/pictogram/hardware_8356.png</normaloff>:/pictogram/hardware_8356.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="3">
@@ -116,7 +116,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="tgca.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>pushButtonCancel</sender>

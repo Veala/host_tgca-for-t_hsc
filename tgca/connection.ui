@@ -34,8 +34,8 @@
    <string>Соединение</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../pictogramms/disconnect_9550.png</normaloff>../pictogramms/disconnect_9550.png</iconset>
+   <iconset resource="tgca.qrc">
+    <normaloff>:/pictogram/disconnect_9550.png</normaloff>:/pictogram/disconnect_9550.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayoutConnectionForm">
    <item row="1" column="0">
@@ -313,7 +313,9 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="tgca.qrc"/>
+ </resources>
  <connections/>
  <slots>
   <slot>connectTry()</slot>

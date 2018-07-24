@@ -1,0 +1,27 @@
+[Common]
+output=log.txt
+autoload=1
+user=su
+
+[Devices]
+size=2
+1\name=Terasic
+1\IP=192.168.0.8
+1\port=3307
+1\host IP=192.168.0.3
+1\host port=3308
+1\configuration=STD_BC_NOINT_QPSK_CODEC
+1\autoload=0
+2\name=2
+2\IP=192.168.0.1
+2\port=3307
+2\host IP=192.168.0.3
+2\host port=3308
+2\configuration=config1.txt
+2\autoload=0
+
+[Tests]
+size=2
+1\test=../tgca/settingsregtest.ui
+1\enabled=0
+2\test=test2.ui

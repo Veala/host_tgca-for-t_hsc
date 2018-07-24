@@ -18,6 +18,12 @@ namespace Ui {
 class Configuration;
 }
 
+enum CONFIG_DEFAULT_TYPE
+{
+    cdt_Default,
+    cdt_Error
+};
+
 class Configuration : public QDialog
 {
     Q_OBJECT
@@ -26,16 +32,16 @@ public:
     explicit Configuration(QWidget *parent = 0);
     ~Configuration();
 
-    /// Функцию надо вызывать перед каждым show(); Она пересчитывает заполнение формы.
+/// Функции, заполняющие значения регистров в форме.
+/// Они пересчитывают заполнение всех зависимых полей формы.
+
+    /// Заполнение всех регистров.
     /// Входной параметр regVSK - указатель на буфер, содержащий все регистры ВСК.
     bool update(void *regAll);
 
-    /// Функции получения значения регистра из формы
-    /// и записи значения регистра в форму с пересчетом всех затронутых полей.
-    /// Входной параметр addr - адрес регистра ВСК или регистра НСК, как в файле registers.h.
-    /// Пока реализовано только для ВСК.
-    word16_t getRegVal(addr_t addr) const;
-    bool setRegVal(addr_t addr, word16_t val, bool force = true);
+    /// Задание конфигурации.
+//    bool configurate(QString name);
+    bool initFrom(QString name);
 
 private:
     Ui::Configuration *ui;
@@ -46,10 +52,20 @@ private:
     bool regVSKUse[NUMOFREGVSK] ;
     bool regVSKEd[NUMOFREGVSK];
     bool regVSKRO[NUMOFREGVSK];
+    bool regVSKChecked[NUMOFREGVSK];
 
     void initVSK();
     void initNSK();
     void updateRegVSK(int num_reg, char *values);
+    bool initDefault(CONFIG_DEFAULT_TYPE key, word16_t param);
+    bool setConfigDefault0(word16_t reg_config);
+    /// Функции получения значения регистра из формы
+    /// и записи значения регистра в форму с пересчетом всех затронутых полей.
+    /// Входной параметр addr - адрес регистра ВСК или регистра НСК, как в файле registers.h.
+    /// Пока реализовано только для ВСК.
+    word16_t getRegVal(addr_t addr) const;
+    bool setRegVal(addr_t addr, word16_t val, bool force = false);
+    void setRegVSK(int num_reg, word16_t val);
 
     bool registerNSKInfo_read_only(int num_reg) const;
     bool registerVSKInfo_read_only(int num_reg) const;
@@ -67,9 +83,14 @@ private slots:
     void onChangeTab(int);
     void onPushSave();
     void onPushChoose();
-    void onPushWriteReg();
-    void onExpand(int);
-
+    void onPushWrite();
+    void onPushRead();
+    void onExpandVSK(int);
+    void onExpandNSK(int);
+    void onCheckSelectVSK(int);
+    void onCheckSelectNSK(int);
+    void onCellChangedNSK(int, int);
+    void onCellChangedVSK(int, int);
 };
 /*
 class registerInfo
