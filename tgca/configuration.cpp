@@ -3,7 +3,9 @@
 
 #include "vskregview.h"
 #include "registers.h"
+#include "confselect.h"
 
+#include <QFileDialog>
 #include <QDebug>
 
 enum REG_COL_NUM
@@ -38,7 +40,8 @@ static enum REG_PROC_TYPE regVSKType[NUMOFREGVSK] =
 
 Configuration::Configuration(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Configuration)
+    ui(new Ui::Configuration),
+    iconRun(":/../pictogram/bullet_go_1755.png")
 {
     ui->setupUi(this);
 
@@ -84,30 +87,24 @@ void buildTable(QTableWidget *tab)
             }
             if (col == REG_COL_NUM::rcn_Name_Check)
                 pItem->setCheckState(Qt::Unchecked);
-            if (col == REG_COL_NUM::rcn_Val)
-            {
-                pItem->setTextColor(Qt::gray);
-                pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
-            }
         }
     }
 }
 
 void Configuration::initVSK()
 {
-//    ReadFormat1(imprintRegVSK, REGVSKADDRFROM, NUMOFREGVSK * SIZEOFWORD);
-
     buildTable(ui->tableWidgetVSK);
     resizeCol(ui->tableWidgetVSK);
     for (int row=0; row < NUMOFREGVSK; row++)
     {
-        regVSKEd[row] = true;
         regVSKRO[row] = false;
+        regVSKRes[row] = false;
         regVSKUse[row] = regVSKUseGlobal[row];
     }
     regVSKRO[2] = regVSKRO[3] = regVSKRO[27] = true;
-    //ui->tableWidgetVSK->setColumnHidden(5,true);
+    regVSKRes[1] = regVSKRes[6] = regVSKRes[12] = true;
     ui->comboBoxVSK->setCurrentIndex(0);
+    ui->checkBoxStartBC->setIcon(QIcon());
  }
 
 void Configuration::initNSK()
@@ -195,8 +192,9 @@ static QString KEY_lvl_sync_pre_rx_OR_prs_level_max_rn[4] = {
     "lvl_sync_pre_rx_lsw",
     "prs_level_max_rn_lsw" };
 
+
 /// Эта функция пересчитывает заполнение всех окон, относящихся к данному регистру и к зависимым регистрам
-void Configuration::setRegVSK(int addr, word16_t val)
+void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
 {
     switch (addr)
     {
@@ -215,11 +213,16 @@ void Configuration::setRegVSK(int addr, word16_t val)
         break;
 
     case REG_VSK_id:                      // 0x88 (0x22)
-        /// LLL !!! надо вписать значение в поле на дополнительных страницах, которого пока нет
+        ui->lineEdit_ID->setText(strval);
         break;
 
     case REG_VSK_status:                  // 0x8C (0x23)
-        /// LLL !!! надо заполнить виджет статуса, которого пока нет
+        ui->lineEditStatInt->setText((val & fl_REG_STATUS_rt_bc_int) ? "0" : "1");
+        ui->lineEditStatErCodec->setText((val & fl_REG_STATUS_rs_err) ? "0" : "1");
+        ui->lineEditStatNoResp->setText((val & fl_REG_STATUS_no_aw_err) ? "0" : "1");
+        ui->lineEditStatErBroad->setText((val & fl_REG_STATUS_yes_aw_gr_err) ? "0" : "1");
+        ui->lineEditStatBufT->setText((val & fl_REG_STATUS_tx_num_buf) ? "0" : "1");
+        ui->lineEditStatBufR->setText((val & fl_REG_STATUS_rx_num_buf) ? "0" : "1");
         break;
 
     case REG_VSK_cfg:                     // 0x90 (0x24)
@@ -245,7 +248,8 @@ void Configuration::setRegVSK(int addr, word16_t val)
 
         bool rt = ((val & fl_REG_CFG_mode_rt_bc) != 0);
         ui->comboBox_BC_RT->setCurrentIndex(rt ? 1 : 0);
-        ui->checkBoxEnaInt->setText(ui->checkBoxEnaInt->text() + QString(val & fl_REG_CFG_mode_rt_bc ? "ОУ" : "КШ"));
+        ui->checkBoxEnaInt->setText(QString("разрешение выработки прерывания в режиме ") + QString(val & fl_REG_CFG_mode_rt_bc ? "ОУ" : "КШ"));
+        ui->label_14->setText(QString("флаг прерывания от ") + QString(val & fl_REG_CFG_mode_rt_bc ? "ОУ" : "КШ"));
         ui->checkBoxEnaInt->setChecked(val & fl_REG_CFG_en_rt_bc_int);
 
         bool b = val & fl_REG_CFG_rtavsk_ena;
@@ -265,6 +269,7 @@ void Configuration::setRegVSK(int addr, word16_t val)
         break;
 
     case REG_VSK_tx_cntr:                  // 0x94 (0x25)
+        ui->lineEditTrCntr->setText(strval);
         break;
 
     case REG_VSK_rx_cntr:                  // 0x9C (0x27)
@@ -289,156 +294,135 @@ void Configuration::setRegVSK(int addr, word16_t val)
         ui->checkBoxResetFL->setChecked(val & fl_REG_CREG_com_res);
         ui->checkBoxResetFLT->setChecked(val & fl_REG_CREG_tx_res);
         ui->checkBoxResetFLR->setChecked(val & fl_REG_CREG_rx_res);
-        ui->checkBoxStartBC->setChecked(val & fl_REG_CREG_start_bc);   /// LLL Здесь, возможно, надо изменить иконку этого чекбокса
-    break;
-/*
-    case REG_VSK_cr_spi                0xA4 (0x29)
-    break;
+        ui->checkBoxStartBC->setChecked(val & fl_REG_CREG_start_bc);
+        /// LLL Здесь, возможно, надо изменить иконку этого чекбокса
+        if (val & fl_REG_CREG_start_bc)
+            ui->checkBoxStartBC->setIcon(iconRun);
+        break;
 
-    case REG_VSK_dr_spi_msw            0xA8 (0x2A)
-    break;
+    case REG_VSK_cr_spi:              //  0xA4 (0x29)
+    {
+        ui->comboBoxSPI1->setCurrentIndex( val & FL_REG_CR_SPI_spi_en);
+        int dep = 0;
+        if ((val & FL_REG_CR_SPI_dr8_16_32) == val_REG_CR_SPI_dr_DEP16)
+            dep = 1;
+        else if ((val & FL_REG_CR_SPI_dr8_16_32) == val_REG_CR_SPI_dr_DEP32)
+            dep = 2;
+        ui->comboBoxSPI2->setCurrentIndex(dep);
+        ui->checkBoxSPI->setChecked(val & fl_REG_CR_SPI_spif);
+    }
+        break;
 
-    case REG_VSK_dr_spi_lsw            0xAC (0x2B)
-    break;
+    case REG_VSK_dr_spi_msw:          //  0xA8 (0x2A)
+        ui->lineEditSPIh->setText(strval);
+        break;
 
-    case REG_VSK_time_rsp              0xB4 (0x2D)
-    break;
+    case REG_VSK_dr_spi_lsw:          //  0xAC (0x2B)
+        ui->lineEditSPIl->setText(strval);
+        break;
 
-    case REG_VSK_cnt_pct_tx_msw        0xB8 (0x2E)
-    break;
+    case REG_VSK_time_rsp:            //  0xB4 (0x2D)
+        ui->lineEditTime->setText(strval);
+        break;
 
-    case REG_VSK_cnt_pct_tx_lsw        0xBC (0x2F)
-    break;
+    case REG_VSK_cnt_pct_tx_msw:      //  0xB8 (0x2E)
+        ui->lineEditCntTrh->setText(strval);
+        break;
 
-    case REG_VSK_cnt_pct_rx_msw        0xC0 (0x30)
-    break;
+    case REG_VSK_cnt_pct_tx_lsw:      //  0xBC (0x2F)
+        ui->lineEditCntTrl->setText(strval);
+        break;
 
-    case REG_VSK_cnt_pct_rx_lsw        0xC4 (0x31)
-    break;
+    case REG_VSK_cnt_pct_rx_msw:      //  0xC0 (0x30)
+        ui->lineEditCntReh->setText(strval);
+        break;
 
-    case REG_VSK_lvl_sync_kf_rx_msw    0xC8 (0x32)  // чтение/запись
-    case REG_VSK_prcs_max_sync_msw     0xC8   // только чтение
+    case REG_VSK_cnt_pct_rx_lsw:      //  0xC4 (0x31)
+        ui->lineEditCntRel->setText(strval);
+        break;
 
-    case REG_VSK_lvl_sync_kf_rx_lsw    0xCC  (0x33) // чтение/запись
-    case REG_VSK_prcs_max_sync_lsw     0xCC   // только чтение
+    case REG_VSK_lvl_sync_kf_rx_msw:  //  0xC8 (0x32)
+        ui->lineEdit_12->setText(strval);
+        break;
 
-    case REG_VSK_lvl_sync_pre_rx_msw   0xD0  (0x34) // чтение/запись
-    case REG_VSK_prs_level_max_rn_msw  0xD0   // только чтение
+    case REG_VSK_lvl_sync_kf_rx_lsw:  //  0xCC  (0x33) // чтение/запись
+        ui->lineEdit_9->setText(strval);
+        break;
 
-    case REG_VSK_lvl_sync_pre_rx_lsw   0xD4  (0x35) // чтение/запись
-    case REG_VSK_prs_level_max_rn_lsw  0xD4   // только чтение
+    case REG_VSK_lvl_sync_pre_rx_msw: //  0xD0  (0x34) // чтение/запись
+        ui->lineEdit_11->setText(strval);
+        break;
 
-    break;
+    case REG_VSK_lvl_sync_pre_rx_lsw: //  0xD4  (0x35) // чтение/запись
+        ui->lineEdit_10->setText(strval);
+        break;
 
-    case REG_VSK_lvl_qam16             0xD8 (0x36)
-    break;
+    case REG_VSK_lvl_qam16:           //  0xD8 (0x36)
+        ui->lineEditQ16->setText(strval);
+        break;
 
-    case REG_VSK_lvl_qam64_low         0xDC
-    break;
+    case REG_VSK_lvl_qam64_low:       //  0xDC
+        ui->lineEditQ64l->setText(strval);
+        break;
 
-    case REG_VSK_lvl_qam64_middle       0xE0
-    break;
+    case REG_VSK_lvl_qam64_middle:    //   0xE0
+        ui->lineEditQ64m->setText(strval);
+        break;
 
-    case REG_VSK_lvl_qam64_high        0xE4
-    case REG_VSK_amplification_factor  0xE8
-    case REG_VSK_amplitude_signal      0xEC   // только чтение
-    case REG_VSK_g_sp                  0xF0
-    case REG_VSK_g_1_sp_high           0xF4
-    case REG_VSK_g_1_sp_low            0xF8
-    case REG_VSK_pll_reg               0xFC*/
-        default:                                     // 0x84, 0x98, 0xB0
-            break;
+    case REG_VSK_lvl_qam64_high:      //  0xE4
+        ui->lineEditQ64h->setText(strval);
+        break;
+
+    case REG_VSK_amplification_factor: // 0xE8
+        qDebug() << "таблица amplification_factor ещё не готова";
+        /// LLL !!! эта таблица ещё не готова
+        break;
+
+    case REG_VSK_amplitude_signal:    //  0xEC   // только чтение
+        ui->lineEditAmplitude->setText(strval);
+        break;
+
+    case REG_VSK_g_sp:                //  0xF0
+        ui->lineEdit_g_sp->setText(strval);
+        break;
+
+    case REG_VSK_g_1_sp_high:         //  0xF4
+        ui->lineEdit_g1_sph->setText(strval);
+        break;
+
+    case REG_VSK_g_1_sp_low:          //  0xF8
+        ui->lineEdit_g1_spl->setText(strval);
+        break;
+
+    case REG_VSK_pll_reg:             //  0xFC*
+        qDebug() << "заполнение таблицы PLL ещё не готово";
+        /// LLL !!! эта таблица ещё не готова
+        break;
+
+    default:                          // 0x84, 0x98, 0xB0
+        break;
     }
 }
 
 /// Эта функция инициализирует все признаки и пересчитывает заполнение всех окон, относящихся
 ///  к данному регистру, учитывая зависимости от других регистров.
-void Configuration::updateRegVSK(int num_reg, char *values)
+void Configuration::updateRegVSK(int num_reg, word16_t regval)
 {
     int addr = REGVSKADDRFROM + num_reg*4;
-    QString value = (QString("%1").arg(memToWord16(values, addr), 4, 16, QChar('0'))).toUpper();
-    setRegVSK(addr, memToWord16(values, addr));
 
-    switch (addr)
+    QString value = (QString("%1").arg(regval, 4, 16, QChar('0'))).toUpper();
+    adaptRegVSK(addr, regval, value);
+
+    if (!regVSKRes[num_reg])
     {
-    case REG_VSK_ram_tx_rx:           // 0x80 (0x20)
-    case REG_VSK_id:                  // 0x88 (0x22)
-    case REG_VSK_status:              // 0x8C (0x23)
-    case REG_VSK_cfg:                 // 0x90 (0x24)
-    case REG_VSK_tx_cntr:             // 0x94 (0x25)
-    case REG_VSK_rx_cntr:             // 0x9C (0x27)
-    case REG_VSK_creg:                //  0xA0 (0x28)
-        break;
-/*
-    case REG_VSK_cr_spi                0xA4 (0x29)
-    break;
-
-    case REG_VSK_dr_spi_msw            0xA8 (0x2A)
-    break;
-
-    case REG_VSK_dr_spi_lsw            0xAC (0x2B)
-    break;
-
-    case REG_VSK_time_rsp              0xB4 (0x2D)
-    break;
-
-    case REG_VSK_cnt_pct_tx_msw        0xB8 (0x2E)
-    break;
-
-    case REG_VSK_cnt_pct_tx_lsw        0xBC (0x2F)
-    break;
-
-    case REG_VSK_cnt_pct_rx_msw        0xC0 (0x30)
-    break;
-
-    case REG_VSK_cnt_pct_rx_lsw        0xC4 (0x31)
-    break;
-
-    case REG_VSK_lvl_sync_kf_rx_msw    0xC8 (0x32)  // чтение/запись
-    case REG_VSK_prcs_max_sync_msw     0xC8   // только чтение
-
-    case REG_VSK_lvl_sync_kf_rx_lsw    0xCC  (0x33) // чтение/запись
-    case REG_VSK_prcs_max_sync_lsw     0xCC   // только чтение
-
-    case REG_VSK_lvl_sync_pre_rx_msw   0xD0  (0x34) // чтение/запись
-    case REG_VSK_prs_level_max_rn_msw  0xD0   // только чтение
-
-    case REG_VSK_lvl_sync_pre_rx_lsw   0xD4  (0x35) // чтение/запись
-    case REG_VSK_prs_level_max_rn_lsw  0xD4   // только чтение
-
-    break;
-
-    case REG_VSK_lvl_qam16             0xD8 (0x36)
-    break;
-
-    case REG_VSK_lvl_qam64_low         0xDC
-    break;
-
-    case REG_VSK_lvl_qam64_middle       0xE0
-    break;
-
-    case REG_VSK_lvl_qam64_high        0xE4
-    case REG_VSK_amplification_factor  0xE8
-    case REG_VSK_amplitude_signal      0xEC   // только чтение
-    case REG_VSK_g_sp                  0xF0
-    case REG_VSK_g_1_sp_high           0xF4
-    case REG_VSK_g_1_sp_low            0xF8
-    case REG_VSK_pll_reg               0xFC*/
-        default:                                     // 0x84, 0x98, 0xB0
-            regVSKEd[num_reg] = false;
-            break;
-    }
-    if (regVSKEd[num_reg])
-    {
-        QTableWidgetItem *pItem = ui->tableWidgetVSK->item(num_reg, REG_COL_NUM::rcn_Val);
-        pItem->setText(value);
-        pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
+        ui->tableWidgetVSK->item(num_reg, REG_COL_NUM::rcn_Val)->setText(value);
+//        ui->tableWidgetVSK->item(num_reg, REG_COL_NUM::rcn_Name_Check)->setCheckState(Qt::Checked);
     }
 }
 
 //////////////////////////////////////////////////////////
 /// СЛОТЫ
-
+/*
 void Configuration::onEditRegVSK(int row, int col)
 {
     if (col == REG_COL_NUM::rcn_Val)
@@ -447,21 +431,15 @@ void Configuration::onEditRegVSK(int row, int col)
         if (curItem)
         {
             qDebug() << "onEditRegVSK";
+            return;
             VSKRegView reg(this);
             int row = curItem->row();
-            reg.configRegView(/*regVSKType[row],*/ registerVSKInfo_read_only(row));
+            reg.configRegView(registerVSKInfo_read_only(row));
             reg.exec();
         }
     }
 }
-
-void Configuration::onEditRegNSK(int row, int col)
-{
-    if (col == REG_COL_NUM::rcn_Val)
-    {
-    qDebug() << "onEditRegNSK";
-    }
-}
+*/
 
 void Configuration::onEditRegVSK(QPoint point)
 {
@@ -472,6 +450,7 @@ void Configuration::onEditRegVSK(QPoint point)
         if (curItem)
         {
             qDebug() << "onEditRegVSK";
+            return;
             VSKRegView reg(this);
             int row = curItem->row();
             reg.configRegView(/*regVSKType[row],*/ registerVSKInfo_read_only(row));
@@ -501,14 +480,49 @@ void Configuration::onChangeTab(int num)
     ui->checkBoxSelectVSK->setEnabled(num == 1);
 }
 
-void Configuration::onPushSave()
+bool Configuration::onPushSave()
 {
+    QString fileName = QFileDialog::getSaveFileName(this,
+        tr("Сохранить в файл"), "", tr("Файлы конфигурации (*.cfg)\nВсе файлы (*.*)"));
 
+    if (fileName == "")
+        return false;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
+
+    QTextStream out(&file);
+
+    for (int i = 0; i < NUMOFREGNSK; i++)
+    {
+        if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::PartiallyChecked)
+        {
+            QString str = ui->tableWidgetNSK->item(i, rcn_Val)->text();
+            if (!str.isEmpty())
+                out << str;
+        }
+        out << "\n";
+    }
+    for (int i = 0; i < NUMOFREGVSK; i++)
+    {
+        if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::PartiallyChecked)
+        {
+            QString str = ui->tableWidgetVSK->item(i, rcn_Val)->text();
+            if (!str.isEmpty())
+                out << str;
+        }
+        out << "\n";
+    }
+
+    file.close();
+    return true;
 }
 
 void Configuration::onPushChoose()
 {
-
+    ConfSelect cs;
+    cs.exec();
 }
 
 void Configuration::onPushWrite()
@@ -610,12 +624,7 @@ bool Configuration::setRegVal(addr_t addr, word16_t val, bool force)
     {
         QTableWidgetItem *pItem = ui->tableWidgetNSK->item(addr/4, rcn_Val);
         if (pItem == NULL)
-        {
-            pItem = new QTableWidgetItem();
-            if (pItem == NULL)
                 return bRet;
-            ui->tableWidgetNSK->setItem(addr/4, rcn_Val, pItem);
-        }
         QString value = QString("%1").arg(val, 4, 16, QChar('0'));
         pItem->setText(value.toUpper());
         return true;
@@ -625,49 +634,46 @@ bool Configuration::setRegVal(addr_t addr, word16_t val, bool force)
         int row = (addr-REG_VSK_pll_reg)/4;
         QTableWidgetItem *pItem = ui->tableWidgetVSK->item(row, rcn_Val);
         if (pItem == NULL)
-        {
-            pItem = new QTableWidgetItem();
-            if (pItem == NULL)
                 return bRet;
-            ui->tableWidgetVSK->setItem(row, rcn_Val, pItem);
-        }
-        QString value = QString("%1").arg(val, 4, 16, QChar('0'));
-        pItem->setText(value.toUpper());
-        return true;
+        QString value = QString("%1").arg(val, 4, 16, QChar('0')).toUpper();
+        pItem->setText(value);
+        ui->tableWidgetVSK->item(row, rcn_Name_Check)->setCheckState(Qt::Checked);
         if (!force)
-        {
-            setRegVSK(row, val);
-            regVSKChecked[row] = true;
-        }
+            adaptRegVSK(row, val, value);
+        return true;
     }
     return bRet;
 }
 
 bool Configuration::update(void* reg)
 {
+    /// НСК
     char *ptr = (char*)reg;
-    ptr += REGVSKADDRFROM;
+    ui->tableWidgetNSK->blockSignals(true);
     for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
     {
-        regVSKEd[row] = true;
+        ui->tableWidgetNSK->item(row, REG_COL_NUM::rcn_Val)->
+                setText((QString("%1").arg(memToWord16(ptr, row*4), 4, 16, QChar('0'))).toUpper());
+        ui->tableWidgetNSK->item(row, REG_COL_NUM::rcn_Name_Check)->setCheckState(Qt::Checked);
+/*        QString value = QString("%1").arg(memToWord16(ptr, row*4), 4, 16, QChar('0'));
+        QTableWidgetItem *pItem = ui->tableWidgetNSK->item(row, REG_COL_NUM::rcn_Val);
+        pItem->setText(value.toUpper());*/
+    }
+    ui->tableWidgetNSK->blockSignals(false);
+
+    /// ВСК
+    for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
+    {
         regVSKRO[row] = false;
         regVSKUse[row] = regVSKUseGlobal[row];
-        //regVSKChecked[row] = false;
     }
     regVSKRO[2] = regVSKRO[3] = regVSKRO[27] = true;
 
     ui->tableWidgetVSK->blockSignals(true);
 
     for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
-    {
-        updateRegVSK(row, (char*)reg);
-        continue;
-        QString value = QString("%1").arg(memToWord16(ptr, row*4), 4, 16, QChar('0'));
-        QTableWidgetItem *pItem = ui->tableWidgetVSK->item(row, REG_COL_NUM::rcn_Val);
-        pItem->setText(value.toUpper());
-/// ...
+        updateRegVSK(row, memToWord16((char*)reg, REGVSKADDRFROM + row*4));
 
-    }
     ui->tableWidgetVSK->blockSignals(false);
 
     return true;
@@ -734,6 +740,11 @@ CONFIG_DEFAULT_TYPE parsConfigKey(QString name, word16_t& param)
     if (list[0] == "STD0")  // шаблон  "STD0_BC_NO_QPSK_CODEC_EN2"
     {
         if (matchSTD0(list, param))
+            return cdt_Default_S;
+    }
+    else if (list[0] == "STDU")
+    {
+        if (matchSTD0(list, param))
             return cdt_Default;
     }
     /// могут быть другие шаблоны
@@ -741,9 +752,10 @@ CONFIG_DEFAULT_TYPE parsConfigKey(QString name, word16_t& param)
     return ret;
 }
 
-bool Configuration::setConfigDefault0(word16_t reg_config)
+bool Configuration::setConfigDefault0(word16_t reg_config, bool all)
 {
     setRegVal(REG_VSK_cfg, reg_config);
+    qDebug() << "setRegVal";
     setRegVal(REG_VSK_creg, REG_VSK_creg_INIT_RESET);
     setRegVal(REG_VSK_time_rsp, REG_VSK_time_rsp_INIT_DEFAULT);
 
@@ -753,9 +765,9 @@ bool Configuration::setConfigDefault0(word16_t reg_config)
     setRegVal(REG_VSK_lvl_sync_pre_rx_lsw, REG_VSK_lvl_sync_pre_rx_lsw_INIT_DEFAULT);
 
     int man_type = reg_config & FL_REG_CFG_type_man;
-    if (man_type == val_REG_CFG_type_man_QAM16)
+    if (all || man_type == val_REG_CFG_type_man_QAM16)
         setRegVal(REG_VSK_lvl_qam16, REG_VSK_lvl_qam16_INIT_DEFAULT);
-    if (man_type == val_REG_CFG_type_man_QAM64)
+    if (all || man_type == val_REG_CFG_type_man_QAM64)
     {
         setRegVal(REG_VSK_lvl_qam64_low, REG_VSK_lvl_qam64_low_INIT_DEFAULT);
         setRegVal(REG_VSK_lvl_qam64_middle, REG_VSK_lvl_qam64_midle_INIT_DEFAULT);
@@ -769,7 +781,9 @@ bool Configuration::initDefault(CONFIG_DEFAULT_TYPE key, word16_t param)
     switch (key)
     {
     case cdt_Default:
-        return setConfigDefault0(param);
+        return setConfigDefault0(param, true);
+    case cdt_Default_S:
+        return setConfigDefault0(param, false);
     }
     return false;
 }
@@ -791,26 +805,37 @@ bool Configuration::initFrom(QString name)
     return initFromFile(name);
 }
 
-
 word16_t memToWord16(char *buf, int addr) { return 0xFFFF; }// *(buf+addr) //num_reg+0xAA0;}
-void ReadFormat1(char *mem_dst, addr_t mem_src, int num_byte) {}
+//void ReadFormat1(char *mem_dst, addr_t mem_src, int num_byte) {}
 
-void Configuration::onCellChangedVSK(int row, int col)
+void onCellChange(CTableEditCol *tab, QCheckBox *box, int row, int col)
 {
    if (col == rcn_Name_Check)
    {
-       ui->checkBoxSelectVSK->blockSignals(true);
-       ui->checkBoxSelectVSK->setCheckState(Qt::PartiallyChecked);
-       ui->checkBoxSelectVSK->blockSignals(false);
+       box->blockSignals(true);
+       box->setCheckState(Qt::PartiallyChecked);
+       box->blockSignals(false);
    }
+   else if (col == rcn_Val)
+   {
+       tab->blockSignals(true);
+       tab->item(row, rcn_Name_Check)->setCheckState(Qt::Checked);
+       tab->blockSignals(false);
+       if (box->checkState() == Qt::Unchecked)
+       {
+           box->blockSignals(true);
+           box->setCheckState(Qt::PartiallyChecked);
+           box->blockSignals(false);
+       }
+   }
+}
+
+void Configuration::onCellChangedVSK(int row, int col)
+{
+    onCellChange(ui->tableWidgetVSK, ui->checkBoxSelectVSK, row, col);
 }
 
 void Configuration::onCellChangedNSK(int row, int col)
 {
-   if (col == rcn_Name_Check)
-   {
-       ui->checkBoxSelectNSK->blockSignals(true);
-       ui->checkBoxSelectNSK->setCheckState(Qt::PartiallyChecked);
-       ui->checkBoxSelectNSK->blockSignals(false);
-   }
+    onCellChange(ui->tableWidgetNSK, ui->checkBoxSelectNSK, row, col);
 }

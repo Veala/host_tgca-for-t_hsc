@@ -65,13 +65,6 @@ void Device::connectTry(bool b)
     rw_socket.connectToHost(QHostAddress(connection.getServerIP()), connection.getServerPORT().toUShort());
     if (!rw_socket.waitForConnected(5000))
         return;
-
-    short cmd = 5;  short dsz = 4;
-    char data[8];   char name[] = "Igor";
-    strncpy(data, (char*)&cmd, 2);
-    strncpy(&data[2], (char*)&dsz, 2);
-    strncpy(&data[4], name, 4);
-    rw_socket.write(data,8);
 }
 
 void Device::disconnectTry(bool b)

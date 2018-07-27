@@ -4,15 +4,10 @@
 #include <QDialog>
 #include <QLabel>
 #include <QLineEdit>
+#include <QIcon>
 
 #include "extern_hsc.h"
-
-#define NUMOFREGVSK    32
-#define REGVSKADDRFROM 0x80
-
-#define NUMOFREGNSK    32
-#define REGNSKADDRFROM 0x00
-
+#include "registers.h"
 
 namespace Ui {
 class Configuration;
@@ -21,6 +16,7 @@ class Configuration;
 enum CONFIG_DEFAULT_TYPE
 {
     cdt_Default,
+    cdt_Default_S,
     cdt_Error
 };
 
@@ -49,23 +45,23 @@ private:
 //    char imprintRegVSK[NUMOFREGVSK * SIZEOFWORD];
 //    char imprintRegNSK[NUMOFREGNSK * SIZEOFWORD];
 
-    bool regVSKUse[NUMOFREGVSK] ;
-    bool regVSKEd[NUMOFREGVSK];
+    bool regVSKUse[NUMOFREGVSK];
     bool regVSKRO[NUMOFREGVSK];
-    bool regVSKChecked[NUMOFREGVSK];
+    //bool regVSKChecked[NUMOFREGVSK];
+    bool regVSKRes[NUMOFREGVSK];
 
     void initVSK();
     void initNSK();
-    void updateRegVSK(int num_reg, char *values);
+    void updateRegVSK(int num_reg, word16_t val);
     bool initDefault(CONFIG_DEFAULT_TYPE key, word16_t param);
-    bool setConfigDefault0(word16_t reg_config);
+    bool setConfigDefault0(word16_t reg_config, bool all);
     /// Функции получения значения регистра из формы
     /// и записи значения регистра в форму с пересчетом всех затронутых полей.
     /// Входной параметр addr - адрес регистра ВСК или регистра НСК, как в файле registers.h.
     /// Пока реализовано только для ВСК.
     word16_t getRegVal(addr_t addr) const;
     bool setRegVal(addr_t addr, word16_t val, bool force = false);
-    void setRegVSK(int num_reg, word16_t val);
+    void adaptRegVSK(int num_reg, word16_t val, QString strval);
 
     bool registerNSKInfo_read_only(int num_reg) const;
     bool registerVSKInfo_read_only(int num_reg) const;
@@ -75,13 +71,13 @@ private:
     void switchRegisterAsgmt(int num_reg, QLabel *labelHeader, QLabel *labelTextL, QLabel *labelTextH,
              QLineEdit *lineL, QLineEdit *lineH, QLabel *labelInd, QString* description, QString* name, int num);
 
+    QIcon iconRun;
+
 private slots:
-    void onEditRegVSK(int,int);
-    void onEditRegNSK(int,int);
     void onEditRegVSK(QPoint);
     void onEditRegNSK(QPoint);
     void onChangeTab(int);
-    void onPushSave();
+    bool onPushSave();
     void onPushChoose();
     void onPushWrite();
     void onPushRead();

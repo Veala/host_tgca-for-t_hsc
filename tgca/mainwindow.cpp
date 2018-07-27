@@ -56,12 +56,14 @@ void MainWindow::onAbout()
 static bool setupConnection(Device *device, QString ip, QString port, QString hostIp, QString hodtPort)
 {
     qDebug() << "Функция setupConnection() не реализована !!!";
+    ///  LLL
     return false;
 }
 
 static bool configurateDevice(Device *device)
 {
     qDebug() << "Функция configurateDevice() не реализована !!!";
+    /// Здесь надо установить соединение и потом записать регистры LLL
     return false;
 }
 
@@ -82,8 +84,8 @@ bool MainWindow::loadProject(QSettings& settings)
         {
             Device *device = new Device(0, name);
             ui->devices->addWidget(device);
-            if (setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
-                            settings.value("host IP").toString(), settings.value("host port").toString()) &&
+            if (/*setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
+                            settings.value("host IP").toString(), settings.value("host port").toString()) &&*/
             device->configuration.initFrom(settings.value("configuration").toString()) &&
             settings.value("autoload").toString() == "1")
                 configurateDevice(device);
@@ -163,6 +165,17 @@ void MainWindow::onMenuDevices(QPoint point)
     QMenu menu;
     QAction *act = menu.addAction(tr("Добавить устройство"));
     connect(act, SIGNAL(triggered()), this, SLOT(addDevice()));
+
+    menu.exec(ui->labeDevicesTitle->mapToGlobal(point));
+}
+
+void MainWindow::onMenuTests(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Добавить новый тест"));
+    connect(act, SIGNAL(triggered()), this, SLOT(createTest()));
+    act = menu.addAction(tr("Добавить существующий тест"));
+    connect(act, SIGNAL(triggered()), this, SLOT(loadTest()));
 
     menu.exec(ui->labeDevicesTitle->mapToGlobal(point));
 }

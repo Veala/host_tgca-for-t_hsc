@@ -29,6 +29,9 @@
           <bold>true</bold>
          </font>
         </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="text">
          <string>Устройства</string>
         </property>
@@ -58,12 +61,15 @@
     <item>
      <layout class="QVBoxLayout" name="testLayout">
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="labelTestsTitle">
         <property name="font">
          <font>
           <weight>75</weight>
           <bold>true</bold>
          </font>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
         </property>
         <property name="text">
          <string>Тесты</string>
@@ -635,6 +641,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>labelTestsTitle</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onMenuTests(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>191</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>129</x>
+     <y>238</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <signal>runPressed()</signal>
@@ -653,5 +675,6 @@
   <slot>loadTest()</slot>
   <slot>onStop()</slot>
   <slot>onPause()</slot>
+  <slot>onMenuTests(QPoint)</slot>
  </slots>
 </ui>

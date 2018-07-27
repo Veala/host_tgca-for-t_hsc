@@ -63,6 +63,7 @@ private slots:
     void onPrintRep();
     void onCreateRep();
     void onMenuDevices(QPoint);
+    void onMenuTests(QPoint);
     void actDevMode();
 
 };

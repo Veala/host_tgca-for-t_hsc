@@ -24,5 +24,7 @@
         <file>../pictogram/printer_5065.png</file>
         <file>../pictogram/report_9058.png</file>
         <file>../pictogram/shield_red_2348.png</file>
+        <file>../pictogram/close_5496.png</file>
+        <file>../pictogram/package-installed-updated_5020.png</file>
     </qresource>
 </RCC>

@@ -12,6 +12,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QtUiTools>
+#include <QFormBuilder>
 #include <QtNetwork>
 #include "device.h"
 
@@ -22,10 +23,8 @@ class AbstractTest : public QFrame
 signals:
 
 public:
-    explicit AbstractTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL);
+    explicit AbstractTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
     virtual ~AbstractTest();
-    virtual void startTest() = 0;
-    void setEnabled(bool en);
 
 protected:
     void mousePressEvent(QMouseEvent *);
@@ -39,7 +38,9 @@ protected:
 protected slots:
     void showSettings(bool);
     void deleteProc(bool);
-    void save(bool);
+    virtual void save(bool) = 0;
+    void createCopy(bool);
+    virtual void startTest(bool) = 0;
 
 private:
     QMenu menu;
@@ -49,33 +50,32 @@ private:
 class MemTest : public AbstractTest
 {
     Q_OBJECT
-
 public:
-    explicit MemTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL);
-    virtual void startTest();
-
-private:
-    QComboBox modeBox;
-    QLineEdit startAddr;
-    QLineEdit endAddr;
-    QSpinBox addrInc;
-    QLineEdit startData;
-    QSpinBox dataInc;
-    QComboBox inverse;
-    QSpinBox iteration;
-    QComboBox output;
-    QLineEdit deviceName;
+    explicit MemTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+protected slots:
+    virtual void save(bool);
+    virtual void startTest(bool);
 };
 
 class RegTest : public AbstractTest
 {
     Q_OBJECT
-
 public:
-    explicit RegTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL);
-    virtual void startTest();
+    explicit RegTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+protected slots:
+    virtual void save(bool);
+    virtual void startTest(bool);
 };
 
+class EchoTest : public AbstractTest
+{
+    Q_OBJECT
+public:
+    explicit EchoTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+protected slots:
+    virtual void save(bool);
+    virtual void startTest(bool);
+};
 
 namespace testLib {
 AbstractTest *createTest(QVBoxLayout* devices);

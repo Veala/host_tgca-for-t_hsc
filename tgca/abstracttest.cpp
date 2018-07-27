@@ -1,17 +1,24 @@
 #include "abstracttest.h"
 
-AbstractTest::AbstractTest(QWidget *parent, QDialog *d, QVBoxLayout *b) : QFrame(parent)
+AbstractTest::AbstractTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString str) : QFrame(parent)
 {
-    QAction *act = menu.addAction(tr("Настройки..."));
+    QAction *act;
+    act = menu.addAction(tr("Старт"));
+    connect(act, SIGNAL(triggered(bool)), this, SLOT(startTest(bool)));
+    act = menu.addAction(tr("Настройки..."));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showSettings(bool)));
+    act = menu.addAction(tr("Сохранить"));
+    connect(act, SIGNAL(triggered(bool)), this, SLOT(save(bool)));
+    act = menu.addAction(tr("Создать копию..."));
+    connect(act, SIGNAL(triggered(bool)), this, SLOT(createCopy(bool)));
     act = menu.addAction(tr("Удалить"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteProc(bool)));
 
     layout = new QHBoxLayout(this);
     name_enabled = new QCheckBox(tr("Тест"));
-    name_enabled->setLayoutDirection(Qt::RightToLeft);
+    //name_enabled->setLayoutDirection(Qt::RightToLeft);
     layout->addWidget(name_enabled);
-    fileName = new QLabel(tr(""));
+    fileName = new QLabel(str);
     layout->addWidget(fileName);
     layout->addSpacerItem(new QSpacerItem(10,10));
     status = new QLabel(tr("Статус"));
@@ -52,55 +59,69 @@ void AbstractTest::deleteProc(bool)
 
 void AbstractTest::save(bool)
 {
+    QFormBuilder builder;
+    QFile file(fileName->text());
+    file.open(QFile::ReadWrite);
+    builder.save(&file,settings);
+    file.close();
+}
+
+void AbstractTest::createCopy(bool)
+{
 
 }
 
-void AbstractTest::setEnabled(bool en)
+EchoTest::EchoTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString s) : AbstractTest(parent, d, b, s)
 {
-    //name_enabled->setEnabled(en);
+
 }
 
-MemTest::MemTest(QWidget *parent, QDialog *d, QVBoxLayout *b) : AbstractTest(parent, d, b)
+void EchoTest::save(bool)
 {
-//    name_enabled->setText(tr("Тест памяти"));
-//    settings->setWindowTitle(tr("Настройки"));
-//    QGridLayout* settingsLayout = new QGridLayout();
-//    settingsLayout->addWidget(new QLabel(tr("Режим:")), 0, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Начальный адрес:")), 1, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Конечный адрес:")), 2, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Приращение адреса:")), 3, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Начальные данные:")), 4, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Приращение данных:")), 5, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Инверсия:")), 6, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Итераций:")), 7, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Вывод:")), 8, 0);
-//    settingsLayout->addWidget(new QLabel(tr("Устройство:")), 9, 0);
 
-//    modeBox.addItem("r"); modeBox.addItem("w"); modeBox.addItem("wr");
-//    addrInc.setMinimum(0); addrInc.setMaximum(10000);
-//    dataInc.setMinimum(0); dataInc.setMaximum(10000);
-//    inverse.addItem("0"); inverse.addItem("1");
-//    iteration.setMinimum(0); iteration.setMaximum(100000);
-//    output.addItem("0"); output.addItem("1");
-
-//    settingsLayout->addWidget(&modeBox, 0, 1);
-//    settingsLayout->addWidget(&startAddr, 1, 1);
-//    settingsLayout->addWidget(&endAddr, 2, 1);
-//    settingsLayout->addWidget(&addrInc, 3, 1);
-//    settingsLayout->addWidget(&startData, 4, 1);
-//    settingsLayout->addWidget(&dataInc, 5, 1);
-//    settingsLayout->addWidget(&inverse, 6, 1);
-//    settingsLayout->addWidget(&iteration, 7, 1);
-//    settingsLayout->addWidget(&output, 8, 1);
-//    settingsLayout->addWidget(&deviceName, 9, 1);
-
-//    settings->setLayout(settingsLayout);
 }
 
-void MemTest::startTest()
+void EchoTest::startTest(bool b)
 {
-    QList<QWidget*> allDevWidgets = devices->findChildren<QWidget*>();
-    Device *dev = (Device *)allDevWidgets.at(0);
+    QList <Device*> devList;
+    for (int i=0; i<devices->count(); i++)
+        devList << (Device*)devices->itemAt(i)->widget();
+    Device* dev = devList.at(0);
+    QLineEdit *echo = settings->findChild<QLineEdit *>("echo");
+
+    int cmd = 5;  int dsz = echo->text().size()+1;
+    QByteArray data;
+    data.append((char*)&cmd,4);
+    data.append((char*)&dsz,4);
+    data.append(echo->text().toStdString().c_str(), dsz);
+    dev->rw_socket.write(data, dsz+8);
+
+    //qDebug() << "echo wrote: " << dev->rw_socket.write(data, dsz+8);
+
+}
+
+MemTest::MemTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString s) : AbstractTest(parent, d, b, s)
+{
+
+}
+
+void MemTest::save(bool)
+{
+
+}
+
+void MemTest::startTest(bool b)
+{
+    qDebug() << "strat test";
+    //QList<Device*> allDevWidgets = devices->findChildren<Device*>();
+    //qDebug() << allDevWidgets.count();
+    //Device *dev = allDevWidgets.at(0);
+    Device *dev = (Device*)devices->itemAt(0)->widget();
+
+    if (dev==NULL) {
+        qDebug() << "dev NULL";
+        return;
+    }
 
     QComboBox *mode = settings->findChild<QComboBox*>("mode");
     QLineEdit *startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -126,32 +147,57 @@ void MemTest::startTest()
     long it = 0, decrement = 0;
     if (inCycle == 0) { it=-1;  decrement=-1;   }
 
+    int cmd, dsz;
+
+    uint temp = (((range - addr + 1) / addrinc) * addrinc) + addr - 1 + 4;
+    if (temp <= range)   dsz = ((range - addr + 1) / addrinc + 1)*4;
+    else    dsz = ((range - addr + 1) / addrinc)*4;
+    qDebug() << "dsz: " << dsz;
+
+    QByteArray array;
+
     if (mode->currentText() == "w") {
-        ushort cmd = 1;
-        //ushort dsz = (range - addr) /
+        cmd = 1; dsz=dsz*2;
+        array.append((char*)&cmd, 4);
+        array.append((char*)&dsz, 4);
         for (; it<inCycle; it=it+1+decrement) {
-            ulong final;
-            //dev->rw_socket.write((char*))
-            for (ulong i=addr, j=data; i<range; i+=addrinc, j+=datainc) {
+            uint final;
+            for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
                 if (inverse) final = ~j;    else    final = j;
-
-                //memcpy(virtual_base + i + delta, (void*)&final, n);
+                array.append((char*)&i, 4);
+                array.append((char*)&final, 4);
             }
-
         }
+        qDebug() << "array size: " << array.size();
+        qDebug() << "wrote: " << dev->rw_socket.write(array, array.size());
     } else if (mode->currentText() == "r") {
-        //also_read();
+        cmd = 3;
+        for (; it<inCycle; it=it+1+decrement) {
+            dev->rw_socket.write((char*)&cmd, 4);
+            dev->rw_socket.write((char*)&dsz, 4);
+            for (uint i=addr; i+3<=range; i+=addrinc)
+                dev->rw_socket.write((char*)&i, 4);
+            for (uint i=addr; i+3<=range; i+=addrinc) {
+                dev->rw_socket.read((char*)&data, 4);
+                if (output) qDebug() << "Read: " << data;
+            }
+        }
     } else if (mode->currentText() == "wr") {
         //write_read();
     }
 }
 
-RegTest::RegTest(QWidget *parent, QDialog *d, QVBoxLayout *b) : AbstractTest(parent, d, b)
+RegTest::RegTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString s) : AbstractTest(parent, d, b, s)
 {
 
 }
 
-void RegTest::startTest()
+void RegTest::save(bool)
+{
+
+}
+
+void RegTest::startTest(bool b)
 {
 
 }
@@ -176,18 +222,21 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices)
 
 AbstractTest *testLib::loadTest(QString file, QVBoxLayout *devices)
 {
-    QUiLoader loader;
+    QFormBuilder loader;
     QFile uiFile(file);
     if (!uiFile.open(QFile::ReadOnly))
         return NULL;
     QDialog* settingsForm = (QDialog*)loader.load(&uiFile);
     QString test = settingsForm->property("TypeTest").toString();
+    settingsForm->setWindowTitle(QObject::tr("Настройки"));
 
     if (test == QObject::tr("Тест памяти")) {
-        return new MemTest(0, settingsForm, devices);
+        return new MemTest(0, settingsForm, devices, file);
     } else if (test == QObject::tr("Тест регистров")) {
-        return new RegTest(0, settingsForm, devices);
+        return new RegTest(0, settingsForm, devices, file);
     } else if (test == QObject::tr("Тест \"Эхо\"")) {
-
+        return new EchoTest(0, settingsForm, devices, file);
+    } else {
+        qDebug() << "unknown test";
     }
 }

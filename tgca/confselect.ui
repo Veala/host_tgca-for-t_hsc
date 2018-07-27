@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConfSelect</class>
+ <widget class="QDialog" name="ConfSelect">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>526</width>
+    <height>168</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>526</width>
+    <height>168</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>526</width>
+    <height>168</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>9</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Выбрать конфигурацию</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="tgca.qrc">
+    <normaloff>:/pictogram/folder_explore_2684.png</normaloff>:/pictogram/folder_explore_2684.png</iconset>
+  </property>
+  <widget class="QComboBox" name="comboBox">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>30</y>
+     <width>231</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>STD_BC_NOINT_QPSK_CODEC</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QRadioButton" name="radioButton">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>30</y>
+     <width>241</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="text">
+    <string>Выбрать стандартную конфигурацию</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <width>231</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Загрузить конфигурацию из файла</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>90</y>
+     <width>461</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_3">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>60</y>
+     <width>51</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>130</y>
+     <width>95</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Выбрать</string>
+   </property>
+   <property name="icon">
+    <iconset resource="tgca.qrc">
+     <normaloff>:/pictogram/package-installed-updated_5020.png</normaloff>:/pictogram/package-installed-updated_5020.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>130</y>
+     <width>101</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Отменить</string>
+   </property>
+   <property name="icon">
+    <iconset resource="tgca.qrc">
+     <normaloff>:/pictogram/close_5496.png</normaloff>:/pictogram/close_5496.png</iconset>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="tgca.qrc"/>
+ </resources>
+ <connections/>
+</ui>

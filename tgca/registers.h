@@ -18,6 +18,13 @@
 #ifndef REGISTERS_H
 #define REGISTERS_H
 
+#define NUMOFREGVSK    32
+#define REGVSKADDRFROM 0x80
+
+#define NUMOFREGNSK    32
+#define REGNSKADDRFROM 0x00
+
+
 ///  АДРЕСА РЕГИСТРОВ ВСК
 #define   REG_VSK_ram_tx_rx             0x80
 //                                         0x84

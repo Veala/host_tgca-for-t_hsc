@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>417</width>
+    <height>45</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Настройки</string>
+  </property>
+  <property name="TypeTest" stdset="0">
+   <string>Тест &quot;Эхо&quot;</string>
+  </property>
+  <property name="enabledTest" stdset="0">
+   <bool>true</bool>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>&quot;Эхо&quot;:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="echo">
+     <property name="text">
+      <string>Эхо</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
