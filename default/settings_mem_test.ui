@@ -13,12 +13,6 @@
   <property name="windowTitle">
    <string>Настройки</string>
   </property>
-  <property name="TypeTest" stdset="0">
-   <string>Тест памяти</string>
-  </property>
-  <property name="enabledTest" stdset="0">
-   <bool>true</bool>
-  </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
@@ -96,7 +90,7 @@
       <enum>Qt::LeftToRight</enum>
      </property>
      <property name="currentText">
-      <string>w</string>
+      <string>r</string>
      </property>
      <item>
       <property name="text">

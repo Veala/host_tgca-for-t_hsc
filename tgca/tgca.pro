@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network
 TARGET = tgca
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         mainwindow.cpp \
     configuration.cpp \
@@ -37,9 +36,10 @@ FORMS    += mainwindow.ui \
     vskregview.ui \
     device.ui \
     connection.ui \
-    settings_mem_test.ui \
-    settings_echo_test.ui \
+    ../default/settings_mem_test.ui \
+    ../default/settings_echo_test.ui \
     confselect.ui
+
 
 RESOURCES += \
     tgca.qrc

@@ -1,6 +1,6 @@
 #include "abstracttest.h"
 
-AbstractTest::AbstractTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString str) : QFrame(parent)
+AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
 {
     QAction *act;
     act = menu.addAction(tr("Старт"));
@@ -18,17 +18,11 @@ AbstractTest::AbstractTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString 
     name_enabled = new QCheckBox(tr("Тест"));
     //name_enabled->setLayoutDirection(Qt::RightToLeft);
     layout->addWidget(name_enabled);
-    fileName = new QLabel(str);
+    fileName = new QLabel(tr(""));
     layout->addWidget(fileName);
     layout->addSpacerItem(new QSpacerItem(10,10));
     status = new QLabel(tr("Статус"));
     layout->addWidget(status);
-
-    settings=d;
-    name_enabled->setChecked(settings->property("enabledTest").toBool());
-    name_enabled->setText(settings->property("TypeTest").toString());
-
-    devices=b;
 
     setFrameStyle(QFrame::Box);
 }
@@ -47,6 +41,16 @@ void AbstractTest::mousePressEvent(QMouseEvent *event)
     }
 }
 
+void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName)
+{
+    devices=b;
+    settings=d;
+    settings->setWindowTitle(QObject::tr("Настройки"));
+    name_enabled->setChecked(ch);
+    name_enabled->setText(tType);
+    fileName->setText(fName);
+}
+
 void AbstractTest::showSettings(bool)
 {
     settings->exec();
@@ -57,27 +61,19 @@ void AbstractTest::deleteProc(bool)
     deleteLater();
 }
 
-void AbstractTest::save(bool)
-{
-    QFormBuilder builder;
-    QFile file(fileName->text());
-    file.open(QFile::ReadWrite);
-    builder.save(&file,settings);
-    file.close();
-}
-
 void AbstractTest::createCopy(bool)
 {
 
 }
 
-EchoTest::EchoTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString s) : AbstractTest(parent, d, b, s)
+EchoTest::EchoTest(QWidget *parent) : AbstractTest(parent)
 {
 
 }
 
 void EchoTest::save(bool)
 {
+
 
 }
 
@@ -100,7 +96,7 @@ void EchoTest::startTest(bool b)
 
 }
 
-MemTest::MemTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString s) : AbstractTest(parent, d, b, s)
+MemTest::MemTest(QWidget *parent) : AbstractTest(parent)
 {
 
 }
@@ -187,7 +183,7 @@ void MemTest::startTest(bool b)
     }
 }
 
-RegTest::RegTest(QWidget *parent, QDialog *d, QVBoxLayout *b, QString s) : AbstractTest(parent, d, b, s)
+RegTest::RegTest(QWidget *parent) : AbstractTest(parent)
 {
 
 }
@@ -208,28 +204,44 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices)
     allTests << QObject::tr("Тест \"Эхо\"") << QObject::tr("Тест памяти") << QObject::tr("Тест регистров");
 
     bool ok;
-    QString test = QInputDialog::getItem(0, QObject::tr("Создать тест"), QObject::tr("Тесты:"), allTests, 0, false, &ok);
-    if (!(ok && !test.isEmpty())) return NULL;
+    QString testType = QInputDialog::getItem(0, QObject::tr("Создать тест"), QObject::tr("Тесты:"), allTests, 0, false, &ok);
+    if (!(ok && !testType.isEmpty()))
+        return NULL;
 
-    if (test == QObject::tr("Тест памяти")) {
-        return new MemTest();
-    } else if (test == QObject::tr("Тест регистров")) {
-        return new RegTest();
-    } else if (test == QObject::tr("Тест \"Эхо\"")) {
+    QString newFileStr = QFileDialog::getSaveFileName(0, tr("Введите имя файла"), tr(""), tr("tgca_c file (*.tgca_c)"));
+    if (newFileStr.isEmpty())
+        return NULL;
 
+    QString defFileStr;
+    if (testType == QObject::tr("Тест памяти")) {
+        defFileStr = tr("../default/mem_test.tgca_t");
+    } else if (testType == QObject::tr("Тест регистров")) {
+        defFileStr = tr("../default/reg_test.tgca_t");
+    } else if (testType == QObject::tr("Тест \"Эхо\"")) {
+        defFileStr = tr("../default/echo_test.tgca_t");
     }
+
+    if(!QFile::copy(defFileStr,newFileStr))
+        return NULL;
+
+    return loadTest(newFileStr, devices);
 }
 
 AbstractTest *testLib::loadTest(QString file, QVBoxLayout *devices)
 {
-    QFormBuilder loader;
-    QFile uiFile(file);
-    if (!uiFile.open(QFile::ReadOnly))
+    QFile txtFile(file);
+    if (!txtFile.open(QFile::ReadOnly))
         return NULL;
+
+    QTextStream out(txtFile);
+    QString testType = out.readLine();
+    bool ch = out.readLine().toUShort();
+
+    QUiLoader loader;
     QDialog* settingsForm = (QDialog*)loader.load(&uiFile);
     QString test = settingsForm->property("TypeTest").toString();
-    settingsForm->setWindowTitle(QObject::tr("Настройки"));
 
+    txtFile.close();
     if (test == QObject::tr("Тест памяти")) {
         return new MemTest(0, settingsForm, devices, file);
     } else if (test == QObject::tr("Тест регистров")) {
@@ -239,4 +251,38 @@ AbstractTest *testLib::loadTest(QString file, QVBoxLayout *devices)
     } else {
         qDebug() << "unknown test";
     }
+
+
+
+
+//    QString uiFileStr;
+//    QString defFileStr;
+//    AbstractTest* test;
+//    if (testType == QObject::tr("Тест памяти")) {
+//        defFileStr = tr("../default/mem_test.tgca_t");
+//        uiFileStr = tr("../default/settings_mem_test.ui");
+//        test = new MemTest(0);
+//    } else if (testType == QObject::tr("Тест регистров")) {
+//        defFileStr = tr("../default/reg_test.tgca_t");
+//        uiFileStr = tr("../default/settings_reg_test.ui");
+//        test = new RegTest(0);
+//    } else if (testType == QObject::tr("Тест \"Эхо\"")) {
+//        defFileStr = tr("../default/echo_test.tgca_t");
+//        uiFileStr = tr("../default/settings_echo_test.ui");
+//        test = new EchoTest(0);
+//    }
+
+//    if(!QFile::copy(defFileStr,newFileStr))
+//        return NULL;
+
+//    QUiLoader loader;
+//    QFile uiFile(uiFileStr);
+//    if (!uiFile.open(QFile::ReadOnly))
+//        return NULL;
+//    QDialog* settingsForm = (QDialog*)loader.load(&uiFile);
+//    uiFile.close();
+
+//    test->setSettings(devices, settingsForm, );
+//    return test;
+
 }

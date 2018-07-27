@@ -13,12 +13,6 @@
   <property name="windowTitle">
    <string>Настройки</string>
   </property>
-  <property name="TypeTest" stdset="0">
-   <string>Тест &quot;Эхо&quot;</string>
-  </property>
-  <property name="enabledTest" stdset="0">
-   <bool>true</bool>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <widget class="QLabel" name="label">

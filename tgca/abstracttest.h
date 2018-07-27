@@ -23,8 +23,9 @@ class AbstractTest : public QFrame
 signals:
 
 public:
-    explicit AbstractTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+    explicit AbstractTest(QWidget *parent = 0);
     virtual ~AbstractTest();
+    void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName);
 
 protected:
     void mousePressEvent(QMouseEvent *);
@@ -51,7 +52,7 @@ class MemTest : public AbstractTest
 {
     Q_OBJECT
 public:
-    explicit MemTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+    explicit MemTest(QWidget *parent = 0);
 protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
@@ -61,7 +62,7 @@ class RegTest : public AbstractTest
 {
     Q_OBJECT
 public:
-    explicit RegTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+    explicit RegTest(QWidget *parent = 0);
 protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
@@ -71,7 +72,7 @@ class EchoTest : public AbstractTest
 {
     Q_OBJECT
 public:
-    explicit EchoTest(QWidget *parent = 0, QDialog *d = NULL, QVBoxLayout *b = NULL, QString fName = "default");
+    explicit EchoTest(QWidget *parent = 0);
 protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
