@@ -136,9 +136,9 @@ void MainWindow::addDevice()
 
 void MainWindow::loadTest()
 {
-    QString uiFile = QFileDialog::getOpenFileName(0, tr("Open File"), tr(""), tr("ui file (*.ui)"));
-    if (uiFile.isEmpty()) return;
-    AbstractTest* test = testLib::loadTest(uiFile, ui->devices);
+    QString settingsFile = QFileDialog::getOpenFileName(0, tr("Open File"), tr(""));
+    if (settingsFile.isEmpty()) return;
+    AbstractTest* test = testLib::loadTest(settingsFile, ui->devices);
     ui->tests->addWidget(test);
 }
 
