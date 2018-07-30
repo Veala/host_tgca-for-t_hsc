@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QDebug>
+#include <QTextBrowser>
 #include "connection.h"
 #include "configuration.h"
 
@@ -21,7 +22,7 @@ signals:
     void error(QAbstractSocket::SocketError err);
 
 public:
-    explicit Device(QWidget *parent = 0, QString name = "default");
+    explicit Device(QWidget *parent = 0, QString name = "default", QTextBrowser *tB = NULL);
     ~Device();
 
     Connection connection;
@@ -35,6 +36,8 @@ private:
     Ui::Device *ui;
     QMenu menu;
     void setName(QString);
+    QTextBrowser* textBrowser;
+    void message(QString);
 
 private slots:
     void showConfiguration(bool);

@@ -26,6 +26,7 @@
 
 
 ///  АДРЕСА РЕГИСТРОВ ВСК
+
 #define   REG_VSK_ram_tx_rx             0x80
 //                                         0x84
 #define   REG_VSK_id                    0x88   // только чтение
@@ -68,6 +69,8 @@
 #define   REG_VSK_g_1_sp_low            0xF8
 #define   REG_VSK_pll_reg               0xFC
 
+#define   REG_VSK_BEGIN_ADDR             0x80
+#define   REG_VSK_END_ADDR             0xFC
 
 #define VSK_ReadStatusReg(data)   VSK_ReadReg(data, REG_VSK_status)
 #define VSK_WriteConfigReg_(data) VSK_WriteReg(data, REG_VSK_cfg)
@@ -102,6 +105,8 @@
 /// режим работы ВСК КШ/ОУ
 #define   val_REG_CFG_mode_RT    fl_REG_CFG_mode_rt_bc
 #define   val_REG_CFG_mode_BC    0
+
+#define AddrToCfg(addr)    (((addr) << 7) & FL_REG_CFG_rtavsk)
 
 
 // Поля других регистров

@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actConfiguration->setVisible(false);
     ui->actConfiguration->setEnabled(false);
 
-    QSettings project("project.txt", QSettings::IniFormat);
+    QSettings project("../tgca/project.txt", QSettings::IniFormat);
     if (project.status() == QSettings::NoError && project.allKeys().size() >= 2 &&
         project.value("Common/autoload").toString() == "1")
             prjLoaded = loadProject(project);
@@ -82,7 +82,7 @@ bool MainWindow::loadProject(QSettings& settings)
         QString name = settings.value("name").toString();
         if (!name.isEmpty())
         {
-            Device *device = new Device(0, name);
+            Device *device = new Device(this, name, ui->textBrowser);
             ui->devices->addWidget(device);
             if (/*setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
                             settings.value("host IP").toString(), settings.value("host port").toString()) &&*/
@@ -100,7 +100,7 @@ bool MainWindow::loadProject(QSettings& settings)
         QString name = settings.value("test").toString();
         if (!name.isEmpty())
         {
-            AbstractTest *at = testLib::loadTest(name, ui->devices);
+            AbstractTest *at = testLib::loadTest(name, ui->devices, ui->textBrowser);
             if (at)
             {
                 ui->tests->addWidget(at);
@@ -128,7 +128,7 @@ void MainWindow::addDevice()
         QMessageBox::information(this, tr("Добавить устройство"), tr("Не задано имя устройства"));
         return;
     }
-    ui->devices->addWidget(new Device(0, name));
+    ui->devices->addWidget(new Device(this, name, ui->textBrowser));
 
     if (tstLoaded)
         ui->actRun->setEnabled(true);
@@ -136,15 +136,15 @@ void MainWindow::addDevice()
 
 void MainWindow::loadTest()
 {
-    QString settingsFile = QFileDialog::getOpenFileName(0, tr("Open File"), tr(""));
-    if (settingsFile.isEmpty()) return;
-    AbstractTest* test = testLib::loadTest(settingsFile, ui->devices);
+    QString txtFile = QFileDialog::getOpenFileName(0, tr("Открыть файл параметров теста"), tr(""));
+    if (txtFile.isEmpty()) return;
+    AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->textBrowser);
     ui->tests->addWidget(test);
 }
 
 void MainWindow::createTest()
 {
-    AbstractTest* test = testLib::createTest(ui->devices);
+    AbstractTest* test = testLib::createTest(ui->devices, ui->textBrowser);
     ui->tests->addWidget(test);
 }
 
@@ -155,7 +155,6 @@ void MainWindow::actDevMode()
         su = true;
         ui->actConfiguration->setVisible(true);
         ui->actConfiguration->setEnabled(true);
-        qDebug() << "Developer mode";
         devConf = new Configuration();
     }
 }
@@ -191,6 +190,12 @@ void MainWindow::onLoadPrj()
         QSettings project(fileName, QSettings::IniFormat);
         prjLoaded = (project.status() == QSettings::NoError && project.allKeys().size() >= 2 && loadProject(project));
     }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *e)
+{
+    if (e->key() != Qt::Key_Escape)
+        QMainWindow::keyPressEvent(e);
 }
 
 /////////////////////////////////////////////////

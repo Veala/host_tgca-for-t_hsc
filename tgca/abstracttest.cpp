@@ -19,6 +19,7 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
     //name_enabled->setLayoutDirection(Qt::RightToLeft);
     layout->addWidget(name_enabled);
     fileName = new QLabel(tr(""));
+    fileName->setAlignment(Qt::AlignHCenter);
     layout->addWidget(fileName);
     layout->addSpacerItem(new QSpacerItem(10,10));
     status = new QLabel(tr("Статус"));
@@ -42,9 +43,15 @@ void AbstractTest::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tType, QString fName)
+void AbstractTest::message(QString m)
 {
-    devices=b;  settings=d;
+    QDateTime local(QDateTime::currentDateTime());
+    textBrowser->append(name_enabled->text() + local.toString(tr(" - dd.MM.yyyy hh:mm:ss\n")) + m);
+}
+
+void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tType, QString fName, QTextBrowser *tB)
+{
+    devices=b;  settings=d; textBrowser = tB;
     settings->setWindowTitle(QObject::tr("Настройки"));
     name_enabled->setChecked(ched);
     name_enabled->setText(tType);
@@ -74,9 +81,9 @@ void AbstractTest::save(bool)
     }
 }
 
-void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName)
+void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName);
+    AbstractTest::setSettings(b,d,ch,tType,fName,tB);
     echo = settings->findChild<QLineEdit *>("echo");
     device = settings->findChild<QComboBox*>("device");
 top_1
@@ -109,9 +116,9 @@ void EchoTest::startTest(bool b)
     dev->rw_socket.write(data, dsz+8);
 }
 
-void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName)
+void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName);
+    AbstractTest::setSettings(b,d,ch,tType,fName,tB);
 
     mode = settings->findChild<QComboBox*>("mode");
     startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -212,7 +219,7 @@ void MemTest::startTest(bool b)
                 dev->rw_socket.write((char*)&i, 4);
             for (uint i=addr; i+3<=range; i+=addrinc) {
                 dev->rw_socket.read((char*)&data, 4);
-                if (output) qDebug() << "Read: " << data;
+                if (output) textBrowser->append("Read: " + data);
             }
         }
     } else if (mode->currentText() == "wr") {
@@ -220,7 +227,7 @@ void MemTest::startTest(bool b)
     }
 }
 
-void RegTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName)
+void RegTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB)
 {
 
 }
@@ -235,7 +242,7 @@ void RegTest::startTest(bool b)
 
 }
 
-AbstractTest *testLib::createTest(QVBoxLayout *devices)
+AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *tB)
 {
     QStringList allTests;
     allTests << QObject::tr("Тест \"Эхо\"") << QObject::tr("Тест памяти") << QObject::tr("Тест регистров");
@@ -262,10 +269,10 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices)
     if(!QFile::copy(defFileStr,newFileStr))
         return NULL;
 
-    return loadTest(newFileStr, devices);
+    return loadTest(newFileStr, devices, tB);
 }
 
-AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices)
+AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, QTextBrowser *tB)
 {
     QFile settingsFile(settingsFileStr);
     if (!settingsFile.open(QFile::ReadOnly))
@@ -299,6 +306,6 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices)
     QDialog* settingsForm = (QDialog*)loader.load(&uiFile);
     uiFile.close();
 
-    test->setSettings(devices, settingsForm, checked, testType, settingsFileStr);
+    test->setSettings(devices, settingsForm, checked, testType, settingsFileStr, tB);
     return test;
 }

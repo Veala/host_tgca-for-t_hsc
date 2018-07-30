@@ -23,9 +23,6 @@ public:
     QString getServerPORT() const;
     QString getHostIP() const;
     void setName(QString);
-    void doConnected();
-    void doError(QString);
-    void doMessage(QString);
 
 private:
     Ui::Connection *ui;

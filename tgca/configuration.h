@@ -20,6 +20,15 @@ enum CONFIG_DEFAULT_TYPE
     cdt_Error
 };
 
+enum REG_COL_NUM
+{
+    rcn_Addr,
+    rcn_Name_Check,
+    rcn_Descr,
+    rcn_Val,
+    rcn_End
+};
+
 class Configuration : public QDialog
 {
     Q_OBJECT
@@ -35,15 +44,13 @@ public:
     /// Входной параметр regVSK - указатель на буфер, содержащий все регистры ВСК.
     bool update(void *regAll);
 
-    /// Задание конфигурации.
-//    bool configurate(QString name);
-    bool initFrom(QString name);
-
 private:
     Ui::Configuration *ui;
 
 //    char imprintRegVSK[NUMOFREGVSK * SIZEOFWORD];
 //    char imprintRegNSK[NUMOFREGNSK * SIZEOFWORD];
+    int currentTab;
+    bool stopSign;
 
     bool regVSKUse[NUMOFREGVSK];
     bool regVSKRO[NUMOFREGVSK];
@@ -62,6 +69,7 @@ private:
     word16_t getRegVal(addr_t addr) const;
     bool setRegVal(addr_t addr, word16_t val, bool force = false);
     void adaptRegVSK(int num_reg, word16_t val, QString strval);
+    void chgCfgFlag(word16_t flag, bool b);
 
     bool registerNSKInfo_read_only(int num_reg) const;
     bool registerVSKInfo_read_only(int num_reg) const;
@@ -71,7 +79,7 @@ private:
     void switchRegisterAsgmt(int num_reg, QLabel *labelHeader, QLabel *labelTextL, QLabel *labelTextH,
              QLineEdit *lineL, QLineEdit *lineH, QLabel *labelInd, QString* description, QString* name, int num);
 
-    QIcon iconRun;
+    //QIcon iconStartEna, iconStartDis;
 
 private slots:
     void onEditRegVSK(QPoint);
@@ -87,6 +95,31 @@ private slots:
     void onCheckSelectNSK(int);
     void onCellChangedNSK(int, int);
     void onCellChangedVSK(int, int);
+
+    void on_comboBoxManType_currentIndexChanged(int index);
+    void on_checkBoxCodec_clicked(bool checked);
+    void on_checkBoxEnaAru_clicked(bool checked);
+    void on_comboBoxEnaMemVsk_currentIndexChanged(int index);
+
+    void on_comboBox_BC_RT_currentIndexChanged(int index);
+
+    void on_checkBoxEnaInt_clicked(bool checked);
+
+    void on_checkBoxEnaRtaVSK_clicked(bool checked);
+
+    void on_comboBoxRTA_currentIndexChanged(int index);
+
+    void on_lineEditQ16_editingFinished();
+
+    void on_lineEditQ64l_textChanged(const QString &arg1);
+
+    void on_lineEditQ64m_textEdited(const QString &arg1);
+
+    void on_lineEditQ64h_textChanged(const QString &arg1);
+
+public slots:
+    /// Задание конфигурации.
+    bool initFrom(QString name);
 };
 /*
 class registerInfo

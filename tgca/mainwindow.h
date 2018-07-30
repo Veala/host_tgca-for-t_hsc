@@ -27,6 +27,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void keyPressEvent(QKeyEvent *e);
+
 private:
     Ui::MainWindow *ui;
 

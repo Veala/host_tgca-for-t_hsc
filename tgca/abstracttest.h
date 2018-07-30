@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QInputDialog>
+#include <QFileDialog>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QSpacerItem>
@@ -40,7 +41,7 @@ signals:
 public:
     explicit AbstractTest(QWidget *parent = 0);
     virtual ~AbstractTest();
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB);
 
 protected:
     void mousePressEvent(QMouseEvent *);
@@ -51,6 +52,8 @@ protected:
     QLabel *status;
     QDialog *settings;
     QVBoxLayout *devices;
+    QTextBrowser *textBrowser;
+    void message(QString);
 
 protected slots:
     void showSettings(bool);
@@ -68,7 +71,7 @@ class MemTest : public AbstractTest
     Q_OBJECT
 public:
     explicit MemTest(QWidget *parent = 0) : AbstractTest(parent) { }
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB);
 protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
@@ -83,7 +86,7 @@ class RegTest : public AbstractTest
     Q_OBJECT
 public:
     explicit RegTest(QWidget *parent = 0) : AbstractTest(parent) { }
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB);
 protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
@@ -94,7 +97,7 @@ class EchoTest : public AbstractTest
     Q_OBJECT
 public:
     explicit EchoTest(QWidget *parent = 0) : AbstractTest(parent) { }
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB);
 protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
@@ -104,7 +107,7 @@ private:
 };
 
 namespace testLib {
-AbstractTest *createTest(QVBoxLayout* devices);
-AbstractTest *loadTest(QString file, QVBoxLayout* devices);
+AbstractTest *createTest(QVBoxLayout* devices, QTextBrowser *tB);
+AbstractTest *loadTest(QString file, QVBoxLayout* devices, QTextBrowser *tB);
 }
 #endif // ABSTRACTTEST_H
