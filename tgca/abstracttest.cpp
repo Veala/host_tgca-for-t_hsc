@@ -46,7 +46,6 @@ void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tT
 {
     devices=b;  settings=d;
     settings->setWindowTitle(QObject::tr("Настройки"));
-    //settings->setParent(this);
     name_enabled->setChecked(ched);
     name_enabled->setText(tType);
     fileName->setText(fName);
@@ -66,23 +65,13 @@ void AbstractTest::save(bool)
 {
     QString saveSndrName = sender()->objectName();
     if (saveSndrName == "saveObj") {
-        qDebug() << "saveObj file";
         saveFileNameStr = fileName->text();
     } else if (saveSndrName == "saveAsObj") {
-        qDebug() << "saveAsObj file";
         saveFileNameStr = QFileDialog::getSaveFileName(this, QObject::tr("Введите имя файла"), QObject::tr(""));
         if (saveFileNameStr.isEmpty()) {
-            qDebug() << "empty file";
             return;
         }
-    } else {
-        qDebug() << "error save";
     }
-}
-
-void AbstractTest::createCopy(bool)
-{
-
 }
 
 void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName)
@@ -118,9 +107,6 @@ void EchoTest::startTest(bool b)
     data.append((char*)&dsz,4);
     data.append(echo->text().toStdString().c_str(), dsz);
     dev->rw_socket.write(data, dsz+8);
-
-    //qDebug() << "echo wrote: " << dev->rw_socket.write(data, dsz+8);
-
 }
 
 void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName)
@@ -261,7 +247,6 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices)
 
     QString newFileStr = QFileDialog::getSaveFileName(0, QObject::tr("Введите имя файла"), QObject::tr(""));
     if (newFileStr.isEmpty()) {
-        qDebug() << "empty newFileStr";
         return NULL;
     }
     QString defFileStr;

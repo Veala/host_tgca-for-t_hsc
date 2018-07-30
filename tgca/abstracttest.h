@@ -26,11 +26,8 @@ class AbstractTest : public QFrame
                     QTextStream out(&settingsFile); \
                     out.readLine(); out.readLine();
 
-#define top_2(str)          if (str.isEmpty()) { \
-    qDebug() << "empty file 2"; \
+#define top_2(str)          if (str.isEmpty()) \
                                 return; \
-} \
-    qDebug() << " no empty file"; \
                             QFile settingsFile(str); \
                             if(!settingsFile.open(QFile::WriteOnly)) \
                                 return; \
@@ -59,7 +56,6 @@ protected slots:
     void showSettings(bool);
     void deleteProc(bool);
     virtual void save(bool);
-    void createCopy(bool);
     virtual void startTest(bool) = 0;
 
 private:
