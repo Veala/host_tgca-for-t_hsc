@@ -14,16 +14,19 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    abstracttest.cpp \
+    tests/abstracttest.cpp \
     configuration.cpp \
     confselect.cpp \
     connection.cpp \
     ctableeditcol.cpp \
     device.cpp \
-    vskregview.cpp
+    vskregview.cpp \
+    tests/memtest.cpp \
+    tests/regtest.cpp \
+    tests/echotest.cpp
 
 HEADERS  += mainwindow.h \
-    abstracttest.h \
+    tests/abstracttest.h \
     configuration.h \
     confselect.h \
     connection.h \

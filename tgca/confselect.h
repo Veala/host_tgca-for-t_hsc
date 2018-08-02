@@ -23,16 +23,8 @@ private slots:
     void onConfirm();
     void onBrowse();
 
-    void on_radioButtonChooseFile_clicked(bool checked);
-
-    void on_radioButtonChooseFile_pressed();
-
-    void on_radioButtonChooseFile_released();
-
-    void on_radioButtonChooseFile_toggled(bool checked);
-
 signals:
-    void configurate(QString);
+    void configurate(QString, int*);
 };
 
 #endif // CONFSELECT_H

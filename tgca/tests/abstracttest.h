@@ -15,7 +15,7 @@
 #include <QtUiTools>
 #include <QFormBuilder>
 #include <QtNetwork>
-#include "device.h"
+#include "../device.h"
 
 class AbstractTest : public QFrame
 {
@@ -46,6 +46,8 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *);
     bool pause, stop;
+    QList<QLineEdit*> deviceLineEditList;
+    QList<Device*> deviceList;
     QString saveFileNameStr;
     QCheckBox *name_enabled;
     QLabel *fileName;
@@ -54,12 +56,21 @@ protected:
     QVBoxLayout *devices;
     QTextBrowser *textBrowser;
     void message(QString);
+    void setConnections(Device*);
+    void setDisconnections(Device*);
 
 protected slots:
     void showSettings(bool);
     void deleteProc(bool);
     virtual void save(bool);
     virtual void startTest(bool) = 0;
+    void newDev(QString);
+    void checkDeviceAvailability(int);
+    void deletingDevice(QString);
+    void deletingDevice_part();
+    void connectingSockDevice();
+    void disconnectingSockDevice();
+    void errorDevice(QAbstractSocket::SocketError);
 
 private:
     QMenu menu;
@@ -76,8 +87,8 @@ protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
 private:
-    QComboBox *mode, *inversion, *oput, *device;
-    QLineEdit *startAddr, *endAddr, *startData;
+    QComboBox *mode, *inversion, *oput;
+    QLineEdit *startAddr, *endAddr, *startData, *deviceEdit;
     QSpinBox *incAddr, *incData, *iteration;
 };
 
@@ -102,8 +113,7 @@ protected slots:
     virtual void save(bool);
     virtual void startTest(bool);
 private:
-    QLineEdit *echo;
-    QComboBox *device;
+    QLineEdit *echo, *deviceEdit;
 };
 
 namespace testLib {

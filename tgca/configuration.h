@@ -61,6 +61,7 @@ private:
     void initNSK();
     void updateRegVSK(int num_reg, word16_t val);
     bool initDefault(CONFIG_DEFAULT_TYPE key, word16_t param);
+    bool initFromFile(QString name);
     bool setConfigDefault0(word16_t reg_config, bool all);
     /// Функции получения значения регистра из формы
     /// и записи значения регистра в форму с пересчетом всех затронутых полей.
@@ -93,33 +94,27 @@ private slots:
     void onExpandNSK(int);
     void onCheckSelectVSK(int);
     void onCheckSelectNSK(int);
+    void onExit(int);
+
+    void onManTypeChanged(int index);
+    void onCodecChanged(bool checked);
+    void onEnaAruChanged(bool checked);
+    void onEnaMemVskChanged(int index);
+    void on_comboBox_BC_RT_currentIndexChanged(int index);
+    void onEnaIntChanged(bool checked);
+    void onEnaRtaVskChanged(bool checked);
+    void onRTA_Choose(int index);
+
     void onCellChangedNSK(int, int);
     void onCellChangedVSK(int, int);
-
-    void on_comboBoxManType_currentIndexChanged(int index);
-    void on_checkBoxCodec_clicked(bool checked);
-    void on_checkBoxEnaAru_clicked(bool checked);
-    void on_comboBoxEnaMemVsk_currentIndexChanged(int index);
-
-    void on_comboBox_BC_RT_currentIndexChanged(int index);
-
-    void on_checkBoxEnaInt_clicked(bool checked);
-
-    void on_checkBoxEnaRtaVSK_clicked(bool checked);
-
-    void on_comboBoxRTA_currentIndexChanged(int index);
-
-    void on_lineEditQ16_editingFinished();
-
+    void  on_lineEditQ16_editingFinished();
     void on_lineEditQ64l_textChanged(const QString &arg1);
-
     void on_lineEditQ64m_textEdited(const QString &arg1);
-
     void on_lineEditQ64h_textChanged(const QString &arg1);
 
 public slots:
     /// Задание конфигурации.
-    bool initFrom(QString name);
+    bool initFrom(QString name, int* err);
 };
 /*
 class registerInfo

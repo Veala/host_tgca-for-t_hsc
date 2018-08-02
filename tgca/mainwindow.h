@@ -3,8 +3,12 @@
 
 #include <QMainWindow>
 #include <QSettings>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <QFileDialog>
 #include "configuration.h"
-#include "abstracttest.h"
+#include "device.h"
+#include "tests/abstracttest.h"
 
 namespace Ui {
 class MainWindow;
@@ -22,6 +26,8 @@ struct SPrjSettings
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+signals:
+    void newDev(QString);
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -58,9 +64,11 @@ private slots:
     void onPause();
     void onSavePrj();
     void onLoadPrj();
+
     void addDevice();
     void createTest();
     void loadTest();
+
     void onHelp();
     void onPrintRep();
     void onCreateRep();

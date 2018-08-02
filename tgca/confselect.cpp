@@ -1,15 +1,19 @@
 #include "confselect.h"
 #include "ui_confselect.h"
 
+#include "configuration.h"
+
 #include <QFileDialog>
+
 #include <QDebug>
+#include <QTimer>
 
 ConfSelect::ConfSelect(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfSelect)
 {
     ui->setupUi(this);
-    connect(this, SIGNAL(configurate(QString)), parent, SLOT(initFrom(QString)));
+    connect(this, SIGNAL(configurate(QString, int*)), parent, SLOT(initFrom(QString, int*)));
 }
 
 ConfSelect::~ConfSelect()
@@ -19,7 +23,6 @@ ConfSelect::~ConfSelect()
 
 void ConfSelect::onRadio(bool b)
 {
-    qDebug() << b;
     ui->comboBoxConfigurations->setEnabled(b);
     ui->lineEditPathToConf->setEnabled(!b);
     ui->pushButtonBrowse->setEnabled(!b);
@@ -33,40 +36,23 @@ void ConfSelect::onConfirm()
     else
         confname = ui->lineEditPathToConf->text();
     if (!confname.isEmpty())
-        emit configurate(confname);
-    accept();
+    {
+        int waiting = 1;
+        emit configurate(confname, &waiting);
+        while (waiting == 1);
+
+        if (waiting == 0)
+            accept();
+    }
 }
 
 void ConfSelect::onBrowse()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Открыть файл конфигурации"), "/home/", tr("Текстовые файлы (*.txt)\nВсе файлы (*.*)"));
+        tr("Открыть файл конфигурации"), "/home/", tr("Файлы конфигурации (*.tgca_c)\nВсе файлы (*.*)"));
 
     if (!fileName.isEmpty())
     {
         ui->lineEditPathToConf->setText(fileName);
     }
-}
-
-void ConfSelect::on_radioButtonChooseFile_clicked(bool checked)
-{
-    qDebug() << "clicked   " << checked;
-}
-
-void ConfSelect::on_radioButtonChooseFile_pressed()
-{
-    qDebug() << "pressed";
-
-}
-
-void ConfSelect::on_radioButtonChooseFile_released()
-{
-    qDebug() << "released";
-
-}
-
-void ConfSelect::on_radioButtonChooseFile_toggled(bool checked)
-{
-    qDebug() << "toggled   " << checked;
-
 }

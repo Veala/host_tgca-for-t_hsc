@@ -1,14 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "device.h"
-#include "abstracttest.h"
-
-#include <QMessageBox>
-#include <QInputDialog>
-#include <QFileDialog>
 //#include <QDebug>
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -55,14 +48,14 @@ void MainWindow::onAbout()
 
 static bool setupConnection(Device *device, QString ip, QString port, QString hostIp, QString hodtPort)
 {
-    qDebug() << "Функция setupConnection() не реализована !!!";
+    qDebug() << QObject::tr("Функция setupConnection() не реализована !!!");
     ///  LLL
     return false;
 }
 
 static bool configurateDevice(Device *device)
 {
-    qDebug() << "Функция configurateDevice() не реализована !!!";
+    qDebug() << QObject::tr("Функция configurateDevice() не реализована !!!");
     /// Здесь надо установить соединение и потом записать регистры LLL
     return false;
 }
@@ -86,7 +79,7 @@ bool MainWindow::loadProject(QSettings& settings)
             ui->devices->addWidget(device);
             if (/*setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
                             settings.value("host IP").toString(), settings.value("host port").toString()) &&*/
-            device->configuration.initFrom(settings.value("configuration").toString()) &&
+            device->configuration.initFrom(settings.value("configuration").toString(), 0) &&
             settings.value("autoload").toString() == "1")
                 configurateDevice(device);
         }
@@ -128,7 +121,17 @@ void MainWindow::addDevice()
         QMessageBox::information(this, tr("Добавить устройство"), tr("Не задано имя устройства"));
         return;
     }
+    Device* dev;
+    for (int i=0; i<ui->devices->count(); i++) {
+        dev = (Device*)ui->devices->itemAt(i)->widget();
+        if (dev->getName() == name) {
+            QMessageBox::information(this, tr("Добавить устройство"), tr("Ошибка: устройство %1 уже существует").arg(name));
+            return;
+        }
+    }
     ui->devices->addWidget(new Device(this, name, ui->textBrowser));
+    ui->textBrowser->append(tr("Устройство %1 добавлено").arg(name));
+    emit newDev(name);
 
     if (tstLoaded)
         ui->actRun->setEnabled(true);
@@ -139,12 +142,16 @@ void MainWindow::loadTest()
     QString txtFile = QFileDialog::getOpenFileName(0, tr("Открыть файл параметров теста"), tr(""));
     if (txtFile.isEmpty()) return;
     AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->textBrowser);
+    test->setParent(this);
+    connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
     ui->tests->addWidget(test);
 }
 
 void MainWindow::createTest()
 {
     AbstractTest* test = testLib::createTest(ui->devices, ui->textBrowser);
+    test->setParent(this);
+    connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
     ui->tests->addWidget(test);
 }
 
@@ -182,7 +189,7 @@ void MainWindow::onMenuTests(QPoint point)
 void MainWindow::onLoadPrj()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Открыть файл проекта"), "/home/", tr("Файлы проекта (*.txt)\nВсе файлы (*.*)"));
+        tr("Открыть файл проекта"), "/home/", tr("Файлы проекта (*.tgca_p)\nВсе файлы (*.*)"));
 
     if (!fileName.isEmpty())
     {

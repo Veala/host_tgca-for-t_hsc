@@ -20,6 +20,11 @@ class Device : public QWidget
 
 signals:
     void error(QAbstractSocket::SocketError err);
+    //signals to tests
+
+    void sigDelete(QString);
+    void sigConnectedDevice();
+    void sigDisconnectedDevice();
 
 public:
     explicit Device(QWidget *parent = 0, QString name = "default", QTextBrowser *tB = NULL);
@@ -28,6 +33,8 @@ public:
     Connection connection;
     Configuration configuration;
     QTcpSocket rw_socket;
+    void setName(QString);
+    QString getName() const;
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -35,11 +42,11 @@ protected:
 private:
     Ui::Device *ui;
     QMenu menu;
-    void setName(QString);
     QTextBrowser* textBrowser;
     void message(QString);
 
 private slots:
+    void deleteProc(bool);
     void showConfiguration(bool);
     void showConnection(bool);
     void connectTry(bool);

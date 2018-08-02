@@ -3983,6 +3983,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>Configuration</sender>
+   <signal>finished(int)</signal>
+   <receiver>Configuration</receiver>
+   <slot>onExit(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>313</x>
+     <y>452</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>313</x>
+     <y>452</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>onPushChoose()</slot>
@@ -4000,5 +4016,6 @@
   <slot>onCheckSelectNSK(int)</slot>
   <slot>onCellChangedVSK(int,int)</slot>
   <slot>onCellChangedNSK(int,int)</slot>
+  <slot>onExit(int)</slot>
  </slots>
 </ui>

@@ -12,6 +12,8 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showConnection(bool)));
     act = menu.addAction(tr("Конфигурация"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showConfiguration(bool)));
+    act = menu.addAction(tr("Удалить"));
+    connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteProc(bool)));
 
     connect(&connection, SIGNAL(connectTry(bool)), this, SLOT(connectTry(bool)));
     connect(&connection, SIGNAL(disconnectTry(bool)), this, SLOT(disconnectTry(bool)));
@@ -41,10 +43,22 @@ void Device::setName(QString name)
     connection.setName(name);
 }
 
+QString Device::getName() const
+{
+    return ui->name->text();
+}
+
 void Device::message(QString m)
 {
     QDateTime local(QDateTime::currentDateTime());
     textBrowser->append(ui->name->text() + local.toString(tr(" - dd.MM.yyyy hh:mm:ss\n")) + m);
+}
+
+void Device::deleteProc(bool)
+{
+
+    emit sigDelete(getName());
+    deleteLater();
 }
 
 void Device::showConfiguration(bool)
@@ -91,12 +105,14 @@ void Device::disconnectTry(bool b)
 void Device::doConnected()
 {
     message(tr("Соединение установлено"));
+    emit sigConnectedDevice();
     //На виджете добавить значек, что соединение есть.
 }
 
 void Device::doDisconnected()
 {
     message(tr("Соединение разорвано"));
+    emit sigDisconnectedDevice();
     //На виджете добавить значек, что соединения нет.
 }
 

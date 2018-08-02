@@ -70,27 +70,37 @@
    </item>
    <item>
     <property name="text">
-     <string>STD_BC_NOINT_QPSK_CODEC1</string>
+     <string>STD_BC_NOINT_QAM16_NOCODEC</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>STD_BC_NOINT_QPSK_CODEC2</string>
+     <string>STD_BC_NOINT_QAM64_CODEC</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>STD_BC_NOINT_QPSK_CODEC3</string>
+     <string>STD_BC_NOINT_QAM64_NOCODEC</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>STD_BC_NOINT_QPSK_CODEC4</string>
+     <string>STD_RT_NOINT_QPSK_CODEC</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>STD_BC_NOINT_QPSK_CODEC5</string>
+     <string>STD_RT_NOINT_QPSK_NOCODEC</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>STD_RT_INT_QAM16_CODEC_EN1</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>STDU_BC_NOINT_QPSK_CODEC</string>
     </property>
    </item>
   </widget>
@@ -263,7 +273,7 @@
   </connection>
  </connections>
  <slots>
-  <signal>configurate(QString)</signal>
+  <signal>configurate(QString,int*)</signal>
   <slot>onBrowse()</slot>
   <slot>onConfirm()</slot>
   <slot>onRadio(bool)</slot>
