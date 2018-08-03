@@ -59,10 +59,29 @@ void AbstractTest::setConnections(Device *dev)
 
 void AbstractTest::setDisconnections(Device *dev)
 {
+    qDebug() << "setDissconnections!";
     disconnect(dev, SIGNAL(sigDelete(QString)), this, SLOT(deletingDevice(QString)));
     disconnect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
     disconnect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
     disconnect(dev, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorDevice(QAbstractSocket::SocketError)));
+}
+
+void AbstractTest::setState(AbstractTest::TestState s)
+{
+    QPalette palette;
+    if (s == AbstractTest::DeviceIsNotAvailable) {
+        QBrush br(Qt::red); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+    } else if (s == AbstractTest::ConnectionIsNotAvailable) {
+        QBrush br(Qt::yellow); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+    } else if (s == AbstractTest::ItIsOk) {
+        QBrush br(Qt::green); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+    }
+    state = s;
+}
+
+AbstractTest::TestState AbstractTest::getState() const
+{
+    return state;
 }
 
 void AbstractTest::checkDeviceAvailability(int x)
@@ -82,10 +101,8 @@ void AbstractTest::checkDeviceAvailability(int x)
             deletingDevice_part();
         }
     }
-
     deviceList.clear();
     Device* dev;
-    QPalette palette;
     for (int i=0; i<deviceLineEditList.count(); i++) {
         int j=0;
         for (; j<devices->count(); j++) {
@@ -99,18 +116,17 @@ void AbstractTest::checkDeviceAvailability(int x)
         }
         if (j == devices->count()) {
             message(tr("Ошибка: устройство %1 не доступно - %2").arg(deviceLineEditList[i]->text()).arg(fileName->text()));
-            QBrush br(Qt::red); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+            setState(AbstractTest::DeviceIsNotAvailable);
             return;
         }
     }
     for (int i=0; i<deviceList.count(); i++)
         setConnections(deviceList[i]);
-    palette.setBrush(QPalette::Window, QBrush(Qt::yellow)); this->setPalette(palette);
-
+    setState(AbstractTest::ConnectionIsNotAvailable);
     for (int i=0; i<deviceList.count(); i++) {
         if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
     }
-    palette.setBrush(QPalette::Window, QBrush(Qt::green)); this->setPalette(palette);
+    setState(AbstractTest::ItIsOk);
 }
 
 void AbstractTest::newDev(QString dn)
@@ -125,7 +141,6 @@ void AbstractTest::newDev(QString dn)
 
 void AbstractTest::deletingDevice(QString dn)
 {
-    qDebug() << "deletingDevice";
     deletingDevice_part();
     checkDeviceAvailability(1111);
 }
@@ -135,8 +150,9 @@ void AbstractTest::deletingDevice_part()
     if (sender() != NULL) {
         QString senderName(sender()->metaObject()->className());
         qDebug() << "senderName" << senderName;
-        if (senderName == "Device")
+        if (senderName == "Device") {
             devices->removeWidget((Device*)sender());
+        }
     }
     for (int i=0; i<deviceList.count(); i++)
         setDisconnections(deviceList[i]);
@@ -149,25 +165,19 @@ void AbstractTest::connectingSockDevice()
     for (int i=0; i<deviceList.count(); i++) {
         if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
     }
-    QPalette palette;
-    palette.setBrush(QPalette::Window, QBrush(Qt::green));  this->setPalette(palette);
-    //QBrush br(Qt::green);  palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+    setState(AbstractTest::ItIsOk);
 }
 
 void AbstractTest::disconnectingSockDevice()
 {
     qDebug() << "disconnectingSockDevice";
-    QPalette palette;
-    palette.setBrush(QPalette::Window, QBrush(Qt::yellow)); this->setPalette(palette);
-    //QBrush br(Qt::yellow);  palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+    setState(AbstractTest::ConnectionIsNotAvailable);
 }
 
 void AbstractTest::errorDevice(QAbstractSocket::SocketError err)
 {
     qDebug() << "errorDevice slot in test";
-    QPalette palette;
-    palette.setBrush(QPalette::Window, QBrush(Qt::yellow)); this->setPalette(palette);
-    //QBrush br(Qt::yellow);  palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+    setState(AbstractTest::ConnectionIsNotAvailable);
 }
 
 void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tType, QString fName, QTextBrowser *tB)

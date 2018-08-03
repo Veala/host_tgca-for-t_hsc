@@ -49,7 +49,11 @@ top_2(saveFileNameStr)
 
 void MemTest::startTest(bool b)
 {
-    qDebug() << "strat test";
+    if (getState() != AbstractTest::ItIsOk) {
+        message(tr("Ошибка: проблема с устройствами теста - %1").arg(fileName->text()));
+        return;
+    }
+
     deviceList.at(0);
     Device *dev = deviceList.at(0);
 

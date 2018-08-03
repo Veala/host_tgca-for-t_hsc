@@ -42,6 +42,11 @@ public:
     explicit AbstractTest(QWidget *parent = 0);
     virtual ~AbstractTest();
     virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB);
+    enum TestState {
+        DeviceIsNotAvailable,
+        ConnectionIsNotAvailable,
+        ItIsOk
+    };
 
 protected:
     void mousePressEvent(QMouseEvent *);
@@ -59,6 +64,9 @@ protected:
     void setConnections(Device*);
     void setDisconnections(Device*);
 
+    void setState(TestState);
+    TestState getState() const;
+
 protected slots:
     void showSettings(bool);
     void deleteProc(bool);
@@ -75,6 +83,7 @@ protected slots:
 private:
     QMenu menu;
     QHBoxLayout *layout;
+    TestState state;
 };
 
 class MemTest : public AbstractTest

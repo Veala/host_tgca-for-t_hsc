@@ -25,10 +25,18 @@ top_2(saveFileNameStr)
 
 void EchoTest::startTest(bool b)
 {
-    QList <Device*> devList;
-    for (int i=0; i<devices->count(); i++)
-        devList << (Device*)devices->itemAt(i)->widget();
-    Device* dev = devList.at(0);
+    if (getState() != AbstractTest::ItIsOk) {
+        message(tr("Ошибка: проблема с устройствами теста - %1").arg(fileName->text()));
+        return;
+    }
+
+    deviceList.at(0);
+    Device *dev = deviceList.at(0);
+
+    if (dev==NULL) {
+        qDebug() << "dev NULL";
+        return;
+    }
 
     int cmd = 5;  int dsz = echo->text().size()+1;
     QByteArray data;

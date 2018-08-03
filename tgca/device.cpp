@@ -56,7 +56,7 @@ void Device::message(QString m)
 
 void Device::deleteProc(bool)
 {
-
+    rw_socket.abort();
     emit sigDelete(getName());
     deleteLater();
 }
