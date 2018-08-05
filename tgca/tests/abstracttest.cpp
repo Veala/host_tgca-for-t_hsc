@@ -1,17 +1,19 @@
 #include "abstracttest.h"
 
+int AbstractTest::globalState = FREELY;
+
 AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
 {
     QAction *act;
-    act = menu.addAction(tr("Старт"));
-    connect(act, SIGNAL(triggered(bool)), this, SLOT(startTest(bool)));
+//    act = menu.addAction(tr("Старт"));
+//    connect(act, SIGNAL(triggered(bool)), this, SLOT(startTest(bool)));
     act = menu.addAction(tr("Настройки..."));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showSettings(bool)));
     act = menu.addAction(tr("Сохранить")); act->setObjectName(tr("saveObj"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(save(bool)));
 //    act = menu.addAction(tr("Создать копию...")); act->setObjectName(tr("saveAsObj"));
 //    connect(act, SIGNAL(triggered(bool)), this, SLOT(save(bool)));
-    act = menu.addAction(tr("Удалить"));
+    act = menu.addAction(tr("Убрать"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteProc(bool)));
     layout = new QHBoxLayout(this);
     name_enabled = new QCheckBox(tr("Тест"));
@@ -20,13 +22,24 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
     fileName = new QLabel(tr(""));
     fileName->setAlignment(Qt::AlignHCenter);
     layout->addWidget(fileName);
-    layout->addSpacerItem(new QSpacerItem(10,10));
-    status = new QLabel(tr("Статус"));
+    layout->addSpacerItem(new QSpacerItem(10,10,QSizePolicy::Expanding));
+    startButton = new QPushButton(QIcon(":/pictogram/gtk-media-play-ltr_8717.png"), tr(""));
+    layout->addWidget(startButton);
+    connect(startButton, SIGNAL(clicked(bool)), this, SLOT(startTest(bool)));
+    pauseButton = new QPushButton(QIcon(":/pictogram/gtk-media-pause_2289.png"), tr(""));
+    layout->addWidget(pauseButton);
+    connect(pauseButton, SIGNAL(clicked(bool)), this, SLOT(pauseTest(bool)));
+    stopButton = new QPushButton(QIcon(":/pictogram/gtk-media-stop_9402.png"), tr(""));
+    layout->addWidget(stopButton);
+    connect(stopButton, SIGNAL(clicked(bool)), this, SLOT(stopTest(bool)));
+
+    status = new QLabel(tr(""));
     status->setAlignment(Qt::AlignRight);
     layout->addWidget(status);
 
     setAutoFillBackground(true);
-    setFrameStyle(QFrame::Box | QFrame::Plain);
+    setRunningState(AbstractTest::Stopped);
+    setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
 }
 
 AbstractTest::~AbstractTest()
@@ -66,22 +79,53 @@ void AbstractTest::setDisconnections(Device *dev)
     disconnect(dev, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorDevice(QAbstractSocket::SocketError)));
 }
 
-void AbstractTest::setState(AbstractTest::TestState s)
+void AbstractTest::setValidState(AbstractTest::ValidState vs)
 {
     QPalette palette;
-    if (s == AbstractTest::DeviceIsNotAvailable) {
+    if (vs == AbstractTest::DeviceIsNotAvailable) {
         QBrush br(Qt::red); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
-    } else if (s == AbstractTest::ConnectionIsNotAvailable) {
+    } else if (vs == AbstractTest::ConnectionIsNotAvailable) {
         QBrush br(Qt::yellow); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
-    } else if (s == AbstractTest::ItIsOk) {
+    } else if (vs == AbstractTest::ItIsOk) {
         QBrush br(Qt::green); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
     }
-    state = s;
+    validState = vs;
 }
 
-AbstractTest::TestState AbstractTest::getState() const
+AbstractTest::ValidState AbstractTest::getValidState() const
 {
-    return state;
+    return validState;
+}
+
+void AbstractTest::setRunningState(AbstractTest::RunningState rs)
+{
+    if (rs == AbstractTest::Running) {
+        status->setText(tr("Running"));
+    } else if (rs == AbstractTest::Paused) {
+        status->setText(tr("Paused"));
+    } else if (rs == AbstractTest::Stopped) {
+        status->setText(tr("Stopped"));
+    } else if (rs == AbstractTest::Completed) {
+        status->setText(tr("Completed"));
+    } else if (rs == AbstractTest::ErrorIsOccured) {
+        status->setText(tr("Error"));
+    }
+    runningState = rs;
+}
+
+AbstractTest::RunningState AbstractTest::getRunningState() const
+{
+    return runningState;
+}
+
+void AbstractTest::setGlobalState(int gs)
+{
+    globalState = gs;
+}
+
+int AbstractTest::getGlobalState() const
+{
+    return globalState;
 }
 
 void AbstractTest::checkDeviceAvailability(int x)
@@ -116,17 +160,17 @@ void AbstractTest::checkDeviceAvailability(int x)
         }
         if (j == devices->count()) {
             message(tr("Ошибка: устройство %1 не доступно - %2").arg(deviceLineEditList[i]->text()).arg(fileName->text()));
-            setState(AbstractTest::DeviceIsNotAvailable);
+            setValidState(AbstractTest::DeviceIsNotAvailable);
             return;
         }
     }
     for (int i=0; i<deviceList.count(); i++)
         setConnections(deviceList[i]);
-    setState(AbstractTest::ConnectionIsNotAvailable);
+    setValidState(AbstractTest::ConnectionIsNotAvailable);
     for (int i=0; i<deviceList.count(); i++) {
         if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
     }
-    setState(AbstractTest::ItIsOk);
+    setValidState(AbstractTest::ItIsOk);
 }
 
 void AbstractTest::newDev(QString dn)
@@ -165,19 +209,19 @@ void AbstractTest::connectingSockDevice()
     for (int i=0; i<deviceList.count(); i++) {
         if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
     }
-    setState(AbstractTest::ItIsOk);
+    setValidState(AbstractTest::ItIsOk);
 }
 
 void AbstractTest::disconnectingSockDevice()
 {
     qDebug() << "disconnectingSockDevice";
-    setState(AbstractTest::ConnectionIsNotAvailable);
+    setValidState(AbstractTest::ConnectionIsNotAvailable);
 }
 
 void AbstractTest::errorDevice(QAbstractSocket::SocketError err)
 {
     qDebug() << "errorDevice slot in test";
-    setState(AbstractTest::ConnectionIsNotAvailable);
+    setValidState(AbstractTest::ConnectionIsNotAvailable);
 }
 
 void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tType, QString fName, QTextBrowser *tB)
@@ -211,6 +255,58 @@ void AbstractTest::save(bool)
             return;
         }
     }
+}
+
+void AbstractTest::startTest(bool)
+{
+    if (getValidState() != ItIsOk) {
+        message(tr("Ошибка: проблема с устройствами теста - %1").arg(fileName->text()));
+        return;
+    }
+    if (getRunningState() == Running) {
+        message(tr("Предупреждение: тест запущен ранее - %1").arg(fileName->text()));
+        return;
+    }
+    if ((getRunningState() == Paused)) {
+        message(tr("Пауза снята - %1").arg(fileName->text()));
+        setRunningState(AbstractTest::Running);
+        return;
+    }
+    if (getGlobalState() == FREELY) {
+        message(tr("Тест запущен - %1").arg(fileName->text()));
+        setRunningState(AbstractTest::Running);
+        setGlobalState(BUSY);
+        startTest();
+        return;
+    }
+}
+
+void AbstractTest::pauseTest(bool)
+{
+    if (getValidState() != ItIsOk) {
+        message(tr("Ошибка: проблема с устройствами теста - %1").arg(fileName->text()));
+        return;
+    }
+    if (getRunningState() != Running) {
+        message(tr("Предупреждение: тест не запущен - %1").arg(fileName->text()));
+        return;
+    }
+    message(tr("Тест поставлен на паузу - %1").arg(fileName->text()));
+    setRunningState(AbstractTest::Paused);
+}
+
+void AbstractTest::stopTest(bool)
+{
+    if (getValidState() != ItIsOk) {
+        message(tr("Ошибка: проблема с устройствами теста - %1").arg(fileName->text()));
+        return;
+    }
+    if ((getRunningState() == Stopped) || (getRunningState() == Completed) || (getRunningState() == ErrorIsOccured)) {
+        message(tr("Предупреждение: тест не запущен - %1").arg(fileName->text()));
+        return;
+    }
+    message(tr("Тест остановлен - %1").arg(fileName->text()));
+    setRunningState(AbstractTest::Stopped);
 }
 
 AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *tB)

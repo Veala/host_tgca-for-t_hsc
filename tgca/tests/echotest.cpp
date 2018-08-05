@@ -23,13 +23,8 @@ top_2(saveFileNameStr)
     settingsFile.close();
 }
 
-void EchoTest::startTest(bool b)
+void EchoTest::startTest()
 {
-    if (getState() != AbstractTest::ItIsOk) {
-        message(tr("Ошибка: проблема с устройствами теста - %1").arg(fileName->text()));
-        return;
-    }
-
     deviceList.at(0);
     Device *dev = deviceList.at(0);
 

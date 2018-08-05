@@ -1,7 +1,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-#include <QWidget>
+#include <QFrame>
 #include <QMouseEvent>
 #include <QMenu>
 #include <QAction>
@@ -14,7 +14,7 @@ namespace Ui {
 class Device;
 }
 
-class Device : public QWidget
+class Device : public QFrame
 {
     Q_OBJECT
 
@@ -36,14 +36,24 @@ public:
     void setName(QString);
     QString getName() const;
 
+    enum ConnectedState {
+        conned,
+        conning,
+        disconned
+    };
+
 protected:
     void mousePressEvent(QMouseEvent *event);
+
+    void setConnectedState(ConnectedState);
+    ConnectedState getConnectedState() const;
 
 private:
     Ui::Device *ui;
     QMenu menu;
     QTextBrowser* textBrowser;
     void message(QString);
+    ConnectedState connectedState;
 
 private slots:
     void deleteProc(bool);

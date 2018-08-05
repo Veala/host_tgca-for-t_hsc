@@ -10,7 +10,7 @@ void RegTest::save(bool)
 
 }
 
-void RegTest::startTest(bool b)
+void RegTest::startTest()
 {
 
 }
