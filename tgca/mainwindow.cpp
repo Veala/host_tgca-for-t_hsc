@@ -14,6 +14,10 @@ MainWindow::MainWindow(QWidget *parent) :
     logFile("log.txt")
 {
     ui->setupUi(this);
+
+    ui->outputMenu->addAction(ui->dockPro->toggleViewAction());
+    ui->outputMenu->addAction(ui->dockTest->toggleViewAction());
+
     //setWindowFlags(windowFlags() | Qt::WindowContextHelpButtonHint);
 
     act_devMode = new QAction(tr("Включить секретный режим"), this);
@@ -75,7 +79,7 @@ bool MainWindow::loadProject(QSettings& settings)
         QString name = settings.value("name").toString();
         if (!name.isEmpty())
         {
-            Device *device = new Device(this, name, ui->textBrowser);
+            Device *device = new Device(this, name, ui->projectBrowser);
             ui->devices->addWidget(device);
             if (/*setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
                             settings.value("host IP").toString(), settings.value("host port").toString()) &&*/
@@ -93,7 +97,7 @@ bool MainWindow::loadProject(QSettings& settings)
         QString name = settings.value("test").toString();
         if (!name.isEmpty())
         {
-            AbstractTest *at = testLib::loadTest(name, ui->devices, ui->textBrowser);
+            AbstractTest *at = testLib::loadTest(name, ui->devices, ui->projectBrowser);
             if (at)
             {
                 ui->tests->addWidget(at);
@@ -129,8 +133,8 @@ void MainWindow::addDevice()
             return;
         }
     }
-    ui->devices->addWidget(new Device(this, name, ui->textBrowser));
-    ui->textBrowser->append(tr("Устройство %1 добавлено").arg(name));
+    ui->devices->addWidget(new Device(this, name, ui->projectBrowser));
+    ui->projectBrowser->append(tr("Устройство %1 добавлено").arg(name));
     emit newDev(name);
 
     if (tstLoaded)
@@ -141,7 +145,7 @@ void MainWindow::loadTest()
 {
     QString txtFile = QFileDialog::getOpenFileName(0, tr("Открыть файл параметров теста"), tr(""));
     if (txtFile.isEmpty()) return;
-    AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->textBrowser);
+    AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->projectBrowser);
     test->setParent(this);
     connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
     ui->tests->addWidget(test);
@@ -149,7 +153,7 @@ void MainWindow::loadTest()
 
 void MainWindow::createTest()
 {
-    AbstractTest* test = testLib::createTest(ui->devices, ui->textBrowser);
+    AbstractTest* test = testLib::createTest(ui->devices, ui->projectBrowser);
     test->setParent(this);
     connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
     ui->tests->addWidget(test);

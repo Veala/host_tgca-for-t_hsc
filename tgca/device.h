@@ -51,7 +51,7 @@ protected:
 private:
     Ui::Device *ui;
     QMenu menu;
-    QTextBrowser* textBrowser;
+    QTextBrowser* projectBrowser;
     void message(QString);
     ConnectedState connectedState;
 

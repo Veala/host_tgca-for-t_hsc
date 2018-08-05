@@ -102,7 +102,7 @@ void MemTest::startTest()
             for (uint i=addr; i+3<=range; i+=addrinc) {
                 //dev->rw_socket.waitForReadyRead();
                 dev->rw_socket.read((char*)&data, 4);
-                if (output) textBrowser->append("Read: " + QString::number(data, 16));
+                if (output) projectBrowser->append("Read: " + QString::number(data, 16));
             }
         }
     } else if (mode->currentText() == "wr") {
@@ -136,10 +136,10 @@ void MemTest::startTest()
                 //dev->rw_socket.waitForReadyRead();
                 dev->rw_socket.read((char*)&data, 4);
                 if (inverse) final = ~j;    else    final = j;
-                if (output) textBrowser->append(tr("Write: %1; Read: %2").arg(QString::number(final, 16)).arg(QString::number(data, 16)));
+                if (output) projectBrowser->append(tr("Write: %1; Read: %2").arg(QString::number(final, 16)).arg(QString::number(data, 16)));
                 if (data != final) diff++; else same++;
             }
-            textBrowser->append(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
+            projectBrowser->append(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
         }
     }
 }

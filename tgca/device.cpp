@@ -7,7 +7,7 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
 {
     ui->setupUi(this);
     setName(name);
-    textBrowser = tB;
+    projectBrowser = tB;
     QAction *act = menu.addAction(tr("Соединение"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showConnection(bool)));
     act = menu.addAction(tr("Конфигурация"));
@@ -48,11 +48,14 @@ void Device::setConnectedState(Device::ConnectedState cs)
 {
     QPalette palette;
     if (cs == conned) {
-        QBrush br(Qt::blue); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        QBrush br(Qt::darkBlue); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        ui->picture->setPixmap(QPixmap(tr(":/pictogram/hardware_8356.png")));
     } else if (cs == conning) {
-        QBrush br(Qt::darkGray); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        QBrush br(Qt::yellow); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        ui->picture->setPixmap(QPixmap(tr(":/pictogram/calculator_8158.png")));
     } else if (cs == disconned) {
-        QBrush br(Qt::gray); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        QBrush br(Qt::darkCyan); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        ui->picture->setPixmap(QPixmap(tr(":/pictogram/disconnect_9550.png")));
     }
     connectedState = cs;
 }
@@ -76,7 +79,7 @@ QString Device::getName() const
 void Device::message(QString m)
 {
     QDateTime local(QDateTime::currentDateTime());
-    textBrowser->append(ui->name->text() + local.toString(tr(" - dd.MM.yyyy hh:mm:ss\n")) + m);
+    projectBrowser->append(ui->name->text() + local.toString(tr(" - dd.MM.yyyy hh:mm:ss\n")) + m);
 }
 
 void Device::deleteProc(bool)

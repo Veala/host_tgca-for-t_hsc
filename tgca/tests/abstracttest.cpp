@@ -59,7 +59,7 @@ void AbstractTest::mousePressEvent(QMouseEvent *event)
 void AbstractTest::message(QString m)
 {
     QDateTime local(QDateTime::currentDateTime());
-    textBrowser->append(name_enabled->text() + local.toString(tr(" - dd.MM.yyyy hh:mm:ss\n")) + m);
+    projectBrowser->append(name_enabled->text() + local.toString(tr(" - dd.MM.yyyy hh:mm:ss\n")) + m);
 }
 
 void AbstractTest::setConnections(Device *dev)
@@ -226,7 +226,7 @@ void AbstractTest::errorDevice(QAbstractSocket::SocketError err)
 
 void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tType, QString fName, QTextBrowser *tB)
 {
-    devices=b;  settings=d; textBrowser = tB;
+    devices=b;  settings=d; projectBrowser = tB;
     settings->setWindowTitle(QObject::tr("Настройки"));
     name_enabled->setChecked(ched);
     name_enabled->setText(tType);

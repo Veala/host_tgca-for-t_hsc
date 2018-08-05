@@ -74,7 +74,7 @@ protected:
     QLabel *status;
     QDialog *settings;
     QVBoxLayout *devices;
-    QTextBrowser *textBrowser;
+    QTextBrowser *projectBrowser;
     void message(QString);
     void setConnections(Device*);
     void setDisconnections(Device*);
