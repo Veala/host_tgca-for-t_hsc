@@ -14,26 +14,33 @@ namespace Ui {
 class MainWindow;
 }
 
-struct SPrjSettings
-{
-    bool autoLoad;
-    bool su;
-    QString logFile;
-
-    //vector struct
-};
-
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public GlobalState
 {
     Q_OBJECT
 signals:
     void newDev(QString);
+    void setTestStateIcon(int);
+
+private:
+    enum TreeState {
+        running,
+        next,
+        stopped,
+        bigStop,
+        smallStop,
+        finished
+    } treeState;
+    int curIndex;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
     void keyPressEvent(QKeyEvent *e);
+    void setTreeState(TreeState);
+    TreeState getTreeState() const;
+    void message(QString);
+    void run(int);
 
 private:
     Ui::MainWindow *ui;
@@ -52,17 +59,21 @@ private:
     bool loadProject(QSettings& settings);
 
     QString logFile;
+    QString logFileDefault;
     QString helpFile;
 
-    void clearProject();
+    bool clearProject();
 
 private slots:
     void onAbout();
     void onPushConfig();
     void onRunTst();
     void onStop();
+    //void onStopMonitor();
+    void setSlot(QPushButton*, QPushButton*, QPushButton*);
+    void unsetSlot(QPushButton*, QPushButton*, QPushButton*);
     void onPause();
-    void onSavePrj();
+    bool onSavePrj();
     void onLoadPrj();
 
     void addDevice();
@@ -71,7 +82,7 @@ private slots:
 
     void onHelp();
     void onPrintRep();
-    void onCreateRep();
+    bool onCreateRep();
     void onMenuDevices(QPoint);
     void onMenuTests(QPoint);
     void actDevMode();

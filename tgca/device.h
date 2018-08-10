@@ -56,11 +56,10 @@ private:
     ConnectedState connectedState;
 
 private slots:
-    void deleteProc(bool);
-    void showConfiguration(bool);
-    void showConnection(bool);
-    void connectTry(bool);
-    void disconnectTry(bool);
+    void showConfiguration();
+    void showConnection();
+    void connectTry();
+    void disconnectTry();
     void doConnected();
     void doDisconnected();
     void doError(QAbstractSocket::SocketError err);

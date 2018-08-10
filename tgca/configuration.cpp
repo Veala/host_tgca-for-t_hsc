@@ -1,8 +1,6 @@
 #include "configuration.h"
 #include "ui_configuration.h"
 
-#include "vskregview.h"
-#include "registers.h"
 #include "confselect.h"
 #include "ctableeditcol.h"
 
@@ -10,9 +8,13 @@
 #include <QMessageBox>
 #include <QDebug>
 
+const bool  DebugL = false;
+
 static bool regNSKRO[NUMOFREGNSK] = { false };
 #define ADDR_2_VSK_ROW(addr) ((addr)/4-32)
 #define NUM_REG_2_ADDR(num) ((num)*4)
+#define ROW_REG_NSK_2_ADDR(num) ((num)*4)
+#define ROW_REG_VSK_2_ADDR(num) (REGVSKADDRFROM + (num)*4)
 
 static bool regVSKUseGlobal[NUMOFREGVSK] = { true, false, false, true, true, false, false, true,
                                       true, false, false, false, false, true, false, false,
@@ -76,7 +78,8 @@ Configuration::Configuration(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Configuration),
     currentTab(-1),
-    stopSign(false)
+    stopSign(false),
+    path("")
     //iconStartEna(":/../pictogram/bullet_go_1755.png"),
     //iconStartDis(":/../pictogram/bullet_delete_3633.png")
 {
@@ -231,11 +234,12 @@ void Configuration::switchRegisterAsgmt(int num_reg, QLabel *labelHeader, QLabel
     //labelInd->setEnabled(num);
     QFont f = labelTextL->font();
     f.setBold(num==0);
-    labelHeader->setFont(f);
     labelTextL->setFont(f);
     labelTextH->setFont(f);
     lineL->setFont(f);
     lineH->setFont(f);
+    f.setBold(true);
+    labelHeader->setFont(f);
     QPalette p = lineL->palette();
     if (num)
         p.setColor(QPalette::Base, qRgb(241, 241, 241));
@@ -269,6 +273,13 @@ static QString KEY_lvl_sync_pre_rx_OR_prs_level_max_rn[4] = {
     "prs_level_max_rn_msw",
     "lvl_sync_pre_rx_lsw",
     "prs_level_max_rn_lsw" };
+
+/////////////////////////////////////////////////////////////////////////
+
+static word16_t memToWord16(char *buf, int addr) { return 0xFFFF; }// *(buf+addr) //num_reg+0xAA0;}
+
+//void ReadFormat1(char *mem_dst, addr_t mem_src, int num_byte) {}
+
 
 /// Эта функция пересчитывает заполнение всех окон, относящихся к данному регистру и к зависимым регистрам
 void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
@@ -310,7 +321,7 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
         if ((val & fl_REG_CFG_ena_mem_vsk) == 0)
             title += "   (доступ выключен)";
 
-        int man_type = val & FL_REG_CFG_type_man;
+        int man_type = manType(val);
         ui->comboBoxManType->setCurrentIndex(man_type == val_REG_CFG_type_man_ERROR ? -1 : man_type);
         markRegisterEnabled(ui->lineEditQ16, ui->labelQ16, ui->labelMarkQ16, man_type == val_REG_CFG_type_man_QAM16);
         markRegisterEnabled(ui->lineEditQ64l, ui->labelQ64l, ui->labelMarkQ64l, man_type == val_REG_CFG_type_man_QAM64);
@@ -513,7 +524,7 @@ void Configuration::onEditRegVSK(int row, int col)
 
 void Configuration::onEditRegVSK(QPoint point)
 {
-    return;
+/*
     if (ui->tableWidgetVSK->columnAt(point.rx()) == REG_COL_NUM::rcn_Val)
     {
         QTableWidgetItem* curItem = ui->tableWidgetVSK->itemAt(point);
@@ -523,10 +534,12 @@ void Configuration::onEditRegVSK(QPoint point)
             return;
             VSKRegView reg(this);
             int row = curItem->row();
-            reg.configRegView(/*regVSKType[row],*/ registerVSKInfo_read_only(row));
+       //     reg.configRegView(regVSKType[row], registerVSKInfo_read_only(row));
+            reg.configRegView(registerVSKInfo_read_only(row));
             reg.exec();
         }
     }
+*/
 }
 
 void Configuration::onEditRegNSK(QPoint point)
@@ -558,7 +571,7 @@ void Configuration::onChangeTab(int num)
 bool Configuration::onPushSave()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
-        tr("Сохранить в файл"), "", tr("Файлы конфигурации (*.tgca_c)\nВсе файлы (*.*)"));
+        tr("Сохранить в файл"), "", tr("Файлы конфигурации (*.cnf)\nВсе файлы (*.*)"));
 
     if (fileName == "")
         return false;
@@ -596,6 +609,7 @@ bool Configuration::onPushSave()
     }
 
     file.close();
+    path = fileName;
     return true;
 }
 
@@ -605,14 +619,176 @@ void Configuration::onPushChoose()
     cs.exec();
 }
 
-void Configuration::onPushWrite()
+bool Configuration::onPushWrite()
 {
+    int count = 0;
+    bool bRet = false;
+    char pack[(NUMOFREGVSK+NUMOFREGNSK+1)*8];
+    char* pt = pack;
+    pt+=8;
 
+    for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
+    {
+        ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
+        if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
+        {
+            count++;
+            int addr = ROW_REG_NSK_2_ADDR(i);
+            QString strval = ui->tableWidgetNSK->item(i, rcn_Val)->text();
+            int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
+            memcpy(pt, (char*)&addr, 4);
+            pt += 4;
+            memcpy(pt, (char*)&val, 4);
+            pt += 4;
+        }
+    }
+    if (ui->tableWidgetVSK->item(config_NUMREG_creg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->checkState() == Qt::Checked)
+    {
+        count++;
+        int addr = REG_VSK_creg;
+        QString strval = ui->tableWidgetNSK->item(config_NUMREG_creg-config_NUMREG_BEGIN_VSK, rcn_Val)->text();
+        int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
+        memcpy(pt, (char*)&addr, 4);
+        pt += 4;
+        memcpy(pt, (char*)&val, 4);
+        pt += 4;
+    }
+    for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
+    {
+        ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
+        if (i != config_NUMREG_creg-config_NUMREG_BEGIN_VSK &&
+            ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
+        {
+            count ++;
+            int addr = ROW_REG_VSK_2_ADDR(i);
+            QString strval = ui->tableWidgetVSK->item(i, rcn_Val)->text();
+            int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
+            memcpy(pt, (char*)&addr, 4);
+            pt += 4;
+            memcpy(pt, (char*)&val, 4);
+            pt += 4;
+        }
+    }
+
+    if (count == 0)
+        QMessageBox::warning(this, tr("Запись регистров"), tr("Нет отмеченных регистров"), tr("Вернуться"));
+    else
+    {
+        /// формирование команды записи формата 1
+        int cmd = 1;
+        count *= 8; // 4 байта на адрес и 4 байта на значение
+
+        pt = pack;
+        memcpy(pt, (char*)&cmd, 4);
+        //pt += 4;
+        memcpy(pt+4, (char*)&count, 4);
+
+        int error_code = doWriteReg(pack);
+        if (error_code == 0)
+        {
+            bRet = true;
+            for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
+            {
+                if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
+                    ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::blue);
+            }
+            for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
+            {
+                if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
+                    ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::blue);
+            }
+        }
+    }
+    return bRet;
 }
 
-void Configuration::onPushRead()
+bool Configuration::onPushRead()
 {
+    int count = 0;
+    bool bRet = false;
+    int reg_numbers[NUMOFREGVSK+NUMOFREGNSK];
+    char pack[(NUMOFREGVSK+NUMOFREGNSK+2)*4];
+    char* pt = pack;
+    pt+=8;
 
+    for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
+    {
+        ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
+        if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
+        {
+            count++;
+            int addr = ROW_REG_NSK_2_ADDR(i);
+            memcpy(pt, (char*)&addr, 4);
+            pt += 4;
+            reg_numbers[i] = i;
+        }
+    }
+    for (int i=0, j=config_NUMREG_BEGIN_VSK; i<ui->tableWidgetVSK->rowCount(); i++, j++)
+    {
+        ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
+        if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
+        {
+            count ++;
+            int addr = ROW_REG_VSK_2_ADDR(i);
+            memcpy(pt, (char*)&addr, 4);
+            pt += 4;
+            reg_numbers[i] = j;
+        }
+    }
+
+    if (count == 0)
+        QMessageBox::warning(this, tr("Чтение регистров"), tr("Нет отмеченных регистров"), tr("Вернуться"));
+    else
+    {
+        /// формирование команды чтения формата 1
+        int cmd = 3;
+        count *= 4;
+        pt = pack;
+        memcpy(pt, (char*)&cmd, 4);
+        memcpy(pt+4, (char*)&count, 4);
+
+        int error_code = doReadReg(pack);
+        /// Обработка ответа. Значения запрошенных регистров находятся в массиве pack.
+        if (error_code == 0)
+        {
+            int* pti = (int*)pt;
+            cmd = *pti;
+            qDebug() << cmd;
+            if (cmd == 3)
+            {
+                pt += 4;
+                pti = (int*)pt;
+                if (count == *pti)
+                {
+                    stopSign = true;
+                    for (int i=0; i<count/4; i++)
+                    {
+                        pt +=4;
+                        pti = (int*)pt;
+                        int newval = *pti;
+                        int row = reg_numbers[i];
+                        if (row < config_NUMREG_BEGIN_VSK)
+                        {
+                            ui->tableWidgetNSK->item(row, rcn_Val)->setTextColor(Qt::blue);
+                            ui->tableWidgetNSK->item(row, rcn_Val)->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
+                        }
+                        else
+                        {
+                            row -= config_NUMREG_BEGIN_VSK;
+                            QString value = QString("%1").arg(newval, 4, 16, QChar('0')).toUpper();
+                            ui->tableWidgetVSK->item(row, rcn_Val)->setText(value);
+                            ui->tableWidgetVSK->item(row, rcn_Val)->setTextColor(Qt::blue);
+                            int addr = NUM_REG_2_ADDR(row);
+                            adaptRegVSK(addr, newval, value);
+                        }
+                    }
+                    bRet = true;
+                    stopSign = false;
+                }
+            }
+        }
+    }
+    return bRet;
 }
 
 void Configuration::onExpandNSK(int mode)
@@ -748,7 +924,7 @@ bool Configuration::update(void* reg)
     ui->tableWidgetVSK->blockSignals(true);
 
     for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
-        updateRegVSK(row, memToWord16((char*)reg, REGVSKADDRFROM + row*4));
+        updateRegVSK(row, memToWord16((char*)reg, ROW_REG_VSK_2_ADDR(row)));
 
     ui->tableWidgetVSK->blockSignals(false);
 
@@ -840,7 +1016,7 @@ bool Configuration::setConfigDefault0(word16_t reg_config, bool all)
     setRegVal(REG_VSK_lvl_sync_pre_rx_msw, REG_VSK_lvl_sync_pre_rx_msw_INIT_DEFAULT);
     setRegVal(REG_VSK_lvl_sync_pre_rx_lsw, REG_VSK_lvl_sync_pre_rx_lsw_INIT_DEFAULT);
 
-    int man_type = reg_config & FL_REG_CFG_type_man;
+    int man_type = manType(reg_config);
     if (all || man_type == val_REG_CFG_type_man_QAM16)
         setRegVal(REG_VSK_lvl_qam16, REG_VSK_lvl_qam16_INIT_DEFAULT);
     if (all || man_type == val_REG_CFG_type_man_QAM64)
@@ -958,11 +1134,11 @@ bool Configuration::initFrom(QString name, int* err)
     stopSign = false;
     if (err)
         *err = bRet ? 0 : 2;
+    if (bRet)
+        path = name;
+
     return bRet;
 }
-
-word16_t memToWord16(char *buf, int addr) { return 0xFFFF; }// *(buf+addr) //num_reg+0xAA0;}
-//void ReadFormat1(char *mem_dst, addr_t mem_src, int num_byte) {}
 
 void onCellChange(CTableEditCol *tab, QCheckBox *box, int row, int col)
 {
@@ -1000,14 +1176,9 @@ void Configuration::onCellChangedNSK(int row, int col)
 
 
 //////////////////////////////////////////////////////////////
-/// СЛОТЫ ДЛЯ ЭЛЕМЕНТОВ ОКНА "Основные настройки"
+/// СЛОТЫ ДЛЯ ЭЛЕМЕНТОВ СТРАНИЦЫ "Основные настройки"
 
-static int chgManType(int cfg, int man_type)
-{
-    return (cfg & ~FL_REG_CFG_type_man) | (man_type & FL_REG_CFG_type_man);
-}
-
-void Configuration::onManTypeChanged(int index)
+void Configuration::on_comboBoxManType_currentIndexChanged(int index)
 {
     if (currentTab==2 && !stopSign)
     {
@@ -1027,34 +1198,36 @@ void Configuration::onManTypeChanged(int index)
     }
 }
 
-void Configuration::chgCfgFlag(word16_t flag, bool b)
+void Configuration::applyRegFlag(int num_reg, word16_t flag, bool b)
 {
-    QTableWidgetItem *item = ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Val);
-    word16_t newval = (item->text().toInt(0,16)) & ~flag;
+    QTableWidgetItem *item = ui->tableWidgetVSK->item(num_reg-config_NUMREG_BEGIN_VSK, rcn_Val);
+    word16_t newval = 0;
+    if (!item->text().isEmpty())
+        newval = (item->text().toInt(0,16)) & ~flag;
     if (b)
         newval |= flag;
     item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
     item->setTextColor(Qt::black);
-    ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
+    ui->tableWidgetVSK->item(num_reg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
 }
 
-void Configuration::onCodecChanged(bool checked)
+void Configuration::on_checkBoxCodec_clicked(bool checked)
 {
     if (currentTab==2 && !stopSign)
-        chgCfgFlag(fl_REG_CFG_ena_codec, checked);
+        applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_ena_codec, checked);
 }
 
-void Configuration::onEnaAruChanged(bool checked)
+void Configuration::on_checkBoxEnaAru_clicked(bool checked)
 {
     if (currentTab==2 && !stopSign)
-        chgCfgFlag(fl_REG_CFG_ena_aru, checked);
+        applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_ena_aru, checked);
 }
 
-void Configuration::onEnaMemVskChanged(int index)
+void Configuration::on_comboBoxEnaMemVsk_currentIndexChanged(int index)
 {
     if (currentTab==2 && !stopSign)
     {
-        chgCfgFlag(fl_REG_CFG_ena_mem_vsk, index);
+        applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_ena_mem_vsk, index);
         ui->groupBoxRAM->setEnabled(index!=0);
         QString title("•	Регистр доступа к внутренней памяти");
         if (index==0)
@@ -1067,29 +1240,29 @@ void Configuration::on_comboBox_BC_RT_currentIndexChanged(int index)
 {
     if (currentTab==2 && !stopSign)
     {
-        chgCfgFlag(fl_REG_CFG_mode_rt_bc, index);
+        applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_mode_rt_bc, index);
         ui->checkBoxEnaInt->setText(QString("разрешение выработки прерывания в режиме ") + QString(index ? "ОУ" : "КШ"));
         ui->label_14->setText(QString("флаг прерывания от ") + QString(index ? "ОУ" : "КШ"));
         camouflage(ui->comboBoxRTA, index && ui->checkBoxEnaRtaVSK->isChecked());
     }
 }
 
-void Configuration::onEnaIntChanged(bool checked)
+void Configuration::on_checkBoxEnaInt_clicked(bool checked)
 {
     if (currentTab==2 && !stopSign)
-        chgCfgFlag(fl_REG_CFG_en_rt_bc_int, checked);
+        applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_en_rt_bc_int, checked);
 }
 
-void Configuration::onEnaRtaVskChanged(bool checked)
+void Configuration::on_checkBoxEnaRtaVSK_clicked(bool checked)
 {
     if (currentTab==2 && !stopSign)
     {
-        chgCfgFlag(fl_REG_CFG_rtavsk_ena, checked);
+        applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_rtavsk_ena, checked);
         camouflage(ui->comboBoxRTA, checked && ui->comboBox_BC_RT->currentIndex());
     }
 }
 
-void Configuration::onRTA_Choose(int index)
+void Configuration::on_comboBoxRTA_currentIndexChanged(int index)
 {
     if (currentTab==2 && !stopSign)
     {
@@ -1106,32 +1279,227 @@ void Configuration::onRTA_Choose(int index)
 
 void Configuration:: on_lineEditQ16_editingFinished()
 {
+    if (currentTab==2 && !stopSign && !DebugL)
     qDebug() << "editingFinished";
-    regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam16)] = true;
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Name_Check)->setCheckState(Qt::Checked);
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Val)->setText(ui->lineEditQ16->text());
+//    regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam16)] = true;
+//    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Name_Check)->setCheckState(Qt::Checked);
+//    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Val)->setText(ui->lineEditQ16->text());
 }
 
-void Configuration::on_lineEditQ64l_textChanged(const QString &arg1)
+void Configuration::on_lineEditQ16_textChanged(const QString &arg1)
 {
+    if (currentTab==2 && !stopSign && !DebugL)
     qDebug() << "textChanged   " << arg1 << "    END";
-    regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low)] = true;
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low), rcn_Name_Check)->setCheckState(Qt::Checked);
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low), rcn_Val)->setText(arg1);
 }
 
-void Configuration::on_lineEditQ64m_textEdited(const QString &arg1)
+void Configuration::on_lineEditQ16_textEdited(const QString &arg1)
 {
+    if (currentTab==2 && !stopSign && !DebugL)
     qDebug() << "textEdited   " << arg1 << "    END";
-    regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle)] = true;
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle), rcn_Name_Check)->setCheckState(Qt::Checked);
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle), rcn_Val)->setText(arg1);
 }
 
-void Configuration::on_lineEditQ64h_textChanged(const QString &arg1)
+void Configuration::on_lineEditQ16_cursorPositionChanged(int arg1, int arg2)
 {
-    qDebug() << "textChanged   " << arg1 << "    END";
-    regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high)] = true;
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high), rcn_Name_Check)->setCheckState(Qt::Checked);
-    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high), rcn_Val)->setText(ui->lineEditQ64h->text());
+    if (currentTab==2 && !stopSign && !DebugL)
+    qDebug() << "cursorPositionChanged  " << arg1 << " " << arg2;
+
+}
+
+void Configuration::on_lineEditQ16_returnPressed()
+{
+    if (currentTab==2 && !stopSign && !DebugL)
+    qDebug() << "returnPressed";
+
+}
+
+void Configuration::on_lineEditQ16_selectionChanged()
+{
+    if (currentTab==2 && !stopSign && !DebugL)
+    qDebug() << "selectionChanged";
+
+}
+
+void Configuration::on_checkBoxResetFL_clicked(bool checked)
+{
+    if (currentTab==2 && !stopSign)
+        applyRegFlag(config_NUMREG_creg, fl_REG_CREG_com_res, checked);
+}
+
+void Configuration::on_checkBoxResetFLT_clicked(bool checked)
+{
+    if (currentTab==2 && !stopSign)
+        applyRegFlag(config_NUMREG_creg, fl_REG_CREG_tx_res, checked);
+}
+
+void Configuration::on_checkBoxResetFLR_clicked(bool checked)
+{
+    if (currentTab==2 && !stopSign)
+        applyRegFlag(config_NUMREG_creg, fl_REG_CREG_rx_res, checked);
+}
+
+void Configuration::on_checkBoxStartBC_clicked(bool checked)
+{
+    if (currentTab==2 && !stopSign)
+    {
+        if (checked)
+            QMessageBox::warning(this, tr("Конфигурация регистров"), tr("Вы включили старт работы КШ"), tr("Выход"));
+        applyRegFlag(config_NUMREG_creg, fl_REG_CREG_start_bc, checked);
+    }
+}
+
+//////////////////////////////////////////////////////////////
+/// СЛОТЫ ДЛЯ ЭЛЕМЕНТОВ СТРАНИЦЫ "Дополнительно"
+
+void Configuration::on_comboBoxLvlPre_activated(int index)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        applyRegFlag(config_NUMREG_rx_cntr, fl_REG_RX_CNTR_max_Rn_sync_pre, index);
+        switchRegisterAsgmt(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_msw), ui->label_20, ui->label_8, ui->label_9,
+                  ui->lineEdit_10, ui->lineEdit_11, ui->labelD0D4RO, TXT_lvl_sync_pre_rx_OR_prs_level_max_rn,
+                  KEY_lvl_sync_pre_rx_OR_prs_level_max_rn, index);
+    }
+}
+
+void Configuration::on_comboBoxLvlCor_activated(int index)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        applyRegFlag(config_NUMREG_rx_cntr, fl_REG_RX_CNTR_prcs_max_sync, index);
+
+        switchRegisterAsgmt(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_msw), ui->label_26, ui->label_6, ui->label_7,
+                  ui->lineEdit_9, ui->lineEdit_12, ui->labelC8CCRO, TXT_lvl_sync_kf_rx_OR_prcs_max_sync,
+                  KEY_lvl_sync_kf_rx_OR_prcs_max_sync, index);
+    }
+}
+
+void Configuration::on_checkBox_2_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 1, checked);
+}
+
+void Configuration::on_checkBox_3_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 2, checked);
+}
+
+void Configuration::on_checkBox_4_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 4, checked);
+}
+
+void Configuration::on_checkBox_5_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 8, checked);
+}
+
+void Configuration::on_checkBox_6_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 16, checked);
+}
+
+void Configuration::on_checkBox_7_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 32, checked);
+}
+
+void Configuration::on_checkBox_8_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 64, checked);
+}
+
+void Configuration::on_checkBox_9_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 128, checked);
+}
+
+void Configuration::on_checkBox_10_clicked(bool checked)
+{
+    if (currentTab==3 && !stopSign)
+        applyRegFlag(config_NUMREG_ram_tx_rx, 256, checked);
+}
+
+//////////////////////////////////////////////////////////////
+/// СЛОТЫ ДЛЯ ЭЛЕМЕНТОВ СТРАНИЦЫ "Внешние устройства"
+
+void Configuration::on_comboBoxSPI1_currentIndexChanged(int index)
+{
+    if (currentTab==4 && !stopSign)
+    {
+        QTableWidgetItem *item = ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Val);
+        word16_t newval = (item->text().toInt(0,16)) & ~FL_REG_CR_SPI_spi_en;
+        newval |= index;
+        item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
+        item->setTextColor(Qt::black);
+        ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
+    }
+}
+
+void Configuration::on_comboBoxSPI2_currentIndexChanged(int index)
+{
+    if (currentTab==4 && !stopSign)
+    {
+        QTableWidgetItem *item = ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Val);
+        word16_t newval = (item->text().toInt(0,16)) & ~FL_REG_CR_SPI_dr8_16_32;
+        newval |= (index << 8);
+        item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
+        item->setTextColor(Qt::black);
+        ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
+    }
+}
+
+void Configuration::on_checkBoxSPI_clicked(bool checked)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_cr_spi, fl_REG_CR_SPI_spif, checked);
+}
+
+void Configuration::on_checkBoxRX_AMPL0_clicked(bool checked)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_amplification_factor, fl_REG_AMPL_FACTOR_rx_ampl0, checked);
+}
+
+void Configuration::on_checkBoxRX_AMPL1_clicked(bool checked)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_amplification_factor, fl_REG_AMPL_FACTOR_rx_ampl1, checked);
+}
+
+void Configuration::on_checkBoxRX_AMPL2_clicked(bool checked)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_amplification_factor, fl_REG_AMPL_FACTOR_rx_ampl2, checked);
+}
+
+void Configuration::on_checkBoxRX_AMPL3_clicked(bool checked)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_amplification_factor, fl_REG_AMPL_FACTOR_rx_ampl3, checked);
+}
+
+void Configuration::on_checkBoxRX_OE_AMPL_clicked(bool checked)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_amplification_factor, fl_REG_AMPL_FACTOR_rx_oe_ampl, checked);
+}
+
+void Configuration::on_comboBoxFreq_currentIndexChanged(int index)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_pll_reg, fl_REG_PLL_frange, index);
+}
+
+void Configuration::on_comboBoxOff_currentIndexChanged(int index)
+{
+    if (currentTab==4 && !stopSign)
+        applyRegFlag(config_NUMREG_pll_reg, fl_REG_PLL_pd, index);
 }

@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QPrinter>
 
-//#include <QDebug>
+static bool configurateDevice(Device *device); // не реализована !!!
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -11,9 +12,15 @@ MainWindow::MainWindow(QWidget *parent) :
     inRun(false),
     inPause(false),
     su(false),
-    logFile("log.txt")
+    logFile("log.txt"),
+    logFileDefault("log.txt")
 {
     ui->setupUi(this);
+
+    connect(ui->actRun, SIGNAL(triggered(bool)), this, SLOT(onRunTst()));
+    connect(ui->actPause, SIGNAL(triggered(bool)), this, SLOT(onPause()));
+    connect(ui->actStop, SIGNAL(triggered(bool)), this, SLOT(onStop()));
+    //connect(ui->actStop, SIGNAL(triggered(bool)), this, SLOT(onStopMonitor()));
 
     ui->outputMenu->addAction(ui->dockPro->toggleViewAction());
     ui->outputMenu->addAction(ui->dockTest->toggleViewAction());
@@ -29,13 +36,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actConfiguration->setVisible(false);
     ui->actConfiguration->setEnabled(false);
 
-    QSettings project("../tgca/project.txt", QSettings::IniFormat);
+    QSettings project("../tgca/project.ini", QSettings::IniFormat);
     if (project.status() == QSettings::NoError && project.allKeys().size() >= 2 &&
         project.value("Common/autoload").toString() == "1")
             prjLoaded = loadProject(project);
 
     if (prjLoaded)
             ui->actSavePrj->setEnabled(true);
+
+    treeState = stopped;
 }
 
 MainWindow::~MainWindow()
@@ -50,18 +59,46 @@ void MainWindow::onAbout()
     QMessageBox::about(this, tr("Справка"), tr("Шифр: \"Обработка 30\"\nВерсия: 1.0\n"));
 }
 
-static bool setupConnection(Device *device, QString ip, QString port, QString hostIp, QString hodtPort)
+bool MainWindow::clearProject()
 {
-    qDebug() << QObject::tr("Функция setupConnection() не реализована !!!");
-    ///  LLL
-    return false;
+    bool bRet = true;
+    if (su)
+    {
+        su = false;
+        ui->actConfiguration->setVisible(false);
+        ui->actConfiguration->setEnabled(false);
+        if (devConf)
+            delete devConf;
+        devConf = 0;
+    }
+    logFile = logFileDefault;
+
+    int sz = ui->tests->count();
+    for (int i=sz-1; i>=0; i--)
+    {
+        AbstractTest *test = (AbstractTest*)ui->tests->itemAt(i)->widget();
+        /// закрыть тест, выгрузить из tests
+        delete test;
+    };
+
+    sz = ui->devices->count();
+    for (int i=sz-1; i>=0; i--)
+    {
+        Device *dev = (Device*)ui->devices->itemAt(i)->widget();
+        /// Здесь надо разорвать все соединения и удалить устройство
+        delete dev;
+    };
+    qDebug() << "Done";
+    return bRet;
 }
 
-static bool configurateDevice(Device *device)
+static bool setupConnection(Device *device, QString ip, QString port, QString hostIp, QString hostPort)
 {
-    qDebug() << QObject::tr("Функция configurateDevice() не реализована !!!");
-    /// Здесь надо установить соединение и потом записать регистры LLL
-    return false;
+    device->connection.setServerIP(ip);
+    device->connection.setServerPORT(port);
+    device->connection.setHostIP(hostIp);
+    device->connection.setHostPORT(hostPort);
+    return !ip.isEmpty() && port.isEmpty() && !hostIp.isEmpty();
 }
 
 bool MainWindow::loadProject(QSettings& settings)
@@ -81,10 +118,10 @@ bool MainWindow::loadProject(QSettings& settings)
         {
             Device *device = new Device(this, name, ui->projectBrowser);
             ui->devices->addWidget(device);
-            if (/*setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
-                            settings.value("host IP").toString(), settings.value("host port").toString()) &&*/
-            device->configuration.initFrom(settings.value("configuration").toString(), 0) &&
-            settings.value("autoload").toString() == "1")
+            bool bConn = setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
+                                        settings.value("hostIP").toString(), settings.value("hostPort").toString());
+            bool bConf = device->configuration.initFrom(settings.value("configuration").toString(), 0);
+            if (bConn && bConf && settings.value("autoload").toString() == "1")
                 configurateDevice(device);
         }
     }
@@ -97,17 +134,81 @@ bool MainWindow::loadProject(QSettings& settings)
         QString name = settings.value("test").toString();
         if (!name.isEmpty())
         {
-            AbstractTest *at = testLib::loadTest(name, ui->devices, ui->projectBrowser);
+            AbstractTest *at = testLib::loadTest(name, ui->devices, ui->projectBrowser, ui->testBrowser);
             if (at)
             {
                 ui->tests->addWidget(at);
                 at->setEnabled(settings.value("enabled").toString() != "0");
                 tstLoaded = true;
+                connect(this, SIGNAL(newDev(QString)), at, SLOT(newDev(QString)));
+                connect(this, SIGNAL(setTestStateIcon(int)), at, SLOT(setRunningState(int)));
+                connect(at, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
+                connect(at, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
                 ui->actRun->setEnabled(true);
             }
         }
     }
     settings.endArray();
+    return true;
+}
+
+void MainWindow::onLoadPrj()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Открыть файл проекта"), tr(""));
+
+    if (!fileName.isEmpty())
+    {
+        if (clearProject())
+        {
+            QSettings project(fileName, QSettings::IniFormat);
+            prjLoaded = (project.status() == QSettings::NoError && project.allKeys().size() >= 2 && loadProject(project));
+        }
+    }
+}
+
+bool MainWindow::onSavePrj()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+        tr("Сохранить в файл"), "");
+
+    if (fileName == "")
+        return false;
+
+    QSettings ini(fileName, QSettings::IniFormat);
+
+    ini.clear();
+
+    ini.setValue("Common/output", logFile);
+    ini.setValue("Common/autoload", "0");
+    ini.setValue("Common/output", su ? "su" : "");
+
+    ini.beginWriteArray("Devices");
+    for (int j=0; j<ui->devices->count(); j++)
+    {
+        Device *dev = (Device*)ui->devices->itemAt(j)->widget();
+
+        ini.setArrayIndex(j);
+        ini.setValue("name", dev->getName());
+        ini.setValue("IP", dev->connection.getServerIP());
+        ini.setValue("port", dev->connection.getServerPORT());
+        ini.setValue("hostIP", dev->connection.getHostIP());
+        ini.setValue("hostPort", dev->connection.getHostPORT());
+        ini.setValue("configuration", dev->configuration.getName());
+        ini.setValue("autoload", "0");
+    }
+    ini.endArray();
+
+
+    ini.beginWriteArray("Tests");
+    for (int i=0; i<ui->tests->count(); i++)
+    {
+        AbstractTest * test = (AbstractTest*)ui->tests->itemAt(i)->widget();
+        ini.setArrayIndex(i);
+        ini.setValue("test", test->getName());
+        ini.setValue("enabled", "1");
+    }
+    ini.endArray();
     return true;
 }
 
@@ -145,17 +246,25 @@ void MainWindow::loadTest()
 {
     QString txtFile = QFileDialog::getOpenFileName(0, tr("Открыть файл параметров теста"), tr(""));
     if (txtFile.isEmpty()) return;
-    AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->projectBrowser);
+    AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->projectBrowser, ui->testBrowser);
+    if(test == NULL) return;
     test->setParent(this);
     connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
+    connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
+    connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
     ui->tests->addWidget(test);
 }
 
 void MainWindow::createTest()
 {
-    AbstractTest* test = testLib::createTest(ui->devices, ui->projectBrowser);
+    AbstractTest* test = testLib::createTest(ui->devices, ui->projectBrowser, ui->testBrowser);
+    if(test == NULL) return;
     test->setParent(this);
     connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
+    connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
+    connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
     ui->tests->addWidget(test);
 }
 
@@ -189,70 +298,113 @@ void MainWindow::onMenuTests(QPoint point)
 
     menu.exec(ui->labeDevicesTitle->mapToGlobal(point));
 }
-
-void MainWindow::onLoadPrj()
-{
-    QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Открыть файл проекта"), "/home/", tr("Файлы проекта (*.tgca_p)\nВсе файлы (*.*)"));
-
-    if (!fileName.isEmpty())
-    {
-        clearProject();
-        QSettings project(fileName, QSettings::IniFormat);
-        prjLoaded = (project.status() == QSettings::NoError && project.allKeys().size() >= 2 && loadProject(project));
-    }
-}
-
 void MainWindow::keyPressEvent(QKeyEvent *e)
 {
     if (e->key() != Qt::Key_Escape)
         QMainWindow::keyPressEvent(e);
 }
 
-/////////////////////////////////////////////////
-///    НЕ РЕАЛИЗОВАНЫ:
+void MainWindow::setTreeState(MainWindow::TreeState s)
+{
+    if (s == running) {
+        if (curIndex == 0) message(tr("Тесты запущены"));
+    } else if (s == stopped) {
+        curIndex = 0;
+        message(tr("Тесты остановлены"));
+    } else if (s == finished) {
+        curIndex = 0;
+        message(tr("Тесты завершены"));
+    } else if (s == next) {
+        curIndex++;
+    } else if (s == bigStop) {
+        if (treeState!=running) {
+            setTreeState(smallStop);
+            return;
+        }
+    } else if (s == smallStop) {
+
+    }
+    treeState = s;
+}
+
+MainWindow::TreeState MainWindow::getTreeState() const
+{
+    return treeState;
+}
+
+void MainWindow::message(QString m)
+{
+    QDateTime local(QDateTime::currentDateTime());
+    ui->projectBrowser->append(local.toString(tr("dd.MM.yyyy hh:mm:ss - ")) + m);
+}
+
+void MainWindow::run(int index)
+{
+    if (index == ui->tests->count()) {
+        setTreeState(finished);
+        return;
+    }
+    AbstractTest* test = (AbstractTest* )ui->tests->itemAt(index)->widget();
+    if (test->isReady()) {
+        emit test->globalStart();
+    } else {
+        setTreeState(next);
+        onRunTst();
+    }
+}
 
 void MainWindow::onRunTst()
 {
-    qDebug() << "onRunTst";
-
-    ui->actPrintRep->setEnabled(true);
-    ui->actCreateRep->setEnabled(true);
-    ui->actStop->setEnabled(true);
-    ui->actPause->setEnabled(true);
-    ui->actRun->setEnabled(false);
-
-    inRun = true;
-    inPause = false;
-}
-
-void MainWindow::onStop()
-{
-    qDebug() << "onStop";
-
-    ui->actStop->setEnabled(false);
-    ui->actPause->setEnabled(false);
-    ui->actRun->setEnabled(true);
-
-    inRun = false;
-    inPause = false;
+    if (getGlobalState() == BUSY) return;
+    if (getTreeState() == running) {
+        return;
+    } else {
+        if (curIndex == 0)
+            emit setTestStateIcon((int)AbstractTest::Stopped);
+        setTreeState(running);
+        run(curIndex);
+    }
 }
 
 void MainWindow::onPause()
 {
-    qDebug() << "onPause";
-
-    ui->actStop->setEnabled(inPause);
-    inPause = !inPause;
+    if (getGlobalState() == BUSY) return;
+    if (getTreeState() != running)
+        message(tr("Тесты не запущены"));
 }
 
-void MainWindow::onSavePrj()
+void MainWindow::onStop()
 {
-    qDebug() << "onSavePrj";
+    if (getGlobalState() == BUSY) {
+        setTreeState(bigStop);
+        return;
+    }
+    if (getTreeState() != running)
+        message(tr("Тесты не запущены"));
 }
 
-void MainWindow::clearProject()
+void MainWindow::setSlot(QPushButton *start, QPushButton *pause, QPushButton *stop)
 {
+    qDebug() << "setSlots";
+    connect(ui->actRun, SIGNAL(triggered(bool)), start, SIGNAL(clicked(bool)));
+    connect(ui->actPause, SIGNAL(triggered(bool)), pause, SIGNAL(clicked(bool)));
+    connect(ui->actStop, SIGNAL(triggered(bool)), stop, SIGNAL(clicked(bool)));
+}
+
+void MainWindow::unsetSlot(QPushButton *start, QPushButton *pause, QPushButton *stop)
+{
+    qDebug() << "unsetSlots";
+    disconnect(ui->actRun, SIGNAL(triggered(bool)), start, SIGNAL(clicked(bool)));
+    disconnect(ui->actPause, SIGNAL(triggered(bool)), pause, SIGNAL(clicked(bool)));
+    disconnect(ui->actStop, SIGNAL(triggered(bool)), stop, SIGNAL(clicked(bool)));
+    if (getTreeState() == running) {
+        setTreeState(next);
+        onRunTst();
+    } else if (getTreeState() == bigStop) {
+        setTreeState(stopped);
+    } else if (getTreeState() == smallStop) {
+        treeState = stopped;
+    }
 }
 
 void MainWindow::onHelp()
@@ -265,7 +417,42 @@ void MainWindow::onPrintRep()
     qDebug() << "onPrintRep";
 }
 
-void MainWindow::onCreateRep()
+bool MainWindow::onCreateRep()
 {
-    qDebug() << "onCreateRep";
+    QString fileName = QFileDialog::getSaveFileName(this,
+        tr("Сохранить в файл"), "", tr("Текстовый файл (*.pdf)\nВсе файлы (*.*)"));
+
+    if (fileName == "")
+        return false;
+
+  /*  QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
+
+    QTextStream out(&file);
+    out.setCodec("UTF-8");
+    out.setGenerateByteOrderMark(false);*/
+
+    QString header1 = QString("<html>\n<p><br><br><br><br><big><b><center>ОКНО ПРОЕКТА<br></center></b><br><br><br>");
+    QString page1 = ui->projectBrowser->toHtml();
+    QString header2 = QString("</p>\n<br style = 'page-break-after: always;'><html>\n<body>\n<p><br><br><br><br><big><b><center>ОКНО ТЕСТОВ<br></center></b><br><br><br>");
+    QString page2 = ui->testBrowser->toHtml();
+
+    //out << header1 << page1 << header2 << page2;
+    QPrinter prnt;
+    prnt.setPageSize(QPrinter::A4);
+    prnt.setOutputFormat(QPrinter::PdfFormat);
+    prnt.setOutputFileName(fileName);
+    QTextDocument document;
+    document.setHtml(header1+page1+header2+page2);
+    document.print(&prnt);
+
+    return true;
+}
+
+static bool configurateDevice(Device *device)
+{
+    qDebug() << QObject::tr("Функция configurateDevice() не реализована !!!");
+    /// Здесь надо установить соединение и потом записать регистры LLL
+    return false;
 }

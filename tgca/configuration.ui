@@ -37,11 +37,8 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
-     <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
-     </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabNSK">
       <property name="font">
@@ -631,9 +628,6 @@
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
         <widget class="CTableEditCol" name="tableWidgetVSK">
-         <property name="contextMenuPolicy">
-          <enum>Qt::CustomContextMenu</enum>
-         </property>
          <property name="editTriggers">
           <set>QAbstractItemView::DoubleClicked</set>
          </property>
@@ -1577,52 +1571,52 @@
           </item>
           <item>
            <property name="text">
-            <string>10</string>
+            <string>10h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>11</string>
+            <string>11h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>12</string>
+            <string>12h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>13</string>
+            <string>13h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>14</string>
+            <string>14h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>15</string>
+            <string>15h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>16</string>
+            <string>16h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>17</string>
+            <string>17h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>18</string>
+            <string>18h</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>19</string>
+            <string>19h</string>
            </property>
           </item>
           <item>
@@ -1648,11 +1642,6 @@
           <item>
            <property name="text">
             <string>1E</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>1F</string>
            </property>
           </item>
          </widget>
@@ -1977,6 +1966,9 @@
         <string>•	Регистр команд</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QCheckBox" name="checkBoxResetFL">
           <property name="font">
@@ -2038,7 +2030,7 @@
            </font>
           </property>
           <property name="text">
-           <string>старт работы КШ</string>
+           <string>старт работы КШ         Внимание! Не включайте эту настройку при начальной конфигурации!</string>
           </property>
           <property name="icon">
            <iconset resource="tgca.qrc">
@@ -3037,7 +3029,7 @@
          <widget class="QLineEdit" name="lineEditStatBufR">
           <property name="maximumSize">
            <size>
-            <width>25</width>
+            <width>20</width>
             <height>16777215</height>
            </size>
           </property>
@@ -3320,9 +3312,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>210</y>
+         <y>220</y>
          <width>571</width>
-         <height>80</height>
+         <height>151</height>
         </rect>
        </property>
        <property name="font">
@@ -3334,12 +3326,94 @@
        <property name="title">
         <string>•	Регистр уровня коэффициента усиления приемника внешнего приемопередатчика  </string>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QCheckBox" name="checkBoxRX_AMPL0">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>вывод на RX_AMPL0</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxRX_AMPL1">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>вывод на RX_AMPL1</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxRX_AMPL2">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>вывод на RX_AMPL2</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxRX_AMPL3">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>вывод на RX_AMPL3</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>7</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxRX_OE_AMPL">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>разрешение формирования логических уровней на выходах RX_AMPL0 - RX_AMPL3</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QGroupBox" name="groupBoxPLL">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>400</y>
+         <x>0</x>
+         <y>440</y>
          <width>581</width>
          <height>141</height>
         </rect>
@@ -3701,7 +3775,7 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="pushButtonRead">
        <property name="text">
         <string>Прочитать отмеченные регистры</string>
        </property>
@@ -3992,6 +4066,22 @@
     <hint type="sourcelabel">
      <x>313</x>
      <y>452</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>313</x>
+     <y>452</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButtonRead</sender>
+   <signal>pressed()</signal>
+   <receiver>Configuration</receiver>
+   <slot>onPushRead()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>465</x>
+     <y>789</y>
     </hint>
     <hint type="destinationlabel">
      <x>313</x>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>930</width>
-    <height>551</height>
+    <width>1508</width>
+    <height>646</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,68 +70,11 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>813</width>
-         <height>200</height>
+         <width>1418</width>
+         <height>327</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QLabel" name="labelTestsTitle">
-            <property name="font">
-             <font>
-              <weight>50</weight>
-              <italic>true</italic>
-              <bold>false</bold>
-              <underline>true</underline>
-             </font>
-            </property>
-            <property name="contextMenuPolicy">
-             <enum>Qt::CustomContextMenu</enum>
-            </property>
-            <property name="text">
-             <string>Тип теста</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="font">
-             <font>
-              <italic>true</italic>
-              <underline>true</underline>
-             </font>
-            </property>
-            <property name="text">
-             <string>Путь к тесту</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="font">
-             <font>
-              <italic>true</italic>
-              <underline>true</underline>
-             </font>
-            </property>
-            <property name="text">
-             <string>Статус</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
         <item>
          <layout class="QVBoxLayout" name="tests"/>
         </item>
@@ -183,19 +126,18 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actConfiguration"/>
-   <addaction name="separator"/>
    <addaction name="actRun"/>
    <addaction name="actPause"/>
    <addaction name="actStop"/>
+   <addaction name="actConfiguration"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>930</width>
-     <height>22</height>
+     <width>1508</width>
+     <height>18</height>
     </rect>
    </property>
    <property name="font">
@@ -217,10 +159,6 @@
     <widget class="QMenu" name="menuTests">
      <property name="title">
       <string>Добавить тест</string>
-     </property>
-     <property name="icon">
-      <iconset resource="tgca.qrc">
-       <normaloff>:/pictogram/application_form_add_2955.png</normaloff>:/pictogram/application_form_add_2955.png</iconset>
      </property>
      <addaction name="actCreateTest"/>
      <addaction name="actLoadTest"/>
@@ -341,15 +279,20 @@
       <number>0</number>
      </property>
      <item row="0" column="0">
-      <widget class="QTextBrowser" name="testBrowser"/>
+      <widget class="QTextBrowser" name="testBrowser">
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:italic;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Sans'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
   </widget>
   <action name="actConfiguration">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/calculator_8158.png</normaloff>:/pictogram/calculator_8158.png</iconset>
@@ -380,9 +323,6 @@
    </property>
   </action>
   <action name="actSavePrj">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/disk_1286.png</normaloff>:/pictogram/disk_1286.png</iconset>
@@ -398,9 +338,6 @@
    </property>
   </action>
   <action name="actCreateRep">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/accessories-text-editor_7233.png</normaloff>:/pictogram/accessories-text-editor_7233.png</iconset>
@@ -416,9 +353,6 @@
    </property>
   </action>
   <action name="actPrintRep">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/printer_5065.png</normaloff>:/pictogram/printer_5065.png</iconset>
@@ -431,10 +365,6 @@
    </property>
   </action>
   <action name="actAbout">
-   <property name="icon">
-    <iconset resource="tgca.qrc">
-     <normaloff>:/pictogram/help_1739.png</normaloff>:/pictogram/help_1739.png</iconset>
-   </property>
    <property name="text">
     <string>О программе</string>
    </property>
@@ -446,10 +376,6 @@
    </property>
   </action>
   <action name="actHelp">
-   <property name="icon">
-    <iconset resource="tgca.qrc">
-     <normaloff>:/pictogram/report_9058.png</normaloff>:/pictogram/report_9058.png</iconset>
-   </property>
    <property name="text">
     <string>Помощь</string>
    </property>
@@ -461,10 +387,6 @@
    </property>
   </action>
   <action name="actAddDevice">
-   <property name="icon">
-    <iconset>
-     <normaloff>../pictogram/drive_add_7644.png</normaloff>../pictogram/drive_add_7644.png</iconset>
-   </property>
    <property name="text">
     <string>Добавить устройство</string>
    </property>
@@ -473,9 +395,6 @@
    </property>
   </action>
   <action name="actRun">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/gtk-media-play-ltr_8717.png</normaloff>:/pictogram/gtk-media-play-ltr_8717.png</iconset>
@@ -491,10 +410,6 @@
    </property>
   </action>
   <action name="actCreateTest">
-   <property name="icon">
-    <iconset resource="tgca.qrc">
-     <normaloff>:/pictogram/filenew_5201.png</normaloff>:/pictogram/filenew_5201.png</iconset>
-   </property>
    <property name="text">
     <string>Создать</string>
    </property>
@@ -506,10 +421,6 @@
    </property>
   </action>
   <action name="actLoadTest">
-   <property name="icon">
-    <iconset resource="tgca.qrc">
-     <normaloff>:/pictogram/newspaper_5855.png</normaloff>:/pictogram/newspaper_5855.png</iconset>
-   </property>
    <property name="text">
     <string>Загрузить</string>
    </property>
@@ -521,9 +432,6 @@
    </property>
   </action>
   <action name="actPause">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/gtk-media-pause_2289.png</normaloff>:/pictogram/gtk-media-pause_2289.png</iconset>
@@ -536,9 +444,6 @@
    </property>
   </action>
   <action name="actStop">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="icon">
     <iconset resource="tgca.qrc">
      <normaloff>:/pictogram/gtk-media-stop_9402.png</normaloff>:/pictogram/gtk-media-stop_9402.png</iconset>
@@ -656,22 +561,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actRun</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onRunTst()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>548</x>
-     <y>363</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actSavePrj</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -752,50 +641,34 @@
    </hints>
   </connection>
   <connection>
-   <sender>actStop</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onStop()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>129</x>
-     <y>238</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actPause</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>onPause()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>129</x>
-     <y>238</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>labelTestsTitle</sender>
+   <sender>scrollArea</sender>
    <signal>customContextMenuRequested(QPoint)</signal>
    <receiver>MainWindow</receiver>
    <slot>onMenuTests(QPoint)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>191</x>
-     <y>82</y>
+     <x>787</x>
+     <y>240</y>
     </hint>
     <hint type="destinationlabel">
-     <x>129</x>
-     <y>238</y>
+     <x>753</x>
+     <y>322</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>centralWidget</sender>
+   <signal>customContextMenuRequested(QPoint)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onMenuDevices(QPoint)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>753</x>
+     <y>240</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>753</x>
+     <y>322</y>
     </hint>
    </hints>
   </connection>

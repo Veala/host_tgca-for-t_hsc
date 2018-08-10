@@ -9,7 +9,8 @@ CTableEditCol::CTableEditCol(QWidget* parent):
 {
     delegate = new CHexDelegate(this);
     setItemDelegateForColumn(rcn_Val, delegate);
-    qDebug() << "delegate";
+
+    //qDebug() << "delegate";
 }
 
 CTableEditCol::~CTableEditCol()

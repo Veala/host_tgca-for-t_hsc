@@ -1,8 +1,8 @@
-#include "abstracttest.h"
+#include "memtest.h"
 
-void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB)
+void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName,tB);
+    AbstractTest::setSettings(b,d,ch,tType,fName,pB,tB);
 
     mode = settings->findChild<QComboBox*>("mode");
     startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -28,11 +28,19 @@ top_1
     deviceEdit->setText(out.readLine());
     settingsFile.close();
     checkDeviceAvailability(1111);
+
+    objToThread = new memObjToThread();
+    objToThread->moveToThread(&testThread);
+    connect(&testThread,SIGNAL(finished()), objToThread,SLOT(deleteLater()));
+    connect(objToThread,SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
+    connect(objToThread,SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
+    connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
+    testThread.start();
 }
 
-void MemTest::save(bool b)
+void MemTest::save()
 {
-    AbstractTest::save(b);
+    AbstractTest::save();
 top_2(saveFileNameStr)
     in << mode->currentText() << endl;
     in << startAddr->text() << endl;
@@ -49,22 +57,37 @@ top_2(saveFileNameStr)
 
 void MemTest::startTest()
 {
-    deviceList.at(0);
-    Device *dev = deviceList.at(0);
-
-    if (dev==NULL) {
-        qDebug() << "dev NULL";
+    memObjToThread* curThread = (memObjToThread*)objToThread;
+    curThread->mode = mode->currentText();
+    curThread->addr = startAddr->text().toUInt(NULL, 16);
+    curThread->range = endAddr->text().toUInt(NULL, 16);
+    curThread->addrinc = incAddr->value();
+    curThread->data = startData->text().toUInt(NULL, 16);
+    curThread->datainc = incData->value();
+    curThread->inverse = inversion->currentText().toUInt();
+    curThread->inCycle = iteration->value();
+    curThread->output = oput->currentText().toUInt();
+    curThread->dev = deviceList.at(0);
+    curThread->socketDescriptor = curThread->dev->rw_socket.socketDescriptor();
+    if (curThread->socketDescriptor == -1) {
+        message(tr("Socket descriptor error"));
         return;
     }
 
-    uint addr = startAddr->text().toUInt(NULL, 16);
-    uint range = endAddr->text().toUInt(NULL, 16);
-    uint addrinc = incAddr->value();
-    uint data = startData->text().toUInt(NULL, 16);
-    uint datainc = incData->value();
-    uint inverse = inversion->currentText().toUInt();
-    long inCycle = iteration->value();
-    uint output = oput->currentText().toUInt();
+    emit startTestTh();
+    //curThread->doWork();
+}
+
+void memObjToThread::doWork()
+{
+    if (tcpSocket.state() != QAbstractSocket::ConnectedState) {
+        if (!tcpSocket.setSocketDescriptor(socketDescriptor)) {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            return;
+        }
+    }
+
+    emit resultReady((int)AbstractTest::Running);
 
     long it = 0, decrement = 0;
     if (inCycle == 0) { it=-1;  decrement=-1;   }
@@ -78,21 +101,34 @@ void MemTest::startTest()
 
     QByteArray array;
 
-    if (mode->currentText() == "w") {
+    if (mode == "w") {
         cmd = 1; dsz=dsz*2;
         array.append((char*)&cmd, 4);
         array.append((char*)&dsz, 4);
-        for (; it<inCycle; it=it+1+decrement) {
-            uint final;
-            for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
-                if (inverse) final = ~j;    else    final = j;
-                array.append((char*)&i, 4);
-                array.append((char*)&final, 4);
-            }
+        uint final;
+        for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
+            if (inverse) final = ~j;    else    final = j;
+            array.append((char*)&i, 4);
+            array.append((char*)&final, 4);
         }
-        qDebug() << "array size: " << array.size();
-        qDebug() << "wrote: " << dev->rw_socket.write(array, array.size());
-    } else if (mode->currentText() == "r") {
+
+        for (; it<inCycle; it=it+1+decrement) {
+            qDebug() << "array size: " << array.size();
+            //int n = dev->rw_socket.write(array, array.size());
+            int n = tcpSocket.write(array, array.size());
+            qDebug() << "wrote: " << n;
+            if (n == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
+            //if (!dev->rw_socket.waitForBytesWritten(5000)) {
+            if (!tcpSocket.waitForBytesWritten(5000)) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
+            if (pause_stop() == -1) return;
+        }
+    } else if (mode == "r") {
         cmd = 3;
         for (; it<inCycle; it=it+1+decrement) {
             dev->rw_socket.write((char*)&cmd, 4);
@@ -102,10 +138,10 @@ void MemTest::startTest()
             for (uint i=addr; i+3<=range; i+=addrinc) {
                 //dev->rw_socket.waitForReadyRead();
                 dev->rw_socket.read((char*)&data, 4);
-                if (output) projectBrowser->append("Read: " + QString::number(data, 16));
+                if (output) outputReady("Read: " + QString::number(data, 16));
             }
         }
-    } else if (mode->currentText() == "wr") {
+    } else if (mode == "wr") {
         cmd = 1; dsz=dsz*2;
         array.append((char*)&cmd, 4);
         array.append((char*)&dsz, 4);
@@ -136,10 +172,11 @@ void MemTest::startTest()
                 //dev->rw_socket.waitForReadyRead();
                 dev->rw_socket.read((char*)&data, 4);
                 if (inverse) final = ~j;    else    final = j;
-                if (output) projectBrowser->append(tr("Write: %1; Read: %2").arg(QString::number(final, 16)).arg(QString::number(data, 16)));
+                if (output) emit outputReady(tr("Write: %1; Read: %2").arg(QString::number(final, 16)).arg(QString::number(data, 16)));
                 if (data != final) diff++; else same++;
             }
-            projectBrowser->append(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
+            emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
         }
     }
+    resultReady(AbstractTest::Completed);
 }

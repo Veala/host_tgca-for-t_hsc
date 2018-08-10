@@ -43,6 +43,7 @@ public:
     /// Заполнение всех регистров.
     /// Входной параметр regVSK - указатель на буфер, содержащий все регистры ВСК.
     bool update(void *regAll);
+    QString getName() const { return path; }
 
 private:
     Ui::Configuration *ui;
@@ -51,6 +52,7 @@ private:
 //    char imprintRegNSK[NUMOFREGNSK * SIZEOFWORD];
     int currentTab;
     bool stopSign;
+    QString path;
 
     bool regVSKUse[NUMOFREGVSK];
     bool regVSKRO[NUMOFREGVSK];
@@ -70,7 +72,11 @@ private:
     word16_t getRegVal(addr_t addr) const;
     bool setRegVal(addr_t addr, word16_t val, bool force = false);
     void adaptRegVSK(int num_reg, word16_t val, QString strval);
-    void chgCfgFlag(word16_t flag, bool b);
+    void applyRegFlag(int num_reg, word16_t flag, bool b);
+
+    /// Функции чтения,записи регистров устройства, возвращают код ошибки.
+    int  doWriteReg(const char * const array) { return 0; }   /// LLL !!!
+    int  doReadReg(char *array) { return 1; }      /// LLL !!!
 
     bool registerNSKInfo_read_only(int num_reg) const;
     bool registerVSKInfo_read_only(int num_reg) const;
@@ -88,29 +94,76 @@ private slots:
     void onChangeTab(int);
     bool onPushSave();
     void onPushChoose();
-    void onPushWrite();
-    void onPushRead();
+    bool onPushWrite();
+    bool onPushRead();
     void onExpandVSK(int);
     void onExpandNSK(int);
     void onCheckSelectVSK(int);
     void onCheckSelectNSK(int);
     void onExit(int);
 
-    void onManTypeChanged(int index);
-    void onCodecChanged(bool checked);
-    void onEnaAruChanged(bool checked);
-    void onEnaMemVskChanged(int index);
+    void on_comboBoxManType_currentIndexChanged(int index);
+    void on_checkBoxCodec_clicked(bool checked);
+    void on_checkBoxEnaAru_clicked(bool checked);
+    void on_comboBoxEnaMemVsk_currentIndexChanged(int index);
     void on_comboBox_BC_RT_currentIndexChanged(int index);
-    void onEnaIntChanged(bool checked);
-    void onEnaRtaVskChanged(bool checked);
-    void onRTA_Choose(int index);
+    void on_checkBoxEnaInt_clicked(bool checked);
+    void on_checkBoxEnaRtaVSK_clicked(bool checked);
+    void on_comboBoxRTA_currentIndexChanged(int index);
 
     void onCellChangedNSK(int, int);
     void onCellChangedVSK(int, int);
-    void  on_lineEditQ16_editingFinished();
-    void on_lineEditQ64l_textChanged(const QString &arg1);
-    void on_lineEditQ64m_textEdited(const QString &arg1);
-    void on_lineEditQ64h_textChanged(const QString &arg1);
+    void on_lineEditQ16_editingFinished();
+    void on_lineEditQ16_textChanged(const QString &arg1);
+    void on_lineEditQ16_textEdited(const QString &arg1);
+
+    void on_lineEditQ16_cursorPositionChanged(int arg1, int arg2);
+
+    void on_lineEditQ16_returnPressed();
+
+    void on_lineEditQ16_selectionChanged();
+
+    void on_checkBoxResetFL_clicked(bool checked);
+
+    void on_checkBoxResetFLT_clicked(bool checked);
+
+    void on_checkBoxResetFLR_clicked(bool checked);
+
+    void on_checkBoxStartBC_clicked(bool checked);
+
+    void on_comboBoxLvlPre_activated(int index);
+
+    void on_comboBoxLvlCor_activated(int index);
+
+    void on_checkBox_2_clicked(bool checked);
+    void on_checkBox_3_clicked(bool checked);
+    void on_checkBox_4_clicked(bool checked);
+    void on_checkBox_5_clicked(bool checked);
+    void on_checkBox_6_clicked(bool checked);
+    void on_checkBox_7_clicked(bool checked);
+    void on_checkBox_8_clicked(bool checked);
+    void on_checkBox_9_clicked(bool checked);
+    void on_checkBox_10_clicked(bool checked);
+
+    void on_comboBoxSPI1_currentIndexChanged(int index);
+
+    void on_comboBoxSPI2_currentIndexChanged(int index);
+
+    void on_checkBoxSPI_clicked(bool checked);
+
+    void on_checkBoxRX_AMPL0_clicked(bool checked);
+
+    void on_checkBoxRX_AMPL1_clicked(bool checked);
+
+    void on_checkBoxRX_AMPL2_clicked(bool checked);
+
+    void on_checkBoxRX_AMPL3_clicked(bool checked);
+
+    void on_checkBoxRX_OE_AMPL_clicked(bool checked);
+
+    void on_comboBoxFreq_currentIndexChanged(int index);
+
+    void on_comboBoxOff_currentIndexChanged(int index);
 
 public slots:
     /// Задание конфигурации.

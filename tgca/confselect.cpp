@@ -49,7 +49,7 @@ void ConfSelect::onConfirm()
 void ConfSelect::onBrowse()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Открыть файл конфигурации"), "/home/", tr("Файлы конфигурации (*.tgca_c)\nВсе файлы (*.*)"));
+        tr("Открыть файл конфигурации"), "/home/", tr("Файлы конфигурации (*.cnf)\nВсе файлы (*.*)"));
 
     if (!fileName.isEmpty())
     {

@@ -26,5 +26,8 @@
         <file>../pictogram/shield_red_2348.png</file>
         <file>../pictogram/close_5496.png</file>
         <file>../pictogram/package-installed-updated_5020.png</file>
+        <file>../pictogram/connect_3497.png</file>
+        <file>../pictogram/cancel_8315.png</file>
+        <file>../pictogram/confirm_3843.png</file>
     </qresource>
 </RCC>

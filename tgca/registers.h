@@ -24,6 +24,7 @@
 #define NUMOFREGNSK    32
 #define REGNSKADDRFROM 0x00
 
+typedef unsigned short  reg16_t;
 
 ///  АДРЕСА РЕГИСТРОВ ВСК
 
@@ -74,7 +75,7 @@
 
 #define VSK_ReadStatusReg(data)   VSK_ReadReg(data, REG_VSK_status)
 #define VSK_WriteConfigReg_(data) VSK_WriteReg(data, REG_VSK_cfg)
-//word16_t VSK_CreateConfigReg(struct S_hscl_Config cfg);       /// возвращает образ конфигурационного регистра
+//reg16_t VSK_CreateConfigReg(struct S_hscl_Config cfg);       /// возвращает образ конфигурационного регистра
 
 /// Разряды регистра статуса.
 #define   fl_REG_STATUS_rt_bc_int      1         // флаг прерывания
@@ -130,7 +131,10 @@
 #define   val_REG_CR_SPI_dr_UNDEF    (3 << 8)
 #define   fl_REG_CR_SPI_spif         (1 << 15)
 
-#define   FL_REG_AMPL_FACTOR_rx_ampl     0xF
+#define   fl_REG_AMPL_FACTOR_rx_ampl0      1
+#define   fl_REG_AMPL_FACTOR_rx_ampl1      2
+#define   fl_REG_AMPL_FACTOR_rx_ampl2      4
+#define   fl_REG_AMPL_FACTOR_rx_ampl3      8
 #define   fl_REG_AMPL_FACTOR_rx_oe_ampl (1 << 4)
 
 #define   FL_REG_PLL_ns                 0x3F
@@ -169,5 +173,18 @@
 #define  REG_VSK_cnt_pct_tx_lsw_INIT_0             0
 #define  REG_VSK_cnt_pct_rx_msw_INIT_0             0
 #define  REG_VSK_cnt_pct_rx_lsw_INIT_0             0
+
+
+inline int manType(reg16_t val)
+{
+    return val & FL_REG_CFG_type_man;
+}
+
+inline int chgManType(reg16_t cfg, int man_type)
+{
+    return (cfg & ~FL_REG_CFG_type_man) | (man_type & FL_REG_CFG_type_man);
+}
+
+unsigned short calcNumWordInSymbol(int mt, bool codec);
 
 #endif  // REGISTERS_H

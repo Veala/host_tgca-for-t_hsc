@@ -6,7 +6,7 @@
 
 QT       += core gui uitools designer
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network printsupport
 
 TARGET = tgca
 TEMPLATE = app
@@ -14,36 +14,49 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    tests/abstracttest.cpp \
+    command.cpp \
     configuration.cpp \
     confselect.cpp \
     connection.cpp \
     ctableeditcol.cpp \
+    ctestbc.cpp \
     device.cpp \
-    vskregview.cpp \
+    gendata.cpp \
+    registers.cpp \
+    tests/abstracttest.cpp \
+    tests/bulbtest.cpp \
+    tests/echotest.cpp \
     tests/memtest.cpp \
     tests/regtest.cpp \
-    tests/echotest.cpp
+    tests/trmsingletest.cpp
 
 HEADERS  += mainwindow.h \
-    tests/abstracttest.h \
+    command.h \
     configuration.h \
     confselect.h \
     connection.h \
     ctableeditcol.h \
+    ctestbc.h \
     device.h \
     extern_hsc.h \
+    gendata.h \
     registers.h \
-    vskregview.h
+    tests/abstracttest.h \
+    tests/bulbtest.h \
+    tests/echotest.h \
+    tests/memtest.h \
+    tests/regtest.h \
+    tests/trmsingletest.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
     confselect.ui \
     connection.ui \
     device.ui \
-    vskregview.ui \
+    ../default/settings_bulb_test.ui \
     ../default/settings_echo_test.ui \
-    ../default/settings_mem_test.ui
+    ../default/settings_mem_test.ui \
+    ../default/settings_trm_single_test.ui
 
 RESOURCES += \
     tgca.qrc

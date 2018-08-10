@@ -1,8 +1,8 @@
-#include "abstracttest.h"
+#include "echotest.h"
 
-void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *tB)
+void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName,tB);
+    AbstractTest::setSettings(b,d,ch,tType,fName,pB,tB);
     echo = settings->findChild<QLineEdit *>("echo");
     deviceEdit = settings->findChild<QLineEdit*>("device");
     deviceLineEditList.append(deviceEdit);
@@ -14,9 +14,9 @@ top_1
     checkDeviceAvailability(1111);
 }
 
-void EchoTest::save(bool b)
+void EchoTest::save()
 {
-    AbstractTest::save(b);
+    AbstractTest::save();
 top_2(saveFileNameStr)
     in << echo->text() << endl;
     in << deviceEdit->text() << endl;

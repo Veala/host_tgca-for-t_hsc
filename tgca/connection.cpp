@@ -31,6 +31,31 @@ QString Connection::getHostIP() const
     return ui->lineEditIPPCNet->text();
 }
 
+QString Connection::getHostPORT() const
+{
+    return ui->lineEditPortIOPCNet->text();
+}
+
+void Connection::setServerIP(QString serverIp)
+{
+    ui->lineEditIPDevice->setText(serverIp);
+}
+
+void Connection::setServerPORT(QString PORT)
+{
+    ui->lineEditPortIODevice->setText(PORT);
+}
+
+void Connection::setHostIP(QString hostIp)
+{
+    ui->lineEditIPPCNet->setText(hostIp);
+}
+
+void Connection::setHostPORT(QString hostPort)
+{
+    ui->lineEditPortIOPCNet->setText(hostPort);
+}
+
 void Connection::setName(QString name)
 {
     ui->labelTune->setText(tr("Настройки устройства %1").arg(name));
