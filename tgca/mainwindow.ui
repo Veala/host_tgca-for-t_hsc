@@ -340,10 +340,10 @@ p, li { white-space: pre-wrap; }
   <action name="actCreateRep">
    <property name="icon">
     <iconset resource="tgca.qrc">
-     <normaloff>:/pictogram/accessories-text-editor_7233.png</normaloff>:/pictogram/accessories-text-editor_7233.png</iconset>
+     <normaloff>:/pictogram/script_save_8920.png</normaloff>:/pictogram/script_save_8920.png</iconset>
    </property>
    <property name="text">
-    <string>Создать</string>
+    <string>Сохранить в PDF</string>
    </property>
    <property name="toolTip">
     <string>Создать отчёт для просмотра</string>

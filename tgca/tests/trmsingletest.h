@@ -35,8 +35,11 @@ private:
     QLineEdit *lineEditTime;
     QCheckBox *checkBoxUseInt;
     QCheckBox *checkBoxOut;
+
     QLineEdit *lineEditDevBC;
     QLineEdit *lineEditDevRT;
+    QCheckBox *checkBoxDevBC;
+    QCheckBox *checkBoxDevRT;
 
     QLabel *labelLen;
     QLabel *labelBegin;
@@ -50,6 +53,7 @@ private slots:
     void onRadio();
     void onCodec();
     void onManType();
+    void done1(int);
 };
 
 class trmSingleObjToThread : public absObjToThread

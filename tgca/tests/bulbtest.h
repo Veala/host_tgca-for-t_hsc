@@ -13,6 +13,23 @@ protected slots:
     virtual void save();
 protected:
     virtual void startTest();
+private:
+    QLineEdit *lineEditIterate, *lineEditInterval, *lineEditDevice;
+};
+
+class bulbObjToThread : public absObjToThread
+{
+    Q_OBJECT
+public slots:
+    virtual void doWork();
+public:
+    void setIter(QLineEdit* ed) { iter = ed->text().toInt(); }
+    void setPause(QLineEdit* ed) { pause = ed->text().toInt(); }
+    int socketDescriptor;
+    QTcpSocket tcpSocket;
+    Device *dev;
+private:
+    uint iter, pause;
 };
 
 #endif // BULBTEST_H

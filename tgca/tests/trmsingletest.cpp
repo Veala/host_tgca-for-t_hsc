@@ -22,13 +22,13 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     checkBoxEnaInt = settings->findChild<QCheckBox *>("checkBoxEnaInt");
     checkBoxUseInt = settings->findChild<QCheckBox *>("checkBoxUseInt");
     checkBoxOut = settings->findChild<QCheckBox *>("checkBoxOut");
+    checkBoxDevBC = settings->findChild<QCheckBox *>("checkBoxDevBC");
+    checkBoxDevRT = settings->findChild<QCheckBox *>("checkBoxDevRT");
 
     radioButtonLin = settings->findChild<QRadioButton *>("radioButtonLin");
 
     lineEditDevBC = settings->findChild<QLineEdit*>("lineEditDevBC");
-    deviceLineEditList.append(lineEditDevBC);
     lineEditDevRT = settings->findChild<QLineEdit*>("lineEditDevRT");
-    deviceLineEditList.append(lineEditDevRT);
 
     labelLen = settings->findChild<QLabel *>("labelLen");
     labelBegin = settings->findChild<QLabel *>("labelBegin");
@@ -63,8 +63,15 @@ top_1
     radioButtonRand->setChecked(!radioButtonLin->isChecked());
 
     lineEditDevBC->setText(out.readLine());
+    checkBoxDevBC->setChecked(!out.readLine().isEmpty());
     lineEditDevRT->setText(out.readLine());
+    checkBoxDevRT->setChecked(!out.readLine().isEmpty());
     settingsFile.close();
+
+    if (checkBoxDevBC->isChecked())
+        deviceLineEditList.append(lineEditDevBC);
+    if (checkBoxDevRT->isChecked())
+        deviceLineEditList.append(lineEditDevRT);
     checkDeviceAvailability(1111);
 
     connect(comboBoxManType, SIGNAL(activated(int)), this, SLOT(onManType()));
@@ -84,7 +91,35 @@ top_1
 
 void TrmSingleTest::save()
 {
+    AbstractTest::save();
+top_2(saveFileNameStr)
+    in << lineEditLen->text() << endl;
+    in << comboBoxRTA->currentText() << endl;
+    in << comboBoxCode->currentText() << endl;
+    in << (checkBoxBroad->isChecked() ? "1" : "") << endl;
 
+    in << comboBoxManType->currentText() << endl;
+    in << (checkBoxCodec->isChecked() ? "1" : "") << endl;
+    in << (checkBoxEnaInt->isChecked() ? "1" : "") << endl;
+    in << comboBoxAmpl->currentText() << endl;
+
+    in << (radioButtonLin->isChecked() ? "Linear" : "Random") << endl;
+    in << lineEditBegin->text() << endl;
+    in << lineEditStep->text() << endl;
+    QString str = lineEditNumStep->text();
+    in << ((str.isEmpty() || str.toInt(0,10) == 0) ? "" : str) << endl;
+    in << comboBoxUnit->currentText() << endl;
+
+    in << lineEditTime->text() << endl;
+    in << (checkBoxUseInt->isChecked() ? "1" : "") << endl;
+    in << (checkBoxOut->isChecked() ? "1" : "") << endl;
+
+    in << lineEditDevBC->text() << endl;
+    in << (checkBoxDevBC->isChecked() ? "1" : "") << endl;
+    in << lineEditDevRT->text() << endl;
+    in << (checkBoxDevRT->isChecked() ? "1" : "") << endl;
+
+    settingsFile.close();
 }
 
 void TrmSingleTest::startTest()
@@ -112,4 +147,17 @@ void TrmSingleTest::onManType()
 unsigned int TrmSingleTest::maxNumByte()
 {
     return calcNumWordInSymbol(comboBoxManType->currentIndex(), checkBoxCodec->isChecked())*MAXNUMSYMBINPACK*4 - 4;
+}
+
+void TrmSingleTest::done1(int)
+{
+    qDebug() << "trmsingle done1";
+    // Проверка устройств. Можно проверять только с признаком необходимости.
+    int done = 0;
+    if (checkBoxDevBC->isChecked())
+        done != 1;
+    if (checkBoxDevRT->isChecked())
+        done != 1;
+    emit settingsClosed(done);
+    // Здесь можно проверить и другие настройки.
 }

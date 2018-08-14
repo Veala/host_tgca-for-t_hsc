@@ -10,8 +10,6 @@ int GlobalState::globalState = FREELY;
 AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
 {
     QAction *act;
-//    act = menu.addAction(tr("Старт"));
-//    connect(act, SIGNAL(triggered(bool)), this, SLOT(startTest(bool)));
     act = menu.addAction(tr("Настройки..."));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showSettings()));
     act = menu.addAction(tr("Сохранить")); act->setObjectName(tr("saveObj"));
@@ -21,6 +19,8 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
     act = menu.addAction(tr("Убрать"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteLater()));
     layout = new QHBoxLayout(this);
+    //layout->setMargin(0);
+    setFixedHeight(44);
     name_enabled = new QCheckBox(tr("Тест"));
     //name_enabled->setLayoutDirection(Qt::RightToLeft);
     layout->addWidget(name_enabled);
@@ -28,14 +28,23 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
     fileName->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     layout->addWidget(fileName);
     layout->addSpacerItem(new QSpacerItem(10,10,QSizePolicy::Expanding));
+
     startButton = new QPushButton(QIcon(":/pictogram/gtk-media-play-ltr_8717.png"), tr(""));
-    layout->addWidget(startButton);
+    layout->addWidget(startButton, 0, Qt::AlignHCenter | Qt::AlignVCenter);
+    //startButton->setFixedHeight(2*this->height()/3);
+    forIcons.setHeight(startButton->height()/25);
+    forIcons.setWidth(startButton->height()/25);
+    startButton->setIconSize(forIcons);
     connect(startButton, SIGNAL(clicked(bool)), this, SLOT(firstStartTest()));
     pauseButton = new QPushButton(QIcon(":/pictogram/gtk-media-pause_2289.png"), tr(""));
-    layout->addWidget(pauseButton);
+    layout->addWidget(pauseButton, 0, Qt::AlignHCenter | Qt::AlignVCenter);
+    //pauseButton->setFixedHeight(2*this->height()/3);
+    pauseButton->setIconSize(forIcons);
     connect(pauseButton, SIGNAL(clicked(bool)), this, SLOT(pauseTest()));
     stopButton = new QPushButton(QIcon(":/pictogram/gtk-media-stop_9402.png"), tr(""));
-    layout->addWidget(stopButton);
+    layout->addWidget(stopButton, 0, Qt::AlignHCenter | Qt::AlignVCenter);
+    //stopButton->setFixedHeight(2*this->height()/3);
+    stopButton->setIconSize(forIcons);
     connect(stopButton, SIGNAL(clicked(bool)), this, SLOT(stopTest()));
 
     status = new QLabel(tr(""));
@@ -46,10 +55,13 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
     //setRunningState(AbstractTest::Stopped);
     setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
 
-    status->setPixmap(QPixmap(tr(":/pictogram/gtk-media-stop_9402.png")));
+
+    status->setPixmap((QPixmap(tr(":/pictogram/gtk-media-stop_9402.png"))).scaled(forIcons,Qt::KeepAspectRatio));
     runningState = Stopped;
 
     connect(this, SIGNAL(globalStart()), this, SLOT(firstStartTest()));
+
+    setAcceptDrops(true);
 }
 
 AbstractTest::~AbstractTest()
@@ -64,8 +76,27 @@ void AbstractTest::mousePressEvent(QMouseEvent *event)
     if (event->buttons() == Qt::RightButton) {
         menu.exec(QCursor::pos());
     } else if (event->buttons() == Qt::LeftButton) {
-
+        QDrag *drag = new QDrag(this);
+        QMimeData *mimeData = new QMimeData;
+        mimeData->setText(tr("mimeDataForTamiasTests"));
+        drag->setMimeData(mimeData);
+        emit dragged();
+        Qt::DropAction dropAction = drag->exec();
     }
+}
+
+void AbstractTest::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/plain"))
+        event->acceptProposedAction();
+}
+
+void AbstractTest::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasFormat("text/plain") &&
+        (event->mimeData()->text() == tr("mimeDataForTamiasTests")))
+        emit dropped();
+    event->acceptProposedAction();
 }
 
 void AbstractTest::message(QString m)
@@ -100,12 +131,17 @@ void AbstractTest::setValidState(AbstractTest::ValidState vs)
 {
     QPalette palette;
     if (vs == AbstractTest::DeviceIsNotAvailable) {
-        QBrush br(Qt::red); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        //setStyleSheet("QFrame { border: 3px solid red; background-color: lightGray ;}");  //qRgb(200,0,200)
+        QBrush br(qRgb(255,75,75)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // red
     } else if (vs == AbstractTest::ConnectionIsNotAvailable) {
-        QBrush br(Qt::yellow); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        //setStyleSheet("QFrame { border: 3px solid yellow; background-color: lightGray;}");
+        QBrush br(qRgb(255,255,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // yellow
     } else if (vs == AbstractTest::ItIsOk) {
-        QBrush br(Qt::green); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        //setStyleSheet("QFrame { border: 3px solid green; background-color: lightGray;}");
+        QBrush br(qRgb(100,230,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // green  // 170,255,130
     }
+    //status->setStyleSheet("QLabel { border: 3px solid lightGray; background-color: lightGray;}");
+    //fileName->setStyleSheet("QLabel { border: 3px solid lightGray; background-color: lightGray;}");
     validState = vs;
 }
 
@@ -220,9 +256,12 @@ void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tT
     devices=b;  settings=d; projectBrowser = pB; testsBrowser = tB;
     settings->setWindowTitle(QObject::tr("Настройки"));
     name_enabled->setChecked(ched);
+    name_enabled->setMinimumWidth(150);
     name_enabled->setText(tType);
     fileName->setText(fName);
-    connect(settings,SIGNAL(finished(int)),this,SLOT(checkDeviceAvailability(int)));
+
+    connect(settings,SIGNAL(finished(int)),this,SLOT(done1(int)));
+    connect(this,SIGNAL(settingsClosed(int)),this,SLOT(checkDeviceAvailability(int)));
 }
 
 QString AbstractTest::getName() const
@@ -256,7 +295,7 @@ void AbstractTest::save()
 void AbstractTest::setRunningState(int rs)
 {
     if (rs == AbstractTest::Running) {
-        status->setPixmap(QPixmap(tr(":/pictogram/gtk-media-play-ltr_8717.png")));
+        status->setPixmap((QPixmap(tr(":/pictogram/gtk-media-play-ltr_8717.png"))).scaled(forIcons, Qt::KeepAspectRatio));
         if (getRunningState() == Paused) {
             message(tr("Пауза снята - %1").arg(fileName->text()));
         } else {
@@ -265,24 +304,27 @@ void AbstractTest::setRunningState(int rs)
             emit setEmit(startButton, pauseButton, stopButton);
         }
     } else if (rs == AbstractTest::Paused) {
-        status->setPixmap(QPixmap(tr(":/pictogram/gtk-media-pause_2289.png")));
+        status->setPixmap((QPixmap(tr(":/pictogram/gtk-media-pause_2289.png"))).scaled(forIcons, Qt::KeepAspectRatio));
         message(tr("Тест поставлен на паузу - %1").arg(fileName->text()));
     } else if (rs == AbstractTest::Stopped) {
-        status->setPixmap(QPixmap(tr(":/pictogram/gtk-media-stop_9402.png")));
+        status->setPixmap((QPixmap(tr(":/pictogram/gtk-media-stop_9402.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
         if (sender()->metaObject()->className() != tr("MainWindow")) {
             message(tr("Тест остановлен - %1").arg(fileName->text()));
             setGlobalState(FREELY);
             emit unsetEmit(startButton, pauseButton, stopButton);
         }
     } else if (rs == AbstractTest::Completed) {
-        status->setPixmap(QPixmap(tr(":/pictogram/confirm_3843.png")));
+        status->setPixmap((QPixmap(tr(":/pictogram/confirm_3843.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
         message(tr("Тест закончен - %1").arg(fileName->text()));
         setGlobalState(FREELY);
         emit unsetEmit(startButton, pauseButton, stopButton);
     } else if (rs == AbstractTest::ErrorIsOccured) {
-        status->setPixmap(QPixmap(tr(":/pictogram/cancel_8315.png")));
+        status->setPixmap((QPixmap(tr(":/pictogram/cancel_8315.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
         message(tr("Тест остановлен из-за ошибки - %1").arg(fileName->text()));
         setGlobalState(FREELY);
+        Device* dev;
+        foreach (dev, deviceList)
+            dev->rw_socket.abort();
         emit unsetEmit(startButton, pauseButton, stopButton);
     }
     runningState = (AbstractTest::RunningState)rs;

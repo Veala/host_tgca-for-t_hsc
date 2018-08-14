@@ -119,11 +119,13 @@ void memObjToThread::doWork()
             qDebug() << "wrote: " << n;
             if (n == -1) {
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
+                tcpSocket.abort();
                 return;
             }
             //if (!dev->rw_socket.waitForBytesWritten(5000)) {
             if (!tcpSocket.waitForBytesWritten(5000)) {
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
+                tcpSocket.abort();
                 return;
             }
             if (pause_stop() == -1) return;

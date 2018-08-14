@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Настройки</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../tgca/tgca.qrc">
+    <normaloff>:/pictogram/kmixdocked_mute_9009.png</normaloff>:/pictogram/kmixdocked_mute_9009.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0">
     <widget class="QLabel" name="label_3">
@@ -52,6 +56,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../tgca/tgca.qrc"/>
+ </resources>
  <connections/>
 </ui>

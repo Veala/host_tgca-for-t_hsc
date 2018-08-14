@@ -29,5 +29,10 @@
         <file>../pictogram/connect_3497.png</file>
         <file>../pictogram/cancel_8315.png</file>
         <file>../pictogram/confirm_3843.png</file>
+        <file>../pictogram/clock__2382.png</file>
+        <file>../pictogram/control_play_blue_7261.png</file>
+        <file>../pictogram/kmixdocked_mute_9009.png</file>
+        <file>../pictogram/lightbulb_6765.png</file>
+        <file>../pictogram/script_save_8920.png</file>
     </qresource>
 </RCC>

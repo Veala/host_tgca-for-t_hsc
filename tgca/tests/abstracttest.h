@@ -17,6 +17,7 @@
 #include <QtNetwork>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QDrag>
 #include "../device.h"
 
 #define FREELY 0
@@ -80,9 +81,13 @@ signals:
     void startTestTh();
     void setEmit(QPushButton*, QPushButton*, QPushButton*);
     void unsetEmit(QPushButton*, QPushButton*, QPushButton*);
+    void dragged();
+    void dropped();
 
 protected:
     void mousePressEvent(QMouseEvent *);
+    void dragEnterEvent(QDragEnterEvent *);
+    void dropEvent(QDropEvent *);
     virtual void startTest() = 0;
     QThread testThread;
     absObjToThread *objToThread;
@@ -114,11 +119,15 @@ protected slots:
     void errorDevice(QAbstractSocket::SocketError);
     void testOutout(QString);
     void setRunningState(int);
+    virtual void done1(int n) { emit settingsClosed(0xFF); }
 private:
     QMenu menu;
     QHBoxLayout *layout;
     ValidState validState;
     RunningState runningState;
+    QSize forIcons;
+signals:
+    void settingsClosed(int);
 };
 
 class absObjToThread : public QObject

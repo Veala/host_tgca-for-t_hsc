@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QPrinter>
 #include "configuration.h"
 #include "device.h"
 #include "tests/abstracttest.h"
@@ -50,8 +51,6 @@ private:
     bool prjLoaded;
     bool tstLoaded;
     bool su;
-    bool inRun;
-    bool inPause;
 
     QAction *act_devMode;  //"Секретный режим"
     //QSettings project;
@@ -63,26 +62,33 @@ private:
     QString helpFile;
 
     bool clearProject();
+    void setReport(QTextDocument& doc);
+    int dragIndex, dropIndex;
 
 private slots:
     void onAbout();
     void onPushConfig();
+
+
     void onRunTst();
+    void onPause();
     void onStop();
     //void onStopMonitor();
     void setSlot(QPushButton*, QPushButton*, QPushButton*);
     void unsetSlot(QPushButton*, QPushButton*, QPushButton*);
-    void onPause();
-    bool onSavePrj();
-    void onLoadPrj();
-
+    void onDragged();
+    void onDropped();
     void addDevice();
     void createTest();
     void loadTest();
 
+    bool onSavePrj();
+    void onLoadPrj();
+
     void onHelp();
-    void onPrintRep();
     bool onCreateRep();
+    void onPrintRep();
+    void printReport(QPrinter* prnt);
     void onMenuDevices(QPoint);
     void onMenuTests(QPoint);
     void actDevMode();

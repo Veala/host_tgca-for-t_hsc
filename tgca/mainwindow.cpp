@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QPrinter>
+#include <QPrintDialog>
 
 static bool configurateDevice(Device *device); // не реализована !!!
 
@@ -9,8 +9,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     prjLoaded(false),
     tstLoaded(false),
-    inRun(false),
-    inPause(false),
     su(false),
     logFile("log.txt"),
     logFileDefault("log.txt")
@@ -140,10 +138,13 @@ bool MainWindow::loadProject(QSettings& settings)
                 ui->tests->addWidget(at);
                 at->setEnabled(settings.value("enabled").toString() != "0");
                 tstLoaded = true;
+                //at->setParent(this);
                 connect(this, SIGNAL(newDev(QString)), at, SLOT(newDev(QString)));
                 connect(this, SIGNAL(setTestStateIcon(int)), at, SLOT(setRunningState(int)));
                 connect(at, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
                 connect(at, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
+                connect(at, SIGNAL(dragged()), this, SLOT(onDragged()));
+                connect(at, SIGNAL(dropped()), this, SLOT(onDropped()));
                 ui->actRun->setEnabled(true);
             }
         }
@@ -253,6 +254,8 @@ void MainWindow::loadTest()
     connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
     connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
     connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
+    connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
     ui->tests->addWidget(test);
 }
 
@@ -265,6 +268,8 @@ void MainWindow::createTest()
     connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
     connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
     connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
+    connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
     ui->tests->addWidget(test);
 }
 
@@ -277,6 +282,19 @@ void MainWindow::actDevMode()
         ui->actConfiguration->setEnabled(true);
         devConf = new Configuration();
     }
+}
+
+void MainWindow::onDragged()
+{
+    dragIndex = ui->tests->indexOf((AbstractTest*)sender());
+}
+
+void MainWindow::onDropped()
+{
+    dropIndex = ui->tests->indexOf((AbstractTest*)sender());
+    if (dragIndex == dropIndex) return;
+    QLayoutItem* tempTest = ui->tests->takeAt(dragIndex);
+    ui->tests->insertItem(dropIndex, tempTest);
 }
 
 void MainWindow::onMenuDevices(QPoint point)
@@ -412,39 +430,46 @@ void MainWindow::onHelp()
     qDebug() << "onHelp";
 }
 
+void MainWindow::setReport(QTextDocument& doc)
+{
+    QString header1 = QString("<html>\n<p><br><br><br><br><big><b><center>ОКНО ПРОЕКТА<br></center></b><br><br><br>");
+    QString page1 = ui->projectBrowser->toHtml();
+    QString header2 = QString("</p>\n<br style = 'page-break-after: always;'><html>\n<body>\n<p><br><br><br><br><big><b><center>ОКНО ТЕСТОВ<br></center></b><br><br><br>");
+    QString page2 = ui->testBrowser->toHtml();
+    doc.setHtml(header1+page1+header2+page2);
+
+}
+
+void MainWindow::printReport(QPrinter* prnt)
+{
+    QTextDocument document;
+    setReport(document);
+    document.print(prnt);
+}
+
 void MainWindow::onPrintRep()
 {
-    qDebug() << "onPrintRep";
+    QPrinter prnt;
+    QPrintDialog* dialog = new QPrintDialog(&prnt, this);
+    connect(dialog, SIGNAL(accepted(QPrinter*)), this, SLOT(printReport(QPrinter*)));
+    dialog->open();
+    disconnect(dialog, SIGNAL(accepted(QPrinter*)), this, SLOT(printReport(QPrinter*)));
 }
 
 bool MainWindow::onCreateRep()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
-        tr("Сохранить в файл"), "", tr("Текстовый файл (*.pdf)\nВсе файлы (*.*)"));
+        tr("Сохранить в файл"), "", tr("Файлы pdf (*.pdf)\nВсе файлы (*.*)"));
 
     if (fileName == "")
         return false;
 
-  /*  QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return false;
-
-    QTextStream out(&file);
-    out.setCodec("UTF-8");
-    out.setGenerateByteOrderMark(false);*/
-
-    QString header1 = QString("<html>\n<p><br><br><br><br><big><b><center>ОКНО ПРОЕКТА<br></center></b><br><br><br>");
-    QString page1 = ui->projectBrowser->toHtml();
-    QString header2 = QString("</p>\n<br style = 'page-break-after: always;'><html>\n<body>\n<p><br><br><br><br><big><b><center>ОКНО ТЕСТОВ<br></center></b><br><br><br>");
-    QString page2 = ui->testBrowser->toHtml();
-
-    //out << header1 << page1 << header2 << page2;
     QPrinter prnt;
     prnt.setPageSize(QPrinter::A4);
     prnt.setOutputFormat(QPrinter::PdfFormat);
     prnt.setOutputFileName(fileName);
     QTextDocument document;
-    document.setHtml(header1+page1+header2+page2);
+    setReport(document);
     document.print(&prnt);
 
     return true;
