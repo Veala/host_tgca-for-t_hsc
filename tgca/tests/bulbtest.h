@@ -28,6 +28,8 @@ public:
     int socketDescriptor;
     QTcpSocket tcpSocket;
     Device *dev;
+private slots:
+    void switchOff(int);
 private:
     uint iter, pause;
 };

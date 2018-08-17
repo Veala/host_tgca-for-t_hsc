@@ -113,18 +113,18 @@ void AbstractTest::testOutout(QString m)
 void AbstractTest::setConnections(Device *dev)
 {
     connect(dev, SIGNAL(sigDelete(QString)), this, SLOT(deletingDevice(QString)));
-    connect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
-    connect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
-    connect(dev, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorDevice(QAbstractSocket::SocketError)));
+//    connect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
+//    connect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
+//    connect(dev, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorDevice(QAbstractSocket::SocketError)));
 }
 
 void AbstractTest::setDisconnections(Device *dev)
 {
     qDebug() << "setDissconnections!";
     disconnect(dev, SIGNAL(sigDelete(QString)), this, SLOT(deletingDevice(QString)));
-    disconnect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
-    disconnect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
-    disconnect(dev, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorDevice(QAbstractSocket::SocketError)));
+//    disconnect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
+//    disconnect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
+//    disconnect(dev, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorDevice(QAbstractSocket::SocketError)));
 }
 
 void AbstractTest::setValidState(AbstractTest::ValidState vs)
@@ -193,10 +193,10 @@ void AbstractTest::checkDeviceAvailability(int x)
     }
     for (int i=0; i<deviceList.count(); i++)
         setConnections(deviceList[i]);
-    setValidState(AbstractTest::ConnectionIsNotAvailable);
-    for (int i=0; i<deviceList.count(); i++) {
-        if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
-    }
+//    setValidState(AbstractTest::ConnectionIsNotAvailable);
+//    for (int i=0; i<deviceList.count(); i++) {
+//        if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
+//    }
     setValidState(AbstractTest::ItIsOk);
 }
 
@@ -230,26 +230,26 @@ void AbstractTest::deletingDevice_part()
     deviceList.clear();
 }
 
-void AbstractTest::connectingSockDevice()
-{
-    qDebug() << "connectingSockDevice";
-    for (int i=0; i<deviceList.count(); i++) {
-        if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
-    }
-    setValidState(AbstractTest::ItIsOk);
-}
+//void AbstractTest::connectingSockDevice()
+//{
+//    qDebug() << "connectingSockDevice";
+//    for (int i=0; i<deviceList.count(); i++) {
+//        if (deviceList[i]->rw_socket.state() != QAbstractSocket::ConnectedState) return;
+//    }
+//    setValidState(AbstractTest::ItIsOk);
+//}
 
-void AbstractTest::disconnectingSockDevice()
-{
-    qDebug() << "disconnectingSockDevice";
-    setValidState(AbstractTest::ConnectionIsNotAvailable);
-}
+//void AbstractTest::disconnectingSockDevice()
+//{
+//    qDebug() << "disconnectingSockDevice";
+//    setValidState(AbstractTest::ConnectionIsNotAvailable);
+//}
 
-void AbstractTest::errorDevice(QAbstractSocket::SocketError err)
-{
-    qDebug() << "errorDevice slot in test";
-    setValidState(AbstractTest::ConnectionIsNotAvailable);
-}
+//void AbstractTest::errorDevice(QAbstractSocket::SocketError err)
+//{
+//    qDebug() << "errorDevice slot in test";
+//    setValidState(AbstractTest::ConnectionIsNotAvailable);
+//}
 
 void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
 {
@@ -322,9 +322,9 @@ void AbstractTest::setRunningState(int rs)
         status->setPixmap((QPixmap(tr(":/pictogram/cancel_8315.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
         message(tr("Тест остановлен из-за ошибки - %1").arg(fileName->text()));
         setGlobalState(FREELY);
-        Device* dev;
-        foreach (dev, deviceList)
-            dev->rw_socket.abort();
+//        Device* dev;
+//        foreach (dev, deviceList)
+//            dev->rw_socket.abort();
         emit unsetEmit(startButton, pauseButton, stopButton);
     }
     runningState = (AbstractTest::RunningState)rs;
@@ -478,6 +478,85 @@ int absObjToThread::pause_stop()
         }
     } else if (threadState == AbstractTest::Stopped) {
         emit resultReady((int)AbstractTest::Stopped);
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+int absObjToThread::readAll(QTcpSocket* socket, QByteArray& array, int size)
+{
+    array.clear();
+    array.resize(size);
+
+    if (!socket->waitForReadyRead(5000)) {
+        qDebug() << "socket->waitForReadyRead(5000) error!";
+        socket->abort();
+        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        return -1;
+    }
+
+//    while (1) {
+//        qint64 n = socket->bytesAvailable();
+//        if (n != size) {
+//            qDebug() << tr("less bytes available %1 then size %2").arg(QString::number(n)).arg(QString::number(size));
+//            continue;
+//        } else {
+//            qDebug() << tr("bytes available: %1").arg(QString::number(n));
+//            break;
+//        }
+//    }
+
+    int n = 0; int r = 0;
+    while (1) {
+        r = socket->read(array.data()+n, size-n);
+        if (r!=0) {
+            qDebug() << "read: " << r;
+            qDebug() << "n: " << n;
+        }
+        if (r == -1) {
+            socket->abort();
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            return -1;
+        } else {
+            n+=r;
+            if (n>=size) return 0;
+        }
+        if (r==0) {
+            if (!socket->waitForReadyRead(5000)) {
+                qDebug() << "socket->waitForReadyRead(5000) error!";
+                socket->abort();
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return -1;
+            }
+        }
+    }
+}
+
+int absObjToThread::writeAll(QTcpSocket *socket, QByteArray& array)
+{
+    char* temp = array.data();
+    int size = array.size();
+    while (1) {
+        int n = socket->write(temp, size);
+        qDebug() << "wrote: " << n;
+        if (n == -1) {
+            socket->abort();
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            return -1;
+        } else  if (n < size) {
+            size -=  n;
+            temp = array.right(size).data();
+            continue;
+        } else if (n == size) {
+            break;
+        }
+    }
+
+    if (!socket->waitForBytesWritten(5000)) {
+        qDebug() << "socket->waitForBytesWritten(5000) error!";
+        socket->abort();
+        emit resultReady((int)AbstractTest::ErrorIsOccured);
         return -1;
     } else {
         return 0;

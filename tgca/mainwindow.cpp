@@ -96,7 +96,7 @@ static bool setupConnection(Device *device, QString ip, QString port, QString ho
     device->connection.setServerPORT(port);
     device->connection.setHostIP(hostIp);
     device->connection.setHostPORT(hostPort);
-    return !ip.isEmpty() && port.isEmpty() && !hostIp.isEmpty();
+    return !ip.isEmpty() && !port.isEmpty() && !hostIp.isEmpty();
 }
 
 bool MainWindow::loadProject(QSettings& settings)
@@ -120,7 +120,15 @@ bool MainWindow::loadProject(QSettings& settings)
                                         settings.value("hostIP").toString(), settings.value("hostPort").toString());
             bool bConf = device->configuration.initFrom(settings.value("configuration").toString(), 0);
             if (bConn && bConf && settings.value("autoload").toString() == "1")
-                configurateDevice(device);
+            {
+                connect(this, SIGNAL(connectTry()), device, SLOT(connectTry()));
+                connect(this, SIGNAL(autoConfigurate()), device, SLOT(configTry()));
+                emit connectTry();
+                //emit autoConfigurate();
+                disconnect(this, SIGNAL(connectTry()), device, SLOT(connectTry()));
+                disconnect(this, SIGNAL(autoConfigurate()), device, SLOT(configTry()));
+
+            }
         }
     }
     settings.endArray();
@@ -281,6 +289,7 @@ void MainWindow::actDevMode()
         ui->actConfiguration->setVisible(true);
         ui->actConfiguration->setEnabled(true);
         devConf = new Configuration();
+        devConf->blockReadWrite();
     }
 }
 
@@ -316,6 +325,7 @@ void MainWindow::onMenuTests(QPoint point)
 
     menu.exec(ui->labeDevicesTitle->mapToGlobal(point));
 }
+
 void MainWindow::keyPressEvent(QKeyEvent *e)
 {
     if (e->key() != Qt::Key_Escape)
@@ -425,11 +435,6 @@ void MainWindow::unsetSlot(QPushButton *start, QPushButton *pause, QPushButton *
     }
 }
 
-void MainWindow::onHelp()
-{
-    qDebug() << "onHelp";
-}
-
 void MainWindow::setReport(QTextDocument& doc)
 {
     QString header1 = QString("<html>\n<p><br><br><br><br><big><b><center>ОКНО ПРОЕКТА<br></center></b><br><br><br>");
@@ -481,3 +486,10 @@ static bool configurateDevice(Device *device)
     /// Здесь надо установить соединение и потом записать регистры LLL
     return false;
 }
+
+void MainWindow::onHelp()
+{
+    qDebug() << "onHelp";
+    qDebug() << QObject::tr("Функция onHelp() не реализована !!!");
+}
+

@@ -38,7 +38,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tabNSK">
       <property name="font">
@@ -3776,6 +3776,9 @@
      </item>
      <item row="0" column="2">
       <widget class="QPushButton" name="pushButtonRead">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Прочитать отмеченные регистры</string>
        </property>
@@ -3807,6 +3810,9 @@
      </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="pushButtonApply">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Записать отмеченные регистры</string>
        </property>

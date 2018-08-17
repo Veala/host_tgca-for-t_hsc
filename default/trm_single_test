@@ -7,7 +7,9 @@
 QPSK
 1
 y
-17
+
+15h
+16h
 Lin
 0
 0
@@ -17,4 +19,6 @@ Lin
 
 
 Terasik
+
 NotAssigned
+

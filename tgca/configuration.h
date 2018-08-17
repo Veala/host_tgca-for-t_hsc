@@ -29,6 +29,55 @@ enum REG_COL_NUM
     rcn_End
 };
 
+#define ROW_REG_NSK_2_ADDR(num) ((num)*4)
+#define ROW_REG_VSK_2_ADDR(num) (REGVSKADDRFROM + (num)*4)
+#define ADDR_2_VSK_ROW(addr) ((addr)/4-32)
+#define NUM_REG_2_ADDR(num) ((num)*4)
+
+#define   config_NUMREG_BEGIN_VSK             0x20
+
+#define   config_NUMREG_ram_tx_rx             0x20
+//                                         0x21
+#define   config_NUMREG_id                    0x22   // только чтение
+#define   config_NUMREG_status                0x23   // только чтение
+#define   config_NUMREG_cfg                   0x24
+#define   config_NUMREG_tx_cntr               0x25
+//                                         0x26
+#define   config_NUMREG_rx_cntr               0x27
+#define   config_NUMREG_creg                  0x28
+#define   config_NUMREG_cr_spi                0x29
+#define   config_NUMREG_dr_spi_msw            0x2A
+#define   config_NUMREG_dr_spi_lsw            0x2B
+//                                         0x2C
+#define   config_NUMREG_time_rsp              0x2D
+#define   config_NUMREG_cnt_pct_tx_msw        0x2E
+#define   config_NUMREG_cnt_pct_tx_lsw        0x2F
+#define   config_NUMREG_cnt_pct_rx_msw        0x30
+#define   config_NUMREG_cnt_pct_rx_lsw        0x31
+
+#define   config_NUMREG_lvl_sync_kf_rx_msw    0x32   // чтение/запись
+#define   config_NUMREG_prcs_max_sync_msw     0x32   // только чтение
+
+#define   config_NUMREG_lvl_sync_kf_rx_lsw    0x33   // чтение/запись
+#define   config_NUMREG_prcs_max_sync_lsw     0x33   // только чтение
+
+#define   config_NUMREG_lvl_sync_pre_rx_msw   0x34   // чтение/запись
+#define   config_NUMREG_prs_level_max_rn_msw  0x34   // только чтение
+
+#define   config_NUMREG_lvl_sync_pre_rx_lsw   0x35   // чтение/запись
+#define   config_NUMREG_prs_level_max_rn_lsw  0x35   // только чтение
+
+#define   config_NUMREG_lvl_qam16             0x36
+#define   config_NUMREG_lvl_qam64_low         0x37
+#define   config_NUMREG_lvl_qam64_middle      0x38
+#define   config_NUMREG_lvl_qam64_high        0x39
+#define   config_NUMREG_amplification_factor  0x3A
+#define   config_NUMREG_amplitude_signal      0x3B   // только чтение
+#define   config_NUMREG_g_sp                  0x3C
+#define   config_NUMREG_g_1_sp_high           0x3D
+#define   config_NUMREG_g_1_sp_low            0x3E
+#define   config_NUMREG_pll_reg               0x3F
+
 class Configuration : public QDialog
 {
     Q_OBJECT
@@ -44,6 +93,7 @@ public:
     /// Входной параметр regVSK - указатель на буфер, содержащий все регистры ВСК.
     bool update(void *regAll);
     QString getName() const { return path; }
+    int getConfigReg() const;
 
 private:
     Ui::Configuration *ui;
@@ -74,10 +124,6 @@ private:
     void adaptRegVSK(int num_reg, word16_t val, QString strval);
     void applyRegFlag(int num_reg, word16_t flag, bool b);
 
-    /// Функции чтения,записи регистров устройства, возвращают код ошибки.
-    int  doWriteReg(const char * const array) { return 0; }   /// LLL !!!
-    int  doReadReg(char *array) { return 1; }      /// LLL !!!
-
     bool registerNSKInfo_read_only(int num_reg) const;
     bool registerVSKInfo_read_only(int num_reg) const;
     bool registerNSKInfo_view_always(int num_reg) const;
@@ -94,7 +140,6 @@ private slots:
     void onChangeTab(int);
     bool onPushSave();
     void onPushChoose();
-    bool onPushWrite();
     bool onPushRead();
     void onExpandVSK(int);
     void onExpandNSK(int);
@@ -165,9 +210,22 @@ private slots:
 
     void on_comboBoxOff_currentIndexChanged(int index);
 
+    /// Функции, отображающие в окне конфигурации результаты чтения/записи регистров устройства.
+    void  doneWriteReg(int);
+    bool  doneReadReg(int,QByteArray);
+
 public slots:
     /// Задание конфигурации.
     bool initFrom(QString name, int* err);
+    /// Запись регистров.
+    bool onPushWrite();
+    void blockReadWrite();
+    void enableReadWrite();
+
+signals:
+    /// Сигналы устройству для чтения/записи регистров.
+    void  doWriteReg(QByteArray);
+    void  doReadReg(QByteArray);
 };
 /*
 class registerInfo

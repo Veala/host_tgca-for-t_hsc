@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     tests/echotest.cpp \
     tests/memtest.cpp \
     tests/regtest.cpp \
-    tests/trmsingletest.cpp
+    tests/trmsingletest.cpp \
+    writereadreg.cpp
 
 HEADERS  += mainwindow.h \
     command.h \

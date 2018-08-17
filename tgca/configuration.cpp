@@ -11,10 +11,6 @@
 const bool  DebugL = false;
 
 static bool regNSKRO[NUMOFREGNSK] = { false };
-#define ADDR_2_VSK_ROW(addr) ((addr)/4-32)
-#define NUM_REG_2_ADDR(num) ((num)*4)
-#define ROW_REG_NSK_2_ADDR(num) ((num)*4)
-#define ROW_REG_VSK_2_ADDR(num) (REGVSKADDRFROM + (num)*4)
 
 static bool regVSKUseGlobal[NUMOFREGVSK] = { true, false, false, true, true, false, false, true,
                                       true, false, false, false, false, true, false, false,
@@ -29,50 +25,6 @@ static enum REG_PROC_TYPE regVSKType[NUMOFREGVSK] =
           rpt_INT,   rpt_INT,   rpt_INT,   rpt_INT,   rpt_INT,   rpt_INT,   rpt_INT,   rpt_INT,
           rpt_INT,   rpt_INT, rpt_AMPLIFICATION, rpt_INT, rpt_INT, rpt_INT, rpt_INT,   rpt_PLL };
 */
-
-#define   config_NUMREG_BEGIN_VSK             0x20
-
-#define   config_NUMREG_ram_tx_rx             0x20
-//                                         0x21
-#define   config_NUMREG_id                    0x22   // только чтение
-#define   config_NUMREG_status                0x23   // только чтение
-#define   config_NUMREG_cfg                   0x24
-#define   config_NUMREG_tx_cntr               0x25
-//                                         0x26
-#define   config_NUMREG_rx_cntr               0x27
-#define   config_NUMREG_creg                  0x28
-#define   config_NUMREG_cr_spi                0x29
-#define   config_NUMREG_dr_spi_msw            0x2A
-#define   config_NUMREG_dr_spi_lsw            0x2B
-//                                         0x2C
-#define   config_NUMREG_time_rsp              0x2D
-#define   config_NUMREG_cnt_pct_tx_msw        0x2E
-#define   config_NUMREG_cnt_pct_tx_lsw        0x2F
-#define   config_NUMREG_cnt_pct_rx_msw        0x30
-#define   config_NUMREG_cnt_pct_rx_lsw        0x31
-
-#define   config_NUMREG_lvl_sync_kf_rx_msw    0x32   // чтение/запись
-#define   config_NUMREG_prcs_max_sync_msw     0x32   // только чтение
-
-#define   config_NUMREG_lvl_sync_kf_rx_lsw    0x33   // чтение/запись
-#define   config_NUMREG_prcs_max_sync_lsw     0x33   // только чтение
-
-#define   config_NUMREG_lvl_sync_pre_rx_msw   0x34   // чтение/запись
-#define   config_NUMREG_prs_level_max_rn_msw  0x34   // только чтение
-
-#define   config_NUMREG_lvl_sync_pre_rx_lsw   0x35   // чтение/запись
-#define   config_NUMREG_prs_level_max_rn_lsw  0x35   // только чтение
-
-#define   config_NUMREG_lvl_qam16             0x36
-#define   config_NUMREG_lvl_qam64_low         0x37
-#define   config_NUMREG_lvl_qam64_middle      0x38
-#define   config_NUMREG_lvl_qam64_high        0x39
-#define   config_NUMREG_amplification_factor  0x3A
-#define   config_NUMREG_amplitude_signal      0x3B   // только чтение
-#define   config_NUMREG_g_sp                  0x3C
-#define   config_NUMREG_g_1_sp_high           0x3D
-#define   config_NUMREG_g_1_sp_low            0x3E
-#define   config_NUMREG_pll_reg               0x3F
 
 Configuration::Configuration(QWidget *parent) :
     QDialog(parent),
@@ -201,23 +153,6 @@ void markRegisterEnabled(QLineEdit* win, QLabel *label, QLabel *mark, bool ena)
     mark->setEnabled(!ena);
     mark->setVisible(!ena);
     camouflage(win, ena);
-    /*QPalette::ColorRole
-    win->setBackgroundRole();*/
-    /*
-    QFont f = win->font();
-    f.setBold(ena);
-    win->setFont(f);
-    QPalette p = win->palette();
-    p.setColor(QPalette::Base, ena ? Qt::white : qRgb(241, 241, 241));
-    win->setPalette(p);*/
-    /*
-    if (ena)
-        p.setColor(QPalette::Base, Qt::white);
-    else
-        p.setColor(QPalette::Base, qRgb(241, 241, 241));
-    win->setPalette(p);
-     //   win->setStyleSheet("QLabel { background-color : yellow;}");//rgb(241, 241, 241); }");
-     */
 }
 
 static const QString HeaderPrefix("• Регистры уровня ");
@@ -616,179 +551,8 @@ bool Configuration::onPushSave()
 void Configuration::onPushChoose()
 {
     ConfSelect cs(this);
+    connect(&cs, SIGNAL(configurate(QString, int*)), this, SLOT(initFrom(QString, int*)));
     cs.exec();
-}
-
-bool Configuration::onPushWrite()
-{
-    int count = 0;
-    bool bRet = false;
-    char pack[(NUMOFREGVSK+NUMOFREGNSK+1)*8];
-    char* pt = pack;
-    pt+=8;
-
-    for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
-    {
-        ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
-        if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
-        {
-            count++;
-            int addr = ROW_REG_NSK_2_ADDR(i);
-            QString strval = ui->tableWidgetNSK->item(i, rcn_Val)->text();
-            int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
-            memcpy(pt, (char*)&addr, 4);
-            pt += 4;
-            memcpy(pt, (char*)&val, 4);
-            pt += 4;
-        }
-    }
-    if (ui->tableWidgetVSK->item(config_NUMREG_creg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->checkState() == Qt::Checked)
-    {
-        count++;
-        int addr = REG_VSK_creg;
-        QString strval = ui->tableWidgetNSK->item(config_NUMREG_creg-config_NUMREG_BEGIN_VSK, rcn_Val)->text();
-        int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
-        memcpy(pt, (char*)&addr, 4);
-        pt += 4;
-        memcpy(pt, (char*)&val, 4);
-        pt += 4;
-    }
-    for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
-    {
-        ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
-        if (i != config_NUMREG_creg-config_NUMREG_BEGIN_VSK &&
-            ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
-        {
-            count ++;
-            int addr = ROW_REG_VSK_2_ADDR(i);
-            QString strval = ui->tableWidgetVSK->item(i, rcn_Val)->text();
-            int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
-            memcpy(pt, (char*)&addr, 4);
-            pt += 4;
-            memcpy(pt, (char*)&val, 4);
-            pt += 4;
-        }
-    }
-
-    if (count == 0)
-        QMessageBox::warning(this, tr("Запись регистров"), tr("Нет отмеченных регистров"), tr("Вернуться"));
-    else
-    {
-        /// формирование команды записи формата 1
-        int cmd = 1;
-        count *= 8; // 4 байта на адрес и 4 байта на значение
-
-        pt = pack;
-        memcpy(pt, (char*)&cmd, 4);
-        //pt += 4;
-        memcpy(pt+4, (char*)&count, 4);
-
-        int error_code = doWriteReg(pack);
-        if (error_code == 0)
-        {
-            bRet = true;
-            for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
-            {
-                if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
-                    ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::blue);
-            }
-            for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
-            {
-                if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
-                    ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::blue);
-            }
-        }
-    }
-    return bRet;
-}
-
-bool Configuration::onPushRead()
-{
-    int count = 0;
-    bool bRet = false;
-    int reg_numbers[NUMOFREGVSK+NUMOFREGNSK];
-    char pack[(NUMOFREGVSK+NUMOFREGNSK+2)*4];
-    char* pt = pack;
-    pt+=8;
-
-    for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
-    {
-        ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
-        if (ui->tableWidgetNSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
-        {
-            count++;
-            int addr = ROW_REG_NSK_2_ADDR(i);
-            memcpy(pt, (char*)&addr, 4);
-            pt += 4;
-            reg_numbers[i] = i;
-        }
-    }
-    for (int i=0, j=config_NUMREG_BEGIN_VSK; i<ui->tableWidgetVSK->rowCount(); i++, j++)
-    {
-        ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
-        if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked)
-        {
-            count ++;
-            int addr = ROW_REG_VSK_2_ADDR(i);
-            memcpy(pt, (char*)&addr, 4);
-            pt += 4;
-            reg_numbers[i] = j;
-        }
-    }
-
-    if (count == 0)
-        QMessageBox::warning(this, tr("Чтение регистров"), tr("Нет отмеченных регистров"), tr("Вернуться"));
-    else
-    {
-        /// формирование команды чтения формата 1
-        int cmd = 3;
-        count *= 4;
-        pt = pack;
-        memcpy(pt, (char*)&cmd, 4);
-        memcpy(pt+4, (char*)&count, 4);
-
-        int error_code = doReadReg(pack);
-        /// Обработка ответа. Значения запрошенных регистров находятся в массиве pack.
-        if (error_code == 0)
-        {
-            int* pti = (int*)pt;
-            cmd = *pti;
-            qDebug() << cmd;
-            if (cmd == 3)
-            {
-                pt += 4;
-                pti = (int*)pt;
-                if (count == *pti)
-                {
-                    stopSign = true;
-                    for (int i=0; i<count/4; i++)
-                    {
-                        pt +=4;
-                        pti = (int*)pt;
-                        int newval = *pti;
-                        int row = reg_numbers[i];
-                        if (row < config_NUMREG_BEGIN_VSK)
-                        {
-                            ui->tableWidgetNSK->item(row, rcn_Val)->setTextColor(Qt::blue);
-                            ui->tableWidgetNSK->item(row, rcn_Val)->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
-                        }
-                        else
-                        {
-                            row -= config_NUMREG_BEGIN_VSK;
-                            QString value = QString("%1").arg(newval, 4, 16, QChar('0')).toUpper();
-                            ui->tableWidgetVSK->item(row, rcn_Val)->setText(value);
-                            ui->tableWidgetVSK->item(row, rcn_Val)->setTextColor(Qt::blue);
-                            int addr = NUM_REG_2_ADDR(row);
-                            adaptRegVSK(addr, newval, value);
-                        }
-                    }
-                    bRet = true;
-                    stopSign = false;
-                }
-            }
-        }
-    }
-    return bRet;
 }
 
 void Configuration::onExpandNSK(int mode)
@@ -1502,4 +1266,22 @@ void Configuration::on_comboBoxOff_currentIndexChanged(int index)
 {
     if (currentTab==4 && !stopSign)
         applyRegFlag(config_NUMREG_pll_reg, fl_REG_PLL_pd, index);
+}
+
+int Configuration::getConfigReg() const
+{
+    return ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Val)->text().toInt(0,16);
+}
+
+
+void Configuration::blockReadWrite()
+{
+    ui->pushButtonApply->setEnabled(false);
+    ui->pushButtonRead->setEnabled(false);
+}
+
+void Configuration::enableReadWrite()
+{
+    ui->pushButtonApply->setEnabled(true);
+    ui->pushButtonRead->setEnabled(true);
 }

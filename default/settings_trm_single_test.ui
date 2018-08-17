@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>401</width>
+    <width>407</width>
     <height>674</height>
    </rect>
   </property>
@@ -33,7 +33,31 @@
    <property name="horizontalSpacing">
     <number>10</number>
    </property>
-   <item row="13" column="0" colspan="5">
+   <item row="11" column="1">
+    <widget class="QLabel" name="labelABC">
+     <property name="text">
+      <string>КШ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="3" colspan="2">
+    <widget class="QCheckBox" name="checkBoxBroad">
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="3">
+    <widget class="QLabel" name="labelLen">
+     <property name="text">
+      <string>Длина сообщения в байтах (0-NNNN)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0" colspan="5">
     <widget class="QLabel" name="labelHeaderData">
      <property name="font">
       <font>
@@ -63,10 +87,10 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="4">
-    <widget class="QComboBox" name="comboBoxAmpl">
+   <item row="11" column="4">
+    <widget class="QComboBox" name="comboBoxAmplRT">
      <property name="currentIndex">
-      <number>0</number>
+      <number>7</number>
      </property>
      <item>
       <property name="text">
@@ -75,87 +99,82 @@
      </item>
      <item>
       <property name="text">
-       <string>00</string>
+       <string>10h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>16</string>
+       <string>11h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>17</string>
+       <string>12h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>18</string>
+       <string>13h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>19</string>
+       <string>14h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>20</string>
+       <string>15h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>21</string>
+       <string>16h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>22</string>
+       <string>17h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>23</string>
+       <string>18h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>24</string>
+       <string>19h</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>25</string>
+       <string>1Ah</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>26</string>
+       <string>1Bh</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>27</string>
+       <string>1Ch</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>28</string>
+       <string>1Dh</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>29</string>
+       <string>1Eh</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>30</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>31</string>
+       <string>1Fh</string>
       </property>
      </item>
     </widget>
@@ -530,7 +549,7 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="1" colspan="3">
+   <item row="17" column="1" colspan="3">
     <widget class="QLabel" name="labelNumStep">
      <property name="text">
       <string>Число шагов до сброса</string>
@@ -550,17 +569,17 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="4">
+   <item row="17" column="4">
     <widget class="QLineEdit" name="lineEditNumStep"/>
    </item>
-   <item row="17" column="0" colspan="3">
+   <item row="18" column="0" colspan="3">
     <widget class="QLabel" name="labelUnit">
      <property name="text">
       <string>Размер единицы данных в байтах</string>
      </property>
     </widget>
    </item>
-   <item row="19" column="0" colspan="5">
+   <item row="20" column="0" colspan="5">
     <widget class="QLabel" name="labelHeaderTest">
      <property name="font">
       <font>
@@ -589,23 +608,6 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="3" colspan="2">
-    <widget class="QCheckBox" name="checkBoxBroad">
-     <property name="layoutDirection">
-      <enum>Qt::RightToLeft</enum>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="3">
-    <widget class="QLabel" name="labelLen">
-     <property name="text">
-      <string>Длина сообщения в байтах (0-NNNN)</string>
-     </property>
-    </widget>
-   </item>
    <item row="7" column="4">
     <widget class="QComboBox" name="comboBoxManType">
      <item>
@@ -625,14 +627,14 @@
      </item>
     </widget>
    </item>
-   <item row="10" column="0" colspan="3">
+   <item row="11" column="0">
     <widget class="QLabel" name="labelAmpl">
      <property name="text">
       <string>Коэффициент усиления</string>
      </property>
     </widget>
    </item>
-   <item row="18" column="0" colspan="5">
+   <item row="19" column="0" colspan="5">
     <widget class="QLabel" name="labelSpace3">
      <property name="maximumSize">
       <size>
@@ -645,14 +647,14 @@
      </property>
     </widget>
    </item>
-   <item row="27" column="0">
+   <item row="28" column="0">
     <widget class="QLabel" name="labelDevRT">
      <property name="text">
       <string>Устройство ОУ</string>
      </property>
     </widget>
    </item>
-   <item row="14" column="4">
+   <item row="15" column="4">
     <widget class="QLineEdit" name="lineEditBegin">
      <property name="inputMethodHints">
       <set>Qt::ImhUppercaseOnly</set>
@@ -834,7 +836,7 @@
      </item>
     </widget>
    </item>
-   <item row="12" column="0" colspan="5">
+   <item row="13" column="0" colspan="5">
     <widget class="QLabel" name="labelSpace2">
      <property name="maximumSize">
       <size>
@@ -854,21 +856,21 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="0" colspan="3">
+   <item row="22" column="0" colspan="3">
     <widget class="QLabel" name="labelUseInt">
      <property name="text">
       <string>Использовать прерывание</string>
      </property>
     </widget>
    </item>
-   <item row="22" column="0" colspan="3">
+   <item row="23" column="0" colspan="3">
     <widget class="QLabel" name="labelOut">
      <property name="text">
       <string>Вывод</string>
      </property>
     </widget>
    </item>
-   <item row="21" column="3" colspan="2">
+   <item row="22" column="3" colspan="2">
     <widget class="QCheckBox" name="checkBoxUseInt">
      <property name="layoutDirection">
       <enum>Qt::RightToLeft</enum>
@@ -878,7 +880,7 @@
      </property>
     </widget>
    </item>
-   <item row="22" column="3" colspan="2">
+   <item row="23" column="3" colspan="2">
     <widget class="QCheckBox" name="checkBoxOut">
      <property name="layoutDirection">
       <enum>Qt::RightToLeft</enum>
@@ -888,7 +890,7 @@
      </property>
     </widget>
    </item>
-   <item row="25" column="3" colspan="2">
+   <item row="26" column="3" colspan="2">
     <widget class="QLabel" name="labelYtaderReq">
      <property name="font">
       <font>
@@ -903,49 +905,49 @@
      </property>
     </widget>
    </item>
-   <item row="26" column="0">
+   <item row="27" column="0">
     <widget class="QLabel" name="labelDevBC">
      <property name="text">
       <string>Устройство КШ</string>
      </property>
     </widget>
    </item>
-   <item row="14" column="0">
+   <item row="15" column="0">
     <widget class="QRadioButton" name="radioButtonLin">
      <property name="text">
       <string>Линейное                    </string>
      </property>
     </widget>
    </item>
-   <item row="14" column="1" colspan="2">
+   <item row="15" column="1" colspan="2">
     <widget class="QLabel" name="labelBegin">
      <property name="text">
       <string>Начальное значение</string>
      </property>
     </widget>
    </item>
-   <item row="15" column="1" colspan="2">
+   <item row="16" column="1" colspan="2">
     <widget class="QLabel" name="labelStep">
      <property name="text">
       <string>Шаг</string>
      </property>
     </widget>
    </item>
-   <item row="15" column="4">
+   <item row="16" column="4">
     <widget class="QLineEdit" name="lineEditStep">
      <property name="text">
       <string>0</string>
      </property>
     </widget>
    </item>
-   <item row="15" column="0">
+   <item row="16" column="0">
     <widget class="QRadioButton" name="radioButtonRand">
      <property name="text">
       <string>Случайное</string>
      </property>
     </widget>
    </item>
-   <item row="17" column="4">
+   <item row="18" column="4">
     <widget class="QComboBox" name="comboBoxUnit">
      <item>
       <property name="text">
@@ -984,14 +986,14 @@
      </property>
     </widget>
    </item>
-   <item row="20" column="0" colspan="3">
+   <item row="21" column="0" colspan="3">
     <widget class="QLabel" name="labelTime">
      <property name="text">
       <string>Время ожидания завершения обмена (мс)</string>
      </property>
     </widget>
    </item>
-   <item row="27" column="4">
+   <item row="28" column="4">
     <widget class="QCheckBox" name="checkBoxDevRT">
      <property name="layoutDirection">
       <enum>Qt::RightToLeft</enum>
@@ -1001,7 +1003,7 @@
      </property>
     </widget>
    </item>
-   <item row="26" column="4">
+   <item row="27" column="4">
     <widget class="QCheckBox" name="checkBoxDevBC">
      <property name="layoutDirection">
       <enum>Qt::RightToLeft</enum>
@@ -1014,28 +1016,28 @@
      </property>
     </widget>
    </item>
-   <item row="27" column="1" colspan="3">
+   <item row="28" column="1" colspan="3">
     <widget class="QLineEdit" name="lineEditDevRT">
      <property name="text">
       <string>No</string>
      </property>
     </widget>
    </item>
-   <item row="26" column="1" colspan="3">
+   <item row="27" column="1" colspan="3">
     <widget class="QLineEdit" name="lineEditDevBC">
      <property name="text">
-      <string>Terasik</string>
+      <string>Terasic</string>
      </property>
     </widget>
    </item>
-   <item row="20" column="4">
+   <item row="21" column="4">
     <widget class="QLineEdit" name="lineEditTime">
      <property name="text">
       <string>6</string>
      </property>
     </widget>
    </item>
-   <item row="25" column="0" colspan="3">
+   <item row="26" column="0" colspan="3">
     <widget class="QLabel" name="labelHeaderDevices">
      <property name="font">
       <font>
@@ -1051,7 +1053,7 @@
      </property>
     </widget>
    </item>
-   <item row="24" column="0" colspan="5">
+   <item row="25" column="0" colspan="5">
     <widget class="QLabel" name="labelSpace4">
      <property name="maximumSize">
       <size>
@@ -1061,6 +1063,122 @@
      </property>
      <property name="text">
       <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="4">
+    <widget class="QCheckBox" name="checkBoxEnaAddr">
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="3">
+    <widget class="QLabel" name="labelEnaAddr">
+     <property name="text">
+      <string>Разрешение использования адреса ОУ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2">
+    <widget class="QComboBox" name="comboBoxAmplBC">
+     <property name="currentIndex">
+      <number>6</number>
+     </property>
+     <item>
+      <property name="text">
+       <string/>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>10h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>11h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>12h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>13h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>14h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>15h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>16h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>17h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>18h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>19h</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1Ah</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1Bh</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1Ch</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1Dh</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1Eh</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1Fh</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="11" column="3">
+    <widget class="QLabel" name="labelART">
+     <property name="text">
+      <string>ОУ</string>
      </property>
     </widget>
    </item>

@@ -26,6 +26,9 @@ signals:
     void sigConnectedDevice();
     void sigDisconnectedDevice();
 
+    void  doneWriteReg(int);
+    void  doneReadReg(int,QByteArray);
+
 public:
     explicit Device(QWidget *parent = 0, QString name = "default", QTextBrowser *tB = NULL);
     ~Device();
@@ -59,11 +62,13 @@ private slots:
     void showConfiguration();
     void showConnection();
     void connectTry();
+    void configTry();
     void disconnectTry();
     void doConnected();
     void doDisconnected();
     void doError(QAbstractSocket::SocketError err);
-    void doReadyRead();
+    void doWriteReg(QByteArray);
+    void doReadReg(QByteArray);
 };
 
 #endif // DEVICE_H

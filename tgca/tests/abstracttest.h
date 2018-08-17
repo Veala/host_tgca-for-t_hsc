@@ -114,12 +114,12 @@ protected slots:
     void checkDeviceAvailability(int);
     void deletingDevice(QString);
     void deletingDevice_part();
-    void connectingSockDevice();
-    void disconnectingSockDevice();
-    void errorDevice(QAbstractSocket::SocketError);
+//    void connectingSockDevice();
+//    void disconnectingSockDevice();
+//    void errorDevice(QAbstractSocket::SocketError);
     void testOutout(QString);
     void setRunningState(int);
-    virtual void done1(int n) { emit settingsClosed(0xFF); }
+    virtual void done1(int n) { emit settingsClosed(1111); }
 private:
     QMenu menu;
     QHBoxLayout *layout;
@@ -135,6 +135,8 @@ class absObjToThread : public QObject
     Q_OBJECT
 public:
     AbstractTest::RunningState threadState;
+    int readAll(QTcpSocket*, QByteArray&, int);
+    int writeAll(QTcpSocket*, QByteArray&);
 public slots:
     virtual void doWork() = 0;
     void setState(int);

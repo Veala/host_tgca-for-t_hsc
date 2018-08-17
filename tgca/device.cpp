@@ -8,31 +8,37 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
     ui->setupUi(this);
     setName(name);
     projectBrowser = tB;
-    QAction *act = menu.addAction(tr("Соединение"));
+    QAction *act = menu.addAction(tr("Параметры tcp-ip"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showConnection()));
     act = menu.addAction(tr("Конфигурация"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showConfiguration()));
     act = menu.addAction(tr("Удалить"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteLater()));
 
-    connect(&connection, SIGNAL(connectTry(bool)), this, SLOT(connectTry()));
-    connect(&connection, SIGNAL(disconnectTry(bool)), this, SLOT(disconnectTry()));
-    connect(&rw_socket, SIGNAL(connected()), this, SLOT(doConnected()));
-    connect(&rw_socket, SIGNAL(disconnected()), this, SLOT(doDisconnected()));
-    connect(&rw_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(doError(QAbstractSocket::SocketError)));
-    connect(&rw_socket, SIGNAL(readyRead()), this, SLOT(doReadyRead()));
+//    connect(&connection, SIGNAL(connectTry(bool)), this, SLOT(connectTry()));
+//    connect(&connection, SIGNAL(disconnectTry(bool)), this, SLOT(disconnectTry()));
+//    connect(&rw_socket, SIGNAL(connected()), this, SLOT(doConnected()));
+//    connect(&rw_socket, SIGNAL(disconnected()), this, SLOT(doDisconnected()));
+//    connect(&rw_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(doError(QAbstractSocket::SocketError)));
+    connect(&configuration, SIGNAL(doWriteReg(QByteArray)), this, SLOT(doWriteReg(QByteArray)));
+    connect(&configuration, SIGNAL(doReadReg(QByteArray)), this, SLOT(doReadReg(QByteArray)));
+    connect(this, SIGNAL(doneWriteReg(int)), &configuration, SLOT(doneWriteReg(int)));
+    connect(this, SIGNAL(doneReadReg(int,QByteArray)), &configuration, SLOT(doneReadReg(int,QByteArray)));
+    connect(this, SIGNAL(sigConnectedDevice()), &configuration, SLOT(enableReadWrite()));
+    connect(this, SIGNAL(sigDisconnectedDevice()), &configuration, SLOT(blockReadWrite()));
+    connect(this, SIGNAL(error(QAbstractSocket::SocketError)), &configuration, SLOT(blockReadWrite()));
 
 //    background-color: rgb(164, 164, 220);
 //    border-color: rgb(11, 4, 4);
 
     setAutoFillBackground(true);
-    setConnectedState(disconned);
+    setConnectedState(conned);
     setFrameStyle(QFrame::Box | QFrame::Plain);
 }
 
 Device::~Device()
 {
-    qDebug() << "~Device()" << getName();
+    //qDebug() << "~Device()" << getName();
     rw_socket.abort();
     emit sigDelete(getName());
     delete ui;
@@ -113,6 +119,14 @@ void Device::connectTry()
         return;
 }
 
+void Device::configTry()
+{
+    return;
+    if (rw_socket.state() == QAbstractSocket::ConnectedState) {
+        configuration.onPushWrite();
+    }
+}
+
 void Device::disconnectTry()
 {
     if (rw_socket.state() == QAbstractSocket::UnconnectedState) {
@@ -151,7 +165,42 @@ void Device::doError(QAbstractSocket::SocketError err)
     //На виджете добавить значек, что соединения нет.
 }
 
-void Device::doReadyRead()
+/// Функция записи регистров устройства. Сигнал возвращает код ошибки.
+void  Device::doWriteReg(QByteArray array)
 {
+    //return;
 
+    int error_code = -1;
+    if (rw_socket.state() == QAbstractSocket::ConnectedState) {
+        /*char *pt = array.data();
+        int sz = array.size();
+        for (int i=0; i<sz; i+=4, pt+=4)
+        {
+            uint data;
+            dev->rw_socket.read((char*)&data, 4);
+            int i1 = */
+
+        error_code = rw_socket.write(array);
+        qDebug() << "wrote: " << error_code;
+        if (error_code != -1)
+        {
+            if (rw_socket.waitForBytesWritten(5000)) {
+                error_code = 0;
+            }
+            else
+            {
+                rw_socket.abort();
+                error_code = -2;
+            }
+        }
+    }
+    qDebug() << "error_code = " << error_code;
+    emit doneWriteReg(error_code);
+}
+
+/// Функция чтения регистров устройства в array. Сигнал возвращает код ошибки.
+void  Device::doReadReg(QByteArray array)
+{
+    qDebug() << "slot doReadReg() is not implemented";
+    emit doneReadReg(-1, array);
 }

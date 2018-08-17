@@ -69,7 +69,6 @@ private slots:
     void onAbout();
     void onPushConfig();
 
-
     void onRunTst();
     void onPause();
     void onStop();
@@ -93,6 +92,9 @@ private slots:
     void onMenuTests(QPoint);
     void actDevMode();
 
+signals:
+    void connectTry();
+    void autoConfigurate();
 };
 
 #endif // MAINWINDOW_H

@@ -19,6 +19,7 @@ void BulbTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, Q
         objToThread = new bulbObjToThread();
         objToThread->moveToThread(&testThread);
         connect(&testThread, SIGNAL(finished()), objToThread, SLOT(deleteLater()));
+        connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(switchOff(int)));
         connect(objToThread, SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
         connect(objToThread, SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
         connect(this, SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
@@ -51,24 +52,38 @@ void BulbTest::startTest()
     emit startTestTh();
 }
 
+void bulbObjToThread::switchOff(int rs)
+{
+    if (rs == AbstractTest::Stopped && tcpSocket.state() == QAbstractSocket::ConnectedState)
+    {
+        int cmd=1, len=8, addr=0x194, val=0;
+        QByteArray array;
+        array.append((char*)&cmd, 4);
+        array.append((char*)&len, 4);
+        array.append((char*)&addr, 4);
+        array.append((char*)&val, 4);
+        int n = tcpSocket.write(array, array.size());
+        if (n == -1 || !tcpSocket.waitForBytesWritten(5000))
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+    }
+}
+
 void bulbObjToThread::doWork()
 {
-    int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
-                     7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
-    int addr = 0x194;
-    int cmd  = 1;
-    int len  = 8;
-
     if (tcpSocket.state() != QAbstractSocket::ConnectedState) {
         if (!tcpSocket.setSocketDescriptor(socketDescriptor)) {
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             return;
         }
     }
-
     emit resultReady((int)AbstractTest::Running);
-
     qDebug() << "Bulb test started";
+
+    int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
+                     7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
+    int addr = 0x194;
+    int cmd  = 1;
+    int len  = 8;
 
     for (int i=0; i<iter; i++)
     {
@@ -81,17 +96,17 @@ void bulbObjToThread::doWork()
             array.append((char*)&(vals[j]), 4);
 
             int n = tcpSocket.write(array, array.size());
-            if (!tcpSocket.waitForBytesWritten(5000)) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
-            qDebug() << "wrote: " << n;
             if (n == -1) {
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
                 return;
             }
+            if (!tcpSocket.waitForBytesWritten(5000)) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
+            if (pause_stop() == -1) return;
             this->thread()->msleep(pause);
         }
     }
-    resultReady(AbstractTest::Completed);
+    emit resultReady((int)AbstractTest::Completed);
 }

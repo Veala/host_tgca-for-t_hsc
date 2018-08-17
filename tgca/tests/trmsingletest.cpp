@@ -14,12 +14,14 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     comboBoxRTA = settings->findChild<QComboBox*>("comboBoxRTA");
     comboBoxCode = settings->findChild<QComboBox*>("comboBoxCode");
     comboBoxManType = settings->findChild<QComboBox*>("comboBoxManType");
-    comboBoxAmpl = settings->findChild<QComboBox*>("comboBoxAmpl");
+    comboBoxAmplBC = settings->findChild<QComboBox*>("comboBoxAmplBC");
+    comboBoxAmplRT = settings->findChild<QComboBox*>("comboBoxAmplRT");
     comboBoxUnit = settings->findChild<QComboBox*>("comboBoxUnit");
 
     checkBoxBroad = settings->findChild<QCheckBox *>("checkBoxBroad");
     checkBoxCodec = settings->findChild<QCheckBox *>("checkBoxCodec");
     checkBoxEnaInt = settings->findChild<QCheckBox *>("checkBoxEnaInt");
+    checkBoxEnaAddr = settings->findChild<QCheckBox *>("checkBoxEnaAddr");
     checkBoxUseInt = settings->findChild<QCheckBox *>("checkBoxUseInt");
     checkBoxOut = settings->findChild<QCheckBox *>("checkBoxOut");
     checkBoxDevBC = settings->findChild<QCheckBox *>("checkBoxDevBC");
@@ -44,7 +46,9 @@ top_1
     comboBoxManType->setCurrentText(out.readLine());
     checkBoxCodec->setChecked(!out.readLine().isEmpty());
     checkBoxEnaInt->setChecked(!out.readLine().isEmpty());
-    comboBoxAmpl->setCurrentText(out.readLine());
+    checkBoxEnaAddr->setChecked(!out.readLine().isEmpty());
+    comboBoxAmplBC->setCurrentText(out.readLine());
+    comboBoxAmplRT->setCurrentText(out.readLine());
 
     radioButtonLin->setChecked(out.readLine() != "Random");
     lineEditBegin->setText(out.readLine());
@@ -56,7 +60,7 @@ top_1
     checkBoxUseInt->setChecked(!out.readLine().isEmpty());
     checkBoxOut->setChecked(!out.readLine().isEmpty());
 
-    labelLen->setText(QString(tr("Длина сообщения в байтах (0-%1)").arg(maxNumByte())));
+    recalc();
     labelBegin->setText(radioButtonLin->isChecked() ? "Начальное значение" : "Зерно инициализации  ");
     labelStep->setText(radioButtonLin->isChecked() ? "Шаг" : "Минимум");
     labelNumStep->setText(radioButtonLin->isChecked() ? "Число шагов до сброса" : "Максимум");
@@ -72,7 +76,7 @@ top_1
         deviceLineEditList.append(lineEditDevBC);
     if (checkBoxDevRT->isChecked())
         deviceLineEditList.append(lineEditDevRT);
-    checkDeviceAvailability(1111);
+    checkDeviceAvailability((checkBoxDevBC->isChecked() ? 1 : 0) + (checkBoxDevRT->isChecked() ? 2 : 0));
 
     connect(comboBoxManType, SIGNAL(activated(int)), this, SLOT(onManType()));
     connect(checkBoxCodec, SIGNAL(clicked(bool)), this, SLOT(onCodec()));
@@ -86,7 +90,6 @@ top_1
     connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
 
     testThread.start();
-
 }
 
 void TrmSingleTest::save()
@@ -101,7 +104,9 @@ top_2(saveFileNameStr)
     in << comboBoxManType->currentText() << endl;
     in << (checkBoxCodec->isChecked() ? "1" : "") << endl;
     in << (checkBoxEnaInt->isChecked() ? "1" : "") << endl;
-    in << comboBoxAmpl->currentText() << endl;
+    in << (checkBoxEnaAddr->isChecked() ? "1" : "") << endl;
+    in << comboBoxAmplBC->currentText() << endl;
+    in << comboBoxAmplRT->currentText() << endl;
 
     in << (radioButtonLin->isChecked() ? "Linear" : "Random") << endl;
     in << lineEditBegin->text() << endl;
@@ -122,11 +127,6 @@ top_2(saveFileNameStr)
     settingsFile.close();
 }
 
-void TrmSingleTest::startTest()
-{
-
-}
-
 void TrmSingleTest::onRadio()
 {
     labelBegin->setText(radioButtonLin->isChecked() ? "Начальное значение" : "Зерно инициализации");
@@ -136,12 +136,12 @@ void TrmSingleTest::onRadio()
 
 void TrmSingleTest::onCodec()
 {
-    labelLen->setText(QString(tr("Длина сообщения в байтах (0-%1)").arg(maxNumByte())));
+    recalc();
 }
 
 void TrmSingleTest::onManType()
 {
-    labelLen->setText(QString(tr("Длина сообщения в байтах (0-%1)").arg(maxNumByte())));
+    recalc();
 }
 
 unsigned int TrmSingleTest::maxNumByte()
@@ -149,15 +149,102 @@ unsigned int TrmSingleTest::maxNumByte()
     return calcNumWordInSymbol(comboBoxManType->currentIndex(), checkBoxCodec->isChecked())*MAXNUMSYMBINPACK*4 - 4;
 }
 
+void TrmSingleTest::recalc()
+{
+    mnb = maxNumByte();
+    labelLen->setText(QString(tr("Длина сообщения в байтах (0-%1)").arg(mnb)));
+    if (lineEditLen->text() != "max" && lineEditLen->text().toInt() > mnb)
+        lineEditLen->setText("max");
+}
+
 void TrmSingleTest::done1(int)
 {
-    qDebug() << "trmsingle done1";
     // Проверка устройств. Можно проверять только с признаком необходимости.
-    int done = 0;
-    if (checkBoxDevBC->isChecked())
-        done != 1;
-    if (checkBoxDevRT->isChecked())
-        done != 1;
+    int done = (checkBoxDevBC->isChecked() ? 1 : 0) + (checkBoxDevRT->isChecked() ? 2 : 0);
     emit settingsClosed(done);
     // Здесь можно проверить и другие настройки.
+}
+
+void TrmSingleTest::startTest()
+{
+    trmSingleObjToThread* curThread = (trmSingleObjToThread*)objToThread;
+    if (deviceList.count() != 2)
+    {
+        message(tr("Two devices are required"));
+        return;
+    }
+    curThread->devBC = deviceList.at(0);
+    curThread->socketDescBC = curThread->devBC->rw_socket.socketDescriptor();
+    if (curThread->socketDescBC == -1) {
+        message(tr("Socket descriptor error"));
+        return;
+    }
+    curThread->devRT = deviceList.at(1);
+    curThread->socketDescBC = curThread->devBC->rw_socket.socketDescriptor();
+    if (curThread->socketDescBC == -1) {
+        message(tr("Socket descriptor error"));
+        return;
+    }
+
+    int cfgBC = curThread->devRT->configuration.getConfigReg();
+          //  config(curThread->devRT, )
+
+/* 1
+    curThread->setPause(lineEditInterval);
+    curThread->setIter(lineEditIterate);
+*/
+    /* 2
+
+    uint command, cfgBC, cfgRT, amplBC, amplRT, time, rta;
+    bool broad, useInt, output;
+    char* data;
+    long inCycle;
+    QString mode;
+
+
+ */
+    /* 3
+
+    in << lineEditLen->text() << endl;
+    in << comboBoxRTA->currentText() << endl;
+    in << comboBoxCode->currentText() << endl;
+    in << (checkBoxBroad->isChecked() ? "1" : "") << endl;
+
+    in << comboBoxManType->currentText() << endl;
+    in << (checkBoxCodec->isChecked() ? "1" : "") << endl;
+    in << (checkBoxEnaInt->isChecked() ? "1" : "") << endl;
+    in << (checkBoxEnaAddr->isChecked() ? "1" : "") << endl;
+    in << comboBoxAmplBC->currentText() << endl;
+    in << comboBoxAmplRT->currentText() << endl;
+
+    in << (radioButtonLin->isChecked() ? "Linear" : "Random") << endl;
+    in << lineEditBegin->text() << endl;
+    in << lineEditStep->text() << endl;
+    QString str = lineEditNumStep->text();
+    in << ((str.isEmpty() || str.toInt(0,10) == 0) ? "" : str) << endl;
+    in << comboBoxUnit->currentText() << endl;
+
+    in << lineEditTime->text() << endl;
+    in << (checkBoxUseInt->isChecked() ? "1" : "") << endl;
+    in << (checkBoxOut->isChecked() ? "1" : "") << endl;
+
+      */
+
+    emit startTestTh();
+}
+
+void trmSingleObjToThread::doWork()
+{
+    if (tcpSocketBC.state() != QAbstractSocket::ConnectedState ||
+        !tcpSocketBC.setSocketDescriptor(socketDescBC) ||
+        tcpSocketBC.state() != QAbstractSocket::ConnectedState ||
+        !tcpSocketBC.setSocketDescriptor(socketDescRT))
+    {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            return;
+    }
+
+    emit resultReady((int)AbstractTest::Running);
+    qDebug() <<  "Transmit test started";
+
 }

@@ -1,7 +1,7 @@
 #include "confselect.h"
 #include "ui_confselect.h"
 
-#include "configuration.h"
+//#include "configuration.h"
 
 #include <QFileDialog>
 
@@ -13,7 +13,7 @@ ConfSelect::ConfSelect(QWidget *parent) :
     ui(new Ui::ConfSelect)
 {
     ui->setupUi(this);
-    connect(this, SIGNAL(configurate(QString, int*)), parent, SLOT(initFrom(QString, int*)));
+//    connect(this, SIGNAL(configurate(QString, int*)), parent, SLOT(initFrom(QString, int*)));
 }
 
 ConfSelect::~ConfSelect()

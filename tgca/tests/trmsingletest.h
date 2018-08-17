@@ -23,8 +23,10 @@ private:
 
     QComboBox *comboBoxManType;
     QCheckBox *checkBoxCodec;
-    QComboBox *comboBoxAmpl;
     QCheckBox *checkBoxEnaInt;
+    QCheckBox *checkBoxEnaAddr;
+    QComboBox *comboBoxAmplBC;
+    QComboBox *comboBoxAmplRT;
 
     QRadioButton *radioButtonLin;
     QLineEdit *lineEditBegin;
@@ -47,7 +49,9 @@ private:
     QLabel *labelNumStep;
     QRadioButton *radioButtonRand;
 
+    unsigned int mnb;
     unsigned int maxNumByte();
+    void recalc();
 
 private slots:
     void onRadio();
@@ -60,13 +64,14 @@ class trmSingleObjToThread : public absObjToThread
 {
     Q_OBJECT
 public slots:
-    virtual void doWork() {}
+    virtual void doWork();
 public:
-    uint command, cfg, ampl, time, rta;
+    uint command, cfgBC, cfgRT, amplBC, amplRT, time, rta;
     bool broad, useInt, output;
     char* data;
     long inCycle;
     QString mode;
+    QTcpSocket tcpSocketBC, tcpSocketRT;
     int socketDescBC, socketDescRT;
     Device *devBC, *devRT;
 };
