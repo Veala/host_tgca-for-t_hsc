@@ -26,9 +26,6 @@ typedef unsigned int*   p_mem_t;
 //word16_t memToWord16(char *buf, int addr);
 //void word16ToMem(char *buf, int num_reg, word16_t val);
 
-void ReadFormat1(char *mem_dst, addr_t mem_src, int num_byte);
-void WriteFormat1(char *mem_src, addr_t *mem_dst, int num_byte);
-
 /// Адрес ОУ для групповой команды.
 #define BRD_RT_ADDR  31
 /// Максимальный рарешенный адрес ОУ - 5 бит
@@ -51,6 +48,9 @@ void WriteFormat1(char *mem_src, addr_t *mem_dst, int num_byte);
 #define  tgca_val_CW_tr_TRM  (hscl_fl_CW_tr_bit * hscl_tr_TRM) // ОУ передает
 //   извлечение признака tr из командного слова
 //#define  hscl_tr_bit_VAL(cw) (((cw) & hscl_CW_tr_bit) >> 7)
+
+inline addr_t getBufTrm(int num) { return num ? 0x60000 : 0x40000; }
+inline addr_t getBufRec(int num) { return num ? 0xA0000 : 0x80000; }
 
 
 #endif // EXTERN_H

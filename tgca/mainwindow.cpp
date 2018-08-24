@@ -2,8 +2,6 @@
 #include "ui_mainwindow.h"
 #include <QPrintDialog>
 
-static bool configurateDevice(Device *device); // не реализована !!!
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -86,10 +84,9 @@ bool MainWindow::clearProject()
         /// Здесь надо разорвать все соединения и удалить устройство
         delete dev;
     };
-    qDebug() << "Done";
     return bRet;
 }
-
+/*
 static bool setupConnection(Device *device, QString ip, QString port, QString hostIp, QString hostPort)
 {
     device->connection.setServerIP(ip);
@@ -98,7 +95,7 @@ static bool setupConnection(Device *device, QString ip, QString port, QString ho
     device->connection.setHostPORT(hostPort);
     return !ip.isEmpty() && !port.isEmpty() && !hostIp.isEmpty();
 }
-
+*/
 bool MainWindow::loadProject(QSettings& settings)
 {
     if (settings.value("Common/user").toString() == "su")
@@ -116,19 +113,11 @@ bool MainWindow::loadProject(QSettings& settings)
         {
             Device *device = new Device(this, name, ui->projectBrowser);
             ui->devices->addWidget(device);
-            bool bConn = setupConnection(device, settings.value("IP").toString(), settings.value("port").toString(),
-                                        settings.value("hostIP").toString(), settings.value("hostPort").toString());
-            bool bConf = device->configuration.initFrom(settings.value("configuration").toString(), 0);
-            if (bConn && bConf && settings.value("autoload").toString() == "1")
-            {
-                connect(this, SIGNAL(connectTry()), device, SLOT(connectTry()));
-                connect(this, SIGNAL(autoConfigurate()), device, SLOT(configTry()));
-                emit connectTry();
-                //emit autoConfigurate();
-                disconnect(this, SIGNAL(connectTry()), device, SLOT(connectTry()));
-                disconnect(this, SIGNAL(autoConfigurate()), device, SLOT(configTry()));
-
-            }
+            device->connection.setServerIP(settings.value("IP").toString());
+            device->connection.setServerPORT(settings.value("port").toString());
+            device->connection.setHostIP(settings.value("hostIP").toString());
+            device->connection.setHostPORT(settings.value("hostPort").toString());
+            device->configuration.initFrom(settings.value("configuration").toString(), 0);
         }
     }
     settings.endArray();
@@ -204,7 +193,6 @@ bool MainWindow::onSavePrj()
         ini.setValue("hostIP", dev->connection.getHostIP());
         ini.setValue("hostPort", dev->connection.getHostPORT());
         ini.setValue("configuration", dev->configuration.getName());
-        ini.setValue("autoload", "0");
     }
     ini.endArray();
 
@@ -215,7 +203,7 @@ bool MainWindow::onSavePrj()
         AbstractTest * test = (AbstractTest*)ui->tests->itemAt(i)->widget();
         ini.setArrayIndex(i);
         ini.setValue("test", test->getName());
-        ini.setValue("enabled", "1");
+//        ini.setValue("enabled", "1");
     }
     ini.endArray();
     return true;
@@ -289,7 +277,6 @@ void MainWindow::actDevMode()
         ui->actConfiguration->setVisible(true);
         ui->actConfiguration->setEnabled(true);
         devConf = new Configuration();
-        devConf->blockReadWrite();
     }
 }
 
@@ -413,7 +400,7 @@ void MainWindow::onStop()
 
 void MainWindow::setSlot(QPushButton *start, QPushButton *pause, QPushButton *stop)
 {
-    qDebug() << "setSlots";
+    //qDebug() << "setSlots";
     connect(ui->actRun, SIGNAL(triggered(bool)), start, SIGNAL(clicked(bool)));
     connect(ui->actPause, SIGNAL(triggered(bool)), pause, SIGNAL(clicked(bool)));
     connect(ui->actStop, SIGNAL(triggered(bool)), stop, SIGNAL(clicked(bool)));
@@ -421,7 +408,7 @@ void MainWindow::setSlot(QPushButton *start, QPushButton *pause, QPushButton *st
 
 void MainWindow::unsetSlot(QPushButton *start, QPushButton *pause, QPushButton *stop)
 {
-    qDebug() << "unsetSlots";
+    //qDebug() << "unsetSlots";
     disconnect(ui->actRun, SIGNAL(triggered(bool)), start, SIGNAL(clicked(bool)));
     disconnect(ui->actPause, SIGNAL(triggered(bool)), pause, SIGNAL(clicked(bool)));
     disconnect(ui->actStop, SIGNAL(triggered(bool)), stop, SIGNAL(clicked(bool)));
@@ -480,16 +467,8 @@ bool MainWindow::onCreateRep()
     return true;
 }
 
-static bool configurateDevice(Device *device)
-{
-    qDebug() << QObject::tr("Функция configurateDevice() не реализована !!!");
-    /// Здесь надо установить соединение и потом записать регистры LLL
-    return false;
-}
-
 void MainWindow::onHelp()
 {
-    qDebug() << "onHelp";
-    qDebug() << QObject::tr("Функция onHelp() не реализована !!!");
+    qDebug() << QObject::tr("Slot onHelp() is not implemented !!!");
 }
 

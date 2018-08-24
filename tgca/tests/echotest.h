@@ -17,4 +17,15 @@ private:
     QLineEdit *echo, *deviceEdit;
 };
 
+class echoObjToThread : public absObjToThread
+{
+    Q_OBJECT
+public slots:
+    virtual void doWork();
+public:
+    QString echoText;
+    QTcpSocket tcpSocket;
+    Device *dev;
+};
+
 #endif // ECHOTEST_H

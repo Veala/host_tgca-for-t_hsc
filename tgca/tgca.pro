@@ -57,6 +57,7 @@ FORMS    += mainwindow.ui \
     ../default/settings_bulb_test.ui \
     ../default/settings_echo_test.ui \
     ../default/settings_mem_test.ui \
+    ../default/settings_reg_test.ui \
     ../default/settings_trm_single_test.ui
 
 RESOURCES += \

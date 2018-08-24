@@ -16,7 +16,7 @@ public:
 
     bool setConfiguration(reg16_t cfg);
     unsigned short numWordInSymbol() const { return loaded ? nw : 0; }
-    bool NumSymOFDM(int num_byte, int* num_sym, int* sym_len);
+    int NumSymOFDM(int num_byte);
     unsigned int maxNumByte();
     bool createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src, int addr, int tr, unsigned int code);
 

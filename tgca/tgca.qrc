@@ -34,5 +34,11 @@
         <file>../pictogram/kmixdocked_mute_9009.png</file>
         <file>../pictogram/lightbulb_6765.png</file>
         <file>../pictogram/script_save_8920.png</file>
+        <file>../pictogram/agt_login_1836.png</file>
+        <file>../pictogram/application-exit_3908.png</file>
+        <file>../pictogram/streamtuner_3252.png</file>
+        <file>../pictogram/arrow_rotate_clockwise_7614.png</file>
+        <file>../pictogram/drive_back_5555.png</file>
+        <file>../pictogram/drive_go_5555.png</file>
     </qresource>
 </RCC>

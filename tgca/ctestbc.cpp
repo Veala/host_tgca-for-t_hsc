@@ -4,6 +4,8 @@
 #include <string.h>
 #include "command.h"
 
+#include <QString>
+
 CTestBC::CTestBC():
     loaded(false)
 {
@@ -19,26 +21,16 @@ bool CTestBC::setConfiguration(reg16_t cfg)
     return true;
 }
 
-bool CTestBC::NumSymOFDM(int num_byte, int* num_sym, int* sym_len)
+int CTestBC::NumSymOFDM(int num_byte)
 {
-    *num_sym = -1;
-    unsigned short len;
-
     if (num_byte < 0)
-        return false;
+        return -1;
 
-    len = numWordInSymbol();
+    unsigned short len = numWordInSymbol();
     if (len == 0)
-        return false;
+        return -1;
 
-    *sym_len = len * sizeof(word32_t);
-
-    *num_sym = (num_byte + sizeof(word32_t) -1) / len;  // учтено командное слово
-
-    if ((*num_sym) >= MAXNUMSYMBINPACK)   // или  MAXNUMSYMBINPACK-aru ??? !!!
-        return false;
-
-    return true;
+    return (num_byte + sizeof(word32_t) -1) / len;  // учтено командное слово
 }
 
 unsigned int CTestBC::maxNumByte()
@@ -55,7 +47,6 @@ unsigned int CTestBC::maxNumByte()
 /// Размеры буфера назначения и входных данных задаются в байтах.
 bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src, int addr, int tr, unsigned int code)
 {
-    int sym_len = 0;
     word32_t command;
     char* ptr_dst = (char*)mem_dst;
     char* ptr_src = (char*)mem_src;
@@ -72,7 +63,7 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
         if (size_src > maxNumByte())
             return false;   // размер данных не поместится в один пакет
 
-        if (!NumSymOFDM(size_src, &num_s, &sym_len))
+        if (NumSymOFDM(size_src) < 0)
             return false;   // ошибка метода NumSymOFDM()
     }
 

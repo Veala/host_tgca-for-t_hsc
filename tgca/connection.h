@@ -13,8 +13,7 @@ class Connection : public QWidget
     Q_OBJECT
 
 signals:
-    void connectTry(bool);
-    void disconnectTry(bool);
+    void checkDevice(bool);
 
 public:
     explicit Connection(QWidget *parent = 0);

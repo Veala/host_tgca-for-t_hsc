@@ -20,14 +20,11 @@ class Device : public QFrame
 
 signals:
     void error(QAbstractSocket::SocketError err);
-    //signals to tests
 
+    //signals to tests
     void sigDelete(QString);
     void sigConnectedDevice();
     void sigDisconnectedDevice();
-
-    void  doneWriteReg(int);
-    void  doneReadReg(int,QByteArray);
 
 public:
     explicit Device(QWidget *parent = 0, QString name = "default", QTextBrowser *tB = NULL);
@@ -35,40 +32,26 @@ public:
 
     Connection connection;
     Configuration configuration;
-    QTcpSocket rw_socket;
+    QTcpSocket socket;
+
+    bool isMonitor();
     void setName(QString);
     QString getName() const;
 
-    enum ConnectedState {
-        conned,
-        conning,
-        disconned
-    };
-
 protected:
     void mousePressEvent(QMouseEvent *event);
-
-    void setConnectedState(ConnectedState);
-    ConnectedState getConnectedState() const;
 
 private:
     Ui::Device *ui;
     QMenu menu;
     QTextBrowser* projectBrowser;
     void message(QString);
-    ConnectedState connectedState;
 
 private slots:
     void showConfiguration();
     void showConnection();
-    void connectTry();
-    void configTry();
-    void disconnectTry();
-    void doConnected();
-    void doDisconnected();
+    void checkDevice();
     void doError(QAbstractSocket::SocketError err);
-    void doWriteReg(QByteArray);
-    void doReadReg(QByteArray);
 };
 
 #endif // DEVICE_H

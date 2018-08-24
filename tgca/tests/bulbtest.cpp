@@ -42,13 +42,8 @@ void BulbTest::startTest()
 
     curThread->setPause(lineEditInterval);
     curThread->setIter(lineEditIterate);
-
     curThread->dev = deviceList.at(0);
-    curThread->socketDescriptor = curThread->dev->rw_socket.socketDescriptor();
-    if (curThread->socketDescriptor == -1) {
-        message(tr("Socket descriptor error"));
-        return;
-    }
+
     emit startTestTh();
 }
 
@@ -56,25 +51,25 @@ void bulbObjToThread::switchOff(int rs)
 {
     if (rs == AbstractTest::Stopped && tcpSocket.state() == QAbstractSocket::ConnectedState)
     {
-        int cmd=1, len=8, addr=0x194, val=0;
-        QByteArray array;
-        array.append((char*)&cmd, 4);
-        array.append((char*)&len, 4);
+        int addr=0x194, val=0;
+        QByteArray array = cmdHead(1, 8);
         array.append((char*)&addr, 4);
         array.append((char*)&val, 4);
-        int n = tcpSocket.write(array, array.size());
-        if (n == -1 || !tcpSocket.waitForBytesWritten(5000))
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        write_F1(&tcpSocket, array);
+        tcpSocket.abort();
     }
 }
 
 void bulbObjToThread::doWork()
 {
-    if (tcpSocket.state() != QAbstractSocket::ConnectedState) {
-        if (!tcpSocket.setSocketDescriptor(socketDescriptor)) {
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            return;
-        }
+    QString ip = dev->connection.getServerIP();
+    ushort port = dev->connection.getServerPORT().toUShort();
+    tcpSocket.connectToHost(QHostAddress(ip), port);
+    if (!tcpSocket.waitForConnected(5000)) {
+        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        qDebug() << "Connection error";
+        tcpSocket.abort();
+        return;
     }
     emit resultReady((int)AbstractTest::Running);
     qDebug() << "Bulb test started";
@@ -82,31 +77,22 @@ void bulbObjToThread::doWork()
     int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
                      7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
     int addr = 0x194;
-    int cmd  = 1;
-    int len  = 8;
 
-    for (int i=0; i<iter; i++)
+    for (uint i=0; i<iter; i++)
     {
         for (int j=0; j<24; j++)
         {
-            QByteArray array;
-            array.append((char*)&cmd, 4);
-            array.append((char*)&len, 4);
+            QByteArray array = cmdHead(1, 8);
             array.append((char*)&addr, 4);
             array.append((char*)&(vals[j]), 4);
 
-            int n = tcpSocket.write(array, array.size());
-            if (n == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
+            if (write_F1(&tcpSocket, array) == -1)
                 return;
-            }
-            if (!tcpSocket.waitForBytesWritten(5000)) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
+            if (pause_stop() == -1)
                 return;
-            }
-            if (pause_stop() == -1) return;
             this->thread()->msleep(pause);
         }
     }
+    tcpSocket.abort();
     emit resultReady((int)AbstractTest::Completed);
 }

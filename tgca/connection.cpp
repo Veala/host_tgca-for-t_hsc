@@ -7,8 +7,7 @@ Connection::Connection(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->pushButtonConnect, SIGNAL(clicked(bool)), this, SIGNAL(connectTry(bool)));
-    connect(ui->pushButtonDisconnect, SIGNAL(clicked(bool)), this, SIGNAL(disconnectTry(bool)));
+    connect(ui->pushButtonCheckDevice, SIGNAL(clicked(bool)), this, SIGNAL(checkDevice(bool)));
 }
 
 Connection::~Connection()

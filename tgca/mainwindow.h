@@ -91,10 +91,6 @@ private slots:
     void onMenuDevices(QPoint);
     void onMenuTests(QPoint);
     void actDevMode();
-
-signals:
-    void connectTry();
-    void autoConfigurate();
 };
 
 #endif // MAINWINDOW_H

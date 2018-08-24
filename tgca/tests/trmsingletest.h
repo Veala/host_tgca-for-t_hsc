@@ -52,27 +52,36 @@ private:
     unsigned int mnb;
     unsigned int maxNumByte();
     void recalc();
+    void updateDeviceList();
 
 private slots:
     void onRadio();
     void onCodec();
     void onManType();
-    void done1(int);
+    void updateSettings();
+
+signals:
+    void settingsClosed(int);
 };
 
 class trmSingleObjToThread : public absObjToThread
 {
     Q_OBJECT
+    bool checkStatusReg(QTcpSocket* socket, int *status);
+    bool checkCounters(QTcpSocket* socket);
+
 public slots:
     virtual void doWork();
+    void terminate(int);
 public:
-    uint command, cfgBC, cfgRT, amplBC, amplRT, time, rta;
+    trmSingleObjToThread();
+
+    uint cfgBC, cfgRT, amplBC, amplRT, time, data_size;
+    addr_t rtaddr;
     bool broad, useInt, output;
-    char* data;
-    long inCycle;
-    QString mode;
+    void* data;
+    //char data[MAXPACKAGESIZE];
     QTcpSocket tcpSocketBC, tcpSocketRT;
-    int socketDescBC, socketDescRT;
     Device *devBC, *devRT;
 };
 

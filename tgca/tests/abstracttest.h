@@ -119,15 +119,14 @@ protected slots:
 //    void errorDevice(QAbstractSocket::SocketError);
     void testOutout(QString);
     void setRunningState(int);
-    virtual void done1(int n) { emit settingsClosed(1111); }
+
 private:
     QMenu menu;
     QHBoxLayout *layout;
     ValidState validState;
     RunningState runningState;
     QSize forIcons;
-signals:
-    void settingsClosed(int);
+
 };
 
 class absObjToThread : public QObject
@@ -137,6 +136,13 @@ public:
     AbstractTest::RunningState threadState;
     int readAll(QTcpSocket*, QByteArray&, int);
     int writeAll(QTcpSocket*, QByteArray&);
+    int write_F1(QTcpSocket* tcpSocket, QByteArray& writeArray);
+    int write_F2(QTcpSocket* tcpSocket, QByteArray& writeArray);
+    int write_Echo(QTcpSocket* tcpSocket, QByteArray& writeArray);
+    int read_F1(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
+    int read_F2(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
+    QByteArray cmdHead(int cmd, int dsz);
+
 public slots:
     virtual void doWork() = 0;
     void setState(int);

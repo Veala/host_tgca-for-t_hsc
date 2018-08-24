@@ -61,7 +61,7 @@ typedef unsigned short  reg16_t;
 
 #define   REG_VSK_lvl_qam16             0xD8
 #define   REG_VSK_lvl_qam64_low         0xDC
-#define   REG_VSK_lvl_qam64_middle       0xE0
+#define   REG_VSK_lvl_qam64_middle      0xE0
 #define   REG_VSK_lvl_qam64_high        0xE4
 #define   REG_VSK_amplification_factor  0xE8
 #define   REG_VSK_amplitude_signal      0xEC   // только чтение

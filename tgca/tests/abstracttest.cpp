@@ -120,7 +120,7 @@ void AbstractTest::setConnections(Device *dev)
 
 void AbstractTest::setDisconnections(Device *dev)
 {
-    qDebug() << "setDissconnections!";
+    qDebug() << "setDisconnections!";
     disconnect(dev, SIGNAL(sigDelete(QString)), this, SLOT(deletingDevice(QString)));
 //    disconnect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
 //    disconnect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
@@ -260,8 +260,7 @@ void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tT
     name_enabled->setText(tType);
     fileName->setText(fName);
 
-    connect(settings,SIGNAL(finished(int)),this,SLOT(done1(int)));
-    connect(this,SIGNAL(settingsClosed(int)),this,SLOT(checkDeviceAvailability(int)));
+    connect(settings,SIGNAL(finished(int)),this,SLOT(checkDeviceAvailability(int)));
 }
 
 QString AbstractTest::getName() const
@@ -484,28 +483,10 @@ int absObjToThread::pause_stop()
     }
 }
 
-int absObjToThread::readAll(QTcpSocket* socket, QByteArray& array, int size)
+int absObjToThread::readAll(QTcpSocket *socket, QByteArray& array, int size)
 {
     array.clear();
     array.resize(size);
-
-    if (!socket->waitForReadyRead(5000)) {
-        qDebug() << "socket->waitForReadyRead(5000) error!";
-        socket->abort();
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
-        return -1;
-    }
-
-//    while (1) {
-//        qint64 n = socket->bytesAvailable();
-//        if (n != size) {
-//            qDebug() << tr("less bytes available %1 then size %2").arg(QString::number(n)).arg(QString::number(size));
-//            continue;
-//        } else {
-//            qDebug() << tr("bytes available: %1").arg(QString::number(n));
-//            break;
-//        }
-//    }
 
     int n = 0; int r = 0;
     while (1) {
@@ -518,17 +499,19 @@ int absObjToThread::readAll(QTcpSocket* socket, QByteArray& array, int size)
             socket->abort();
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             return -1;
-        } else {
-            n+=r;
-            if (n>=size) return 0;
-        }
-        if (r==0) {
-            if (!socket->waitForReadyRead(5000)) {
+        } else if (r==0) {
+            qDebug() << "-------------if (r==0)";
+            int msec = 300;
+            if (n != 0) msec = 1;
+            if (!socket->waitForReadyRead(msec)) {
                 qDebug() << "socket->waitForReadyRead(5000) error!";
                 socket->abort();
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
                 return -1;
             }
+        } else {
+            n+=r;
+            if (n>=size) return 0;
         }
     }
 }
@@ -561,6 +544,67 @@ int absObjToThread::writeAll(QTcpSocket *socket, QByteArray& array)
     } else {
         return 0;
     }
+}
+
+int absObjToThread::write_F1(QTcpSocket *tcpSocket, QByteArray &writeArray)
+{
+    int cmd = 1;    QByteArray answer;
+    if (writeAll(tcpSocket, writeArray) == -1) return -1;
+    if (readAll(tcpSocket, answer, 4) == -1) return -1;
+    if (*(int*)answer.data() != cmd) {
+        qDebug() << "(int*)answer.data() != cmd";
+        tcpSocket->abort();
+        return -1;
+    }
+    return 0;
+}
+
+int absObjToThread::write_F2(QTcpSocket *tcpSocket, QByteArray &writeArray)
+{
+    int cmd = 2;    QByteArray answer;
+    if (writeAll(tcpSocket, writeArray) == -1) return -1;
+    if (readAll(tcpSocket, answer, 4) == -1) return -1;
+    if (*(int*)answer.data() != cmd) {
+        qDebug() << "(int*)answer.data() != cmd";
+        tcpSocket->abort();
+        return -1;
+    }
+    return 0;
+}
+
+int absObjToThread::write_Echo(QTcpSocket *tcpSocket, QByteArray &writeArray)
+{
+    int cmd = 5;    QByteArray answer;
+    if (writeAll(tcpSocket, writeArray) == -1) return -1;
+    if (readAll(tcpSocket, answer, 4) == -1) return -1;
+    if (*(int*)answer.data() != cmd) {
+        qDebug() << "(int*)answer.data() != cmd";
+        tcpSocket->abort();
+        return -1;
+    }
+    return 0;
+}
+
+int absObjToThread::read_F1(QTcpSocket *tcpSocket, QByteArray &writeArray, QByteArray &readArray)
+{
+    if (writeAll(tcpSocket, writeArray) == -1) return -1;
+    if (readAll(tcpSocket, readArray, writeArray.size()-8) == -1) return -1;
+    return 0;
+}
+
+int absObjToThread::read_F2(QTcpSocket *tcpSocket, QByteArray &writeArray, QByteArray &readArray)
+{
+    if (writeAll(tcpSocket, writeArray) == -1) return -1;
+    if (readAll(tcpSocket, readArray, writeArray.size()-8) == -1) return -1;
+    return 0;
+}
+
+QByteArray absObjToThread::cmdHead(int cmd, int dsz)
+{
+    QByteArray head;
+    head.append((char*)&cmd, 4);
+    head.append((char*)&dsz, 4);
+    return head;
 }
 
 void GlobalState::setGlobalState(int gs)

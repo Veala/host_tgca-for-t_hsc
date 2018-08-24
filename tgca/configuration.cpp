@@ -111,16 +111,6 @@ void Configuration::initVSK()
     ui->comboBoxRTA->setCurrentText("");
     ui->comboBoxLvlCor->setCurrentText("");
     ui->comboBoxLvlPre->setCurrentText("");
-
-    ui->checkBox_2->setEnabled(true);
-    ui->checkBox_3->setEnabled(true);
-    ui->checkBox_4->setEnabled(true);
-    ui->checkBox_5->setEnabled(true);
-    ui->checkBox_6->setEnabled(true);
-    ui->checkBox_7->setEnabled(true);
-    ui->checkBox_8->setEnabled(true);
-    ui->checkBox_9->setEnabled(true);
-    ui->checkBox_10->setEnabled(true);
  }
 
 void Configuration::initNSK()
@@ -209,13 +199,8 @@ static QString KEY_lvl_sync_pre_rx_OR_prs_level_max_rn[4] = {
     "lvl_sync_pre_rx_lsw",
     "prs_level_max_rn_lsw" };
 
+
 /////////////////////////////////////////////////////////////////////////
-
-static word16_t memToWord16(char *buf, int addr) { return 0xFFFF; }// *(buf+addr) //num_reg+0xAA0;}
-
-//void ReadFormat1(char *mem_dst, addr_t mem_src, int num_byte) {}
-
-
 /// Эта функция пересчитывает заполнение всех окон, относящихся к данному регистру и к зависимым регистрам
 void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
 {
@@ -223,15 +208,18 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
     {
     case REG_VSK_ram_tx_rx:               // 0x80 (0x20)
     {
-        ui->checkBox_2->setChecked(val & 1);
-        ui->checkBox_3->setChecked(val & (1 << 1));
-        ui->checkBox_4->setChecked(val & (1 << 2));
-        ui->checkBox_5->setChecked(val & (1 << 3));
-        ui->checkBox_6->setChecked(val & (1 << 4));
-        ui->checkBox_7->setChecked(val & (1 << 5));
-        ui->checkBox_8->setChecked(val & (1 << 6));
-        ui->checkBox_9->setChecked(val & (1 << 7));
-        ui->checkBox_10->setChecked(val & (1 << 8));
+        if (val == 0)
+            ui->comboBoxRam->setCurrentIndex(0);
+        else
+        for (int i=1; i<9; i++)
+        {
+            if (val & 1)
+            {
+                ui->comboBoxRam->setCurrentIndex(i);
+                break;
+            }
+            val = val >> 1;
+        }
     }
         break;
 
@@ -251,10 +239,11 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
     case REG_VSK_cfg:                     // 0x90 (0x24)
     {
         ui->comboBoxEnaMemVsk->setCurrentIndex(val & fl_REG_CFG_ena_mem_vsk ? 1 : 0);
-        ui->groupBoxRAM->setEnabled(val & fl_REG_CFG_ena_mem_vsk);
+        camouflage(ui->comboBoxRam, val & fl_REG_CFG_ena_mem_vsk);
         QString title("•	Регистр доступа к внутренней памяти");
         if ((val & fl_REG_CFG_ena_mem_vsk) == 0)
             title += "   (доступ выключен)";
+        ui->labelRam->setText(title);
 
         int man_type = manType(val);
         ui->comboBoxManType->setCurrentIndex(man_type == val_REG_CFG_type_man_ERROR ? -1 : man_type);
@@ -389,8 +378,11 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
         break;
 
     case REG_VSK_amplification_factor: // 0xE8
-        qDebug() << tr("таблица amplification_factor ещё не готова");
-        /// LLL !!! эта таблица ещё не готова
+        ui->checkBoxRX_AMPL0->setChecked(val & fl_REG_AMPL_FACTOR_rx_ampl0);
+        ui->checkBoxRX_AMPL1->setChecked(val & fl_REG_AMPL_FACTOR_rx_ampl1);
+        ui->checkBoxRX_AMPL2->setChecked(val & fl_REG_AMPL_FACTOR_rx_ampl2);
+        ui->checkBoxRX_AMPL3->setChecked(val & fl_REG_AMPL_FACTOR_rx_ampl3);
+        ui->checkBoxRX_OE_AMPL->setChecked(val & fl_REG_AMPL_FACTOR_rx_oe_ampl);
         break;
 
     case REG_VSK_amplitude_signal:    //  0xEC   // только чтение
@@ -409,9 +401,11 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
         ui->lineEdit_g1_spl->setText(strval);
         break;
 
-    case REG_VSK_pll_reg:             //  0xFC*
-        qDebug() << tr("заполнение таблицы PLL ещё не готово");
-        /// LLL !!! эта таблица ещё не готова
+    case REG_VSK_pll_reg:             //  0xFC
+        ui->lineEditMult->setText(QString("%1").arg(val & FL_REG_PLL_ns, 4, 16, QChar('0')).toUpper());
+        ui->lineEditDiv->setText(QString("%1").arg((val & FL_REG_PLL_ms) >> 6, 4, 16, QChar('0')).toUpper());
+        ui->comboBoxFreq->setCurrentIndex((val & fl_REG_PLL_frange) ? 1 : 0);
+        ui->comboBoxOff->setCurrentIndex((val & fl_REG_PLL_pd) ? 1 : 0);
         break;
 
     default:                          // 0x84, 0x98, 0xB0
@@ -581,7 +575,7 @@ void Configuration::onExpandVSK(int mode)
     }
 }
 
-void Configuration::onCheckSelectVSK(int ch)
+void Configuration::onCheckSelectVSK()
 {
     if (ui->checkBoxSelectVSK->checkState() == Qt::PartiallyChecked)
     {
@@ -596,7 +590,7 @@ void Configuration::onCheckSelectVSK(int ch)
     ui->tableWidgetVSK->blockSignals(false);
 }
 
-void Configuration::onCheckSelectNSK(int ch)
+void Configuration::onCheckSelectNSK()
 {
     if (ui->checkBoxSelectNSK->checkState() == Qt::PartiallyChecked)
     {
@@ -627,7 +621,7 @@ word16_t Configuration::getRegVal(addr_t addr) const
     }
     else if (addr <= REG_VSK_END_ADDR)
     {
-        QTableWidgetItem *pItem = ui->tableWidgetVSK->item((addr-REG_VSK_BEGIN_ADDR)/4, rcn_Val);
+        QTableWidgetItem *pItem = ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(addr), rcn_Val);
         if (pItem)
             ret = pItem->text().toInt();
     }
@@ -645,11 +639,16 @@ bool Configuration::setRegVal(addr_t addr, word16_t val, bool force)
                 return bRet;
         QString value = QString("%1").arg(val, 4, 16, QChar('0'));
         pItem->setText(value.toUpper());
+        pItem->setTextColor(Qt::black);
+        pItem = ui->tableWidgetNSK->item(addr/4, rcn_Name_Check);
+        if (pItem == NULL)
+                return bRet;
+        pItem->setCheckState(Qt::Checked);
         return true;
     }
     else if (addr <= REG_VSK_END_ADDR)
     {
-        int row = (addr-REG_VSK_BEGIN_ADDR)/4;
+        int row = ADDR_2_VSK_ROW(addr);
         QString value = QString("%1").arg(val, 4, 16, QChar('0')).toUpper();
         ui->tableWidgetVSK->item(row, rcn_Val)->setText(value);
         ui->tableWidgetVSK->item(row, rcn_Val)->setTextColor(Qt::black);
@@ -659,40 +658,6 @@ bool Configuration::setRegVal(addr_t addr, word16_t val, bool force)
         return true;
     }
     return bRet;
-}
-
-bool Configuration::update(void* reg)
-{
-    /// НСК
-    char *ptr = (char*)reg;
-    ui->tableWidgetNSK->blockSignals(true);
-    for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
-    {
-        ui->tableWidgetNSK->item(row, REG_COL_NUM::rcn_Val)->
-                setText((QString("%1").arg(memToWord16(ptr, row*4), 4, 16, QChar('0'))).toUpper());
-        ui->tableWidgetNSK->item(row, REG_COL_NUM::rcn_Name_Check)->setCheckState(Qt::Checked);
-/*        QString value = QString("%1").arg(memToWord16(ptr, row*4), 4, 16, QChar('0'));
-        QTableWidgetItem *pItem = ui->tableWidgetNSK->item(row, REG_COL_NUM::rcn_Val);
-        pItem->setText(value.toUpper());*/
-    }
-    ui->tableWidgetNSK->blockSignals(false);
-
-    /// ВСК
-    for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
-    {
-        regVSKRO[row] = false;
-        regVSKUse[row] = regVSKUseGlobal[row];
-    }
-    regVSKRO[2] = regVSKRO[3] = regVSKRO[27] = true;
-
-    ui->tableWidgetVSK->blockSignals(true);
-
-    for (int row=0; row < ui->tableWidgetVSK->rowCount() && row < NUMOFREGVSK; row++)
-        updateRegVSK(row, memToWord16((char*)reg, ROW_REG_VSK_2_ADDR(row)));
-
-    ui->tableWidgetVSK->blockSignals(false);
-
-    return true;
 }
 
 bool matchSTD0(const QStringList& list, word16_t& param)
@@ -858,7 +823,7 @@ bool Configuration::initFromFile(QString name)
     return true;
 }
 
-void Configuration::onExit(int code)
+void Configuration::onExit()
 {
     for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
         ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
@@ -906,6 +871,7 @@ bool Configuration::initFrom(QString name, int* err)
 
 void onCellChange(CTableEditCol *tab, QCheckBox *box, int row, int col)
 {
+    //qDebug() << "Cell changed " << row << " " << col;
    if (col == rcn_Name_Check)
    {
        box->blockSignals(true);
@@ -992,11 +958,11 @@ void Configuration::on_comboBoxEnaMemVsk_currentIndexChanged(int index)
     if (currentTab==2 && !stopSign)
     {
         applyRegFlag(config_NUMREG_cfg, fl_REG_CFG_ena_mem_vsk, index);
-        ui->groupBoxRAM->setEnabled(index!=0);
         QString title("•	Регистр доступа к внутренней памяти");
         if (index==0)
             title += "   (доступ выключен)";
-        ui->groupBoxRAM->setTitle(title);
+        ui->labelRam->setText(title);
+        camouflage(ui->comboBoxRam, index);
     }
 }
 
@@ -1137,58 +1103,18 @@ void Configuration::on_comboBoxLvlCor_activated(int index)
     }
 }
 
-void Configuration::on_checkBox_2_clicked(bool checked)
+void Configuration::on_comboBoxRam_activated(int index)
 {
     if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 1, checked);
-}
-
-void Configuration::on_checkBox_3_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 2, checked);
-}
-
-void Configuration::on_checkBox_4_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 4, checked);
-}
-
-void Configuration::on_checkBox_5_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 8, checked);
-}
-
-void Configuration::on_checkBox_6_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 16, checked);
-}
-
-void Configuration::on_checkBox_7_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 32, checked);
-}
-
-void Configuration::on_checkBox_8_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 64, checked);
-}
-
-void Configuration::on_checkBox_9_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 128, checked);
-}
-
-void Configuration::on_checkBox_10_clicked(bool checked)
-{
-    if (currentTab==3 && !stopSign)
-        applyRegFlag(config_NUMREG_ram_tx_rx, 256, checked);
+    {
+        QTableWidgetItem *item = ui->tableWidgetVSK->item(config_NUMREG_ram_tx_rx-config_NUMREG_BEGIN_VSK, rcn_Val);
+        word16_t newval = 0;
+        if (index > 0)
+            newval = 1 << (index-1);
+        item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
+        item->setTextColor(Qt::black);
+        ui->tableWidgetVSK->item(config_NUMREG_ram_tx_rx-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
+    }
 }
 
 //////////////////////////////////////////////////////////////
@@ -1273,15 +1199,33 @@ int Configuration::getConfigReg() const
     return ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Val)->text().toInt(0,16);
 }
 
-
-void Configuration::blockReadWrite()
+void Configuration::setChecked(int num, bool ch)
 {
-    ui->pushButtonApply->setEnabled(false);
-    ui->pushButtonRead->setEnabled(false);
+    if (num < config_NUMREG_BEGIN_VSK)
+        ui->tableWidgetNSK->item(num, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
+    else
+        ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
 }
 
-void Configuration::enableReadWrite()
+void Configuration::setWritten(int addr, int val)
 {
-    ui->pushButtonApply->setEnabled(true);
-    ui->pushButtonRead->setEnabled(true);
+    if (setRegVal(addr, val))
+        markWritten(addr);
 }
+
+void Configuration::markWritten(int addr)
+{
+    if (addr < REG_VSK_BEGIN_ADDR)
+    {
+        int row = addr/4;
+        if (!registerNSKInfo_read_only(row))
+            ui->tableWidgetNSK->item(row, rcn_Val)->setTextColor(Qt::blue);
+    }
+    else if (addr <= REG_VSK_END_ADDR)
+    {
+        int row = ADDR_2_VSK_ROW(addr);
+        if (!registerVSKInfo_read_only(row))
+            ui->tableWidgetVSK->item(row, rcn_Val)->setTextColor(Qt::blue);
+    }
+}
+

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>628</width>
-    <height>906</height>
+    <height>840</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -38,7 +38,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabNSK">
       <property name="font">
@@ -1213,7 +1213,7 @@
          </item>
          <item row="24" column="1">
           <property name="text">
-           <string>lvl_qam64_midle</string>
+           <string>lvl_qam64_middle</string>
           </property>
          </item>
          <item row="24" column="2">
@@ -2164,7 +2164,7 @@
          <x>0</x>
          <y>87</y>
          <width>601</width>
-         <height>181</height>
+         <height>211</height>
         </rect>
        </property>
        <property name="title">
@@ -2183,19 +2183,6 @@
         <property name="bottomMargin">
          <number>20</number>
         </property>
-        <item row="8" column="7">
-         <widget class="QLabel" name="label_37">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>СЗС      </string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="10">
          <widget class="QLabel" name="label_9">
           <property name="maximumSize">
@@ -2213,51 +2200,6 @@
           </property>
           <property name="text">
            <string>МЗС</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="8">
-         <widget class="QLineEdit" name="lineEdit_g1_spl">
-          <property name="maximumSize">
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="inputMask">
-           <string>HHHH</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="8">
-         <widget class="QLineEdit" name="lineEditCntTrl">
-          <property name="maximumSize">
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(241, 241, 241);</string>
-          </property>
-          <property name="inputMask">
-           <string>HHHH</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="8">
-         <widget class="QLineEdit" name="lineEditCntRel">
-          <property name="maximumSize">
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(241, 241, 241);</string>
-          </property>
-          <property name="inputMask">
-           <string>HHHH</string>
           </property>
          </widget>
         </item>
@@ -2297,77 +2239,6 @@
           </property>
           <property name="inputMask">
            <string>HHHH</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1" colspan="6">
-         <widget class="QLabel" name="label_33">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>• Регистр коррекции спектра</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1" colspan="6">
-         <widget class="QLabel" name="label_29">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>• Регистр параметров передачи</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="10">
-         <widget class="QLabel" name="label_39">
-          <property name="maximumSize">
-           <size>
-            <width>45</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>МЗС</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLineEdit" name="lineEdit_g_sp">
-          <property name="maximumSize">
-           <size>
-            <width>55</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="inputMask">
-           <string>HHHH</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0" colspan="6">
-         <widget class="QLabel" name="label_31">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>• Счётчик принятых пакетов</string>
           </property>
          </widget>
         </item>
@@ -2448,25 +2319,6 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="10">
-         <widget class="QLabel" name="label_38">
-          <property name="maximumSize">
-           <size>
-            <width>45</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>МЗС</string>
-          </property>
-         </widget>
-        </item>
         <item row="5" column="0" colspan="6">
          <widget class="QLabel" name="label_30">
           <property name="font">
@@ -2499,19 +2351,6 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLineEdit" name="lineEditTrCntr">
-          <property name="maximumSize">
-           <size>
-            <width>55</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="inputMask">
-           <string>HHHH</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="7">
          <widget class="QLabel" name="label_8">
           <property name="font">
@@ -2522,32 +2361,6 @@
           </property>
           <property name="text">
            <string>СЗС     </string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0" colspan="5">
-         <widget class="QLabel" name="label_32">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>• Регистр коррекции спектра обратный</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="6">
-         <widget class="QLabel" name="label_20">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>• Регистры по адресам D0h и D4h</string>
           </property>
          </widget>
         </item>
@@ -2567,8 +2380,8 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="7">
-         <widget class="QLabel" name="label_34">
+        <item row="6" column="0" colspan="6">
+         <widget class="QLabel" name="label_31">
           <property name="font">
            <font>
             <weight>75</weight>
@@ -2576,12 +2389,12 @@
            </font>
           </property>
           <property name="text">
-           <string>СЗС      </string>
+           <string>• Счётчик принятых пакетов</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="6">
-         <widget class="QLineEdit" name="lineEditCntReh">
+        <item row="5" column="8">
+         <widget class="QLineEdit" name="lineEditCntTrl">
           <property name="maximumSize">
            <size>
             <width>50</width>
@@ -2596,21 +2409,8 @@
           </property>
          </widget>
         </item>
-        <item row="8" column="6">
-         <widget class="QLineEdit" name="lineEdit_g1_sph">
-          <property name="maximumSize">
-           <size>
-            <width>50</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="inputMask">
-           <string>HHHH</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="7">
-         <widget class="QLabel" name="label_35">
+        <item row="7" column="1" colspan="6">
+         <widget class="QLabel" name="label_33">
           <property name="font">
            <font>
             <weight>75</weight>
@@ -2618,26 +2418,20 @@
            </font>
           </property>
           <property name="text">
-           <string>СЗС      </string>
+           <string>• Регистр коррекции спектра</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="10">
-         <widget class="QLabel" name="label_36">
-          <property name="maximumSize">
-           <size>
-            <width>45</width>
-            <height>16777215</height>
-           </size>
-          </property>
+        <item row="0" column="0" colspan="6">
+         <widget class="QLabel" name="label_20">
           <property name="font">
            <font>
-            <weight>75</weight>
-            <bold>true</bold>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
-           <string>МЗС</string>
+           <string>• Регистры по адресам D0h и D4h</string>
           </property>
          </widget>
         </item>
@@ -2685,171 +2479,209 @@
           </property>
          </widget>
         </item>
-       </layout>
-      </widget>
-      <widget class="QGroupBox" name="groupBoxRAM">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>261</y>
-         <width>411</width>
-         <height>240</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="title">
-        <string>•	Регистр доступа к внутренней памяти   (доступ выключен)</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QCheckBox" name="checkBox_2">
-          <property name="enabled">
-           <bool>false</bool>
+        <item row="6" column="6">
+         <widget class="QLineEdit" name="lineEditCntReh">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
           </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(241, 241, 241);</string>
           </property>
-          <property name="text">
-           <string>1-й буфер приёмника/передатчика</string>
+          <property name="inputMask">
+           <string>HHHH</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_3">
-          <property name="enabled">
-           <bool>false</bool>
+        <item row="6" column="8">
+         <widget class="QLineEdit" name="lineEditCntRel">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
           </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(241, 241, 241);</string>
           </property>
-          <property name="text">
-           <string>2-й буфер приёмника/передатчика</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_4">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>память 1-ой преамбулы</string>
+          <property name="inputMask">
+           <string>HHHH</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_5">
-          <property name="enabled">
-           <bool>false</bool>
+        <item row="6" column="10">
+         <widget class="QLabel" name="label_38">
+          <property name="maximumSize">
+           <size>
+            <width>45</width>
+            <height>16777215</height>
+           </size>
           </property>
           <property name="font">
            <font>
-            <weight>50</weight>
-            <bold>false</bold>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>память 2-ой преамбулы</string>
+           <string>МЗС</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_6">
-          <property name="enabled">
-           <bool>false</bool>
+        <item row="8" column="6">
+         <widget class="QLineEdit" name="lineEdit_g1_sph">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
           </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>обратный коэффициент передачи приёмника (1/HF)</string>
+          <property name="inputMask">
+           <string>HHHH</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_7">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+        <item row="6" column="7">
+         <widget class="QLabel" name="label_35">
           <property name="font">
            <font>
-            <weight>50</weight>
-            <bold>false</bold>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>случайный ключ приёмника/передатчика (MSEQ)</string>
+           <string>СЗС      </string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_8">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+        <item row="8" column="0" colspan="5">
+         <widget class="QLabel" name="label_32">
           <property name="font">
            <font>
-            <weight>50</weight>
-            <bold>false</bold>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>память коэффициентов пилотных поднесущих (K/M)</string>
+           <string>• Регистр коррекции спектра обратный</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_9">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+        <item row="8" column="7">
+         <widget class="QLabel" name="label_37">
           <property name="font">
            <font>
-            <weight>50</weight>
-            <bold>false</bold>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>автокорреляционная функция приемника (KF)</string>
+           <string>СЗС      </string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_10">
-          <property name="enabled">
-           <bool>false</bool>
+        <item row="8" column="10">
+         <widget class="QLabel" name="label_39">
+          <property name="maximumSize">
+           <size>
+            <width>45</width>
+            <height>16777215</height>
+           </size>
           </property>
           <property name="font">
            <font>
-            <weight>50</weight>
-            <bold>false</bold>
+            <weight>75</weight>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>память констант QAM16 и QAM64</string>
+           <string>МЗС</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLineEdit" name="lineEdit_g_sp">
+          <property name="maximumSize">
+           <size>
+            <width>55</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="inputMask">
+           <string>HHHH</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLineEdit" name="lineEditTrCntr">
+          <property name="maximumSize">
+           <size>
+            <width>55</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="inputMask">
+           <string>HHHH</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="8">
+         <widget class="QLineEdit" name="lineEdit_g1_spl">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="inputMask">
+           <string>HHHH</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="7">
+         <widget class="QLabel" name="label_34">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>СЗС      </string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="10">
+         <widget class="QLabel" name="label_36">
+          <property name="maximumSize">
+           <size>
+            <width>45</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>МЗС</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1" colspan="6">
+         <widget class="QLabel" name="label_29">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>• Регистр параметров передачи</string>
           </property>
          </widget>
         </item>
@@ -2859,7 +2691,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>545</y>
+         <y>530</y>
          <width>361</width>
          <height>164</height>
         </rect>
@@ -3060,7 +2892,7 @@
        <property name="geometry">
         <rect>
          <x>100</x>
-         <y>515</y>
+         <y>497</y>
          <width>321</width>
          <height>21</height>
         </rect>
@@ -3080,7 +2912,7 @@
        <property name="geometry">
         <rect>
          <x>380</x>
-         <y>545</y>
+         <y>530</y>
          <width>171</width>
          <height>31</height>
         </rect>
@@ -3105,7 +2937,7 @@
        <property name="geometry">
         <rect>
          <x>440</x>
-         <y>585</y>
+         <y>570</y>
          <width>61</width>
          <height>20</height>
         </rect>
@@ -3130,7 +2962,7 @@
        <property name="geometry">
         <rect>
          <x>380</x>
-         <y>635</y>
+         <y>620</y>
          <width>201</width>
          <height>31</height>
         </rect>
@@ -3155,7 +2987,7 @@
        <property name="geometry">
         <rect>
          <x>440</x>
-         <y>676</y>
+         <y>661</y>
          <width>61</width>
          <height>20</height>
         </rect>
@@ -3172,6 +3004,88 @@
        <property name="inputMask">
         <string>HHHH</string>
        </property>
+      </widget>
+      <widget class="QLabel" name="labelRam">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>300</y>
+         <width>571</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>• Регистр доступа к внутренней памяти</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBoxRam">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>320</y>
+         <width>331</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(241, 241, 241);</string>
+       </property>
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1-й буфер приёмника/передатчика</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2-й буфер приёмника/передатчика</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>память 1-ой преамбулы</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>память 2-ой преамбулы</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>обратный коэффициент передачи приёмника (1/HF)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>случайный ключ приёмника/передатчика (MSEQ)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>память коэффициентов пилотных поднесущих (K/M)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>автокорреляционная функция приемника (KF)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>память констант QAM16 и QAM64</string>
+        </property>
+       </item>
       </widget>
      </widget>
      <widget class="QWidget" name="tab">
@@ -3404,6 +3318,9 @@
           </property>
           <property name="text">
            <string>разрешение формирования логических уровней на выходах RX_AMPL0 - RX_AMPL3</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -3750,17 +3667,14 @@
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout_8">
+    <layout class="QHBoxLayout" name="layoutButtons">
      <property name="leftMargin">
-      <number>45</number>
+      <number>12</number>
      </property>
      <property name="rightMargin">
-      <number>45</number>
+      <number>12</number>
      </property>
-     <property name="horizontalSpacing">
-      <number>125</number>
-     </property>
-     <item row="0" column="0">
+     <item>
       <widget class="QPushButton" name="pushButtonChoose">
        <property name="toolTip">
         <string>Выборстандартной или сохраненной конфигурации</string>
@@ -3774,21 +3688,7 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QPushButton" name="pushButtonRead">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Прочитать отмеченные регистры</string>
-       </property>
-       <property name="icon">
-        <iconset resource="tgca.qrc">
-         <normaloff>:/pictogram/1downarrow_4076.png</normaloff>:/pictogram/1downarrow_4076.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
+     <item>
       <widget class="QPushButton" name="pushButtonSave">
        <property name="layoutDirection">
         <enum>Qt::LeftToRight</enum>
@@ -3808,20 +3708,39 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
-      <widget class="QPushButton" name="pushButtonApply">
-       <property name="enabled">
-        <bool>false</bool>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonCancel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
        </property>
        <property name="text">
-        <string>Записать отмеченные регистры</string>
+        <string>Выход</string>
        </property>
        <property name="icon">
         <iconset resource="tgca.qrc">
-         <normaloff>:/pictogram/gwget_1245.png</normaloff>:/pictogram/gwget_1245.png</iconset>
-       </property>
-       <property name="default">
-        <bool>true</bool>
+         <normaloff>:/pictogram/application-exit_3908.png</normaloff>:/pictogram/application-exit_3908.png</iconset>
        </property>
       </widget>
      </item>
@@ -3848,29 +3767,6 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item>
-       <widget class="QPushButton" name="pushButtonCancel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Закрыть</string>
-        </property>
-        <property name="icon">
-         <iconset resource="tgca.qrc">
-          <normaloff>:/pictogram/close_5496_grey.png</normaloff>:/pictogram/close_5496_grey.png</iconset>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
@@ -3887,22 +3783,6 @@
   <include location="tgca.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>pushButtonApply</sender>
-   <signal>pressed()</signal>
-   <receiver>Configuration</receiver>
-   <slot>onPushWrite()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>523</x>
-     <y>811</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>310</x>
-     <y>422</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>pushButtonCancel</sender>
    <signal>pressed()</signal>
@@ -4035,7 +3915,7 @@
    <sender>checkBoxSelectNSK</sender>
    <signal>stateChanged(int)</signal>
    <receiver>Configuration</receiver>
-   <slot>onCheckSelectNSK(int)</slot>
+   <slot>onCheckSelectNSK()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>75</x>
@@ -4051,7 +3931,7 @@
    <sender>checkBoxSelectVSK</sender>
    <signal>stateChanged(int)</signal>
    <receiver>Configuration</receiver>
-   <slot>onCheckSelectVSK(int)</slot>
+   <slot>onCheckSelectVSK()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>230</x>
@@ -4067,27 +3947,11 @@
    <sender>Configuration</sender>
    <signal>finished(int)</signal>
    <receiver>Configuration</receiver>
-   <slot>onExit(int)</slot>
+   <slot>onExit()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>313</x>
      <y>452</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>313</x>
-     <y>452</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButtonRead</sender>
-   <signal>pressed()</signal>
-   <receiver>Configuration</receiver>
-   <slot>onPushRead()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>465</x>
-     <y>789</y>
     </hint>
     <hint type="destinationlabel">
      <x>313</x>
@@ -4099,7 +3963,6 @@
  <slots>
   <slot>onPushChoose()</slot>
   <slot>onPushSave()</slot>
-  <slot>onPushWrite()</slot>
   <slot>onChangeTab(int)</slot>
   <slot>onExpandNSK(int)</slot>
   <slot>onEditRegNSK(int,int)</slot>
@@ -4107,11 +3970,10 @@
   <slot>onEditRegNSK(QPoint)</slot>
   <slot>onEditRegVSK(QPoint)</slot>
   <slot>onExpandVSK(int)</slot>
-  <slot>onPushRead()</slot>
-  <slot>onCheckSelectVSK(int)</slot>
-  <slot>onCheckSelectNSK(int)</slot>
+  <slot>onCheckSelectVSK()</slot>
+  <slot>onCheckSelectNSK()</slot>
   <slot>onCellChangedVSK(int,int)</slot>
   <slot>onCellChangedNSK(int,int)</slot>
-  <slot>onExit(int)</slot>
+  <slot>onExit()</slot>
  </slots>
 </ui>

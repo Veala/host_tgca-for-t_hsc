@@ -25,7 +25,6 @@ public slots:
 public:
     void setIter(QLineEdit* ed) { iter = ed->text().toInt(); }
     void setPause(QLineEdit* ed) { pause = ed->text().toInt(); }
-    int socketDescriptor;
     QTcpSocket tcpSocket;
     Device *dev;
 private slots:

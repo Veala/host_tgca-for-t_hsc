@@ -86,14 +86,17 @@ public:
     explicit Configuration(QWidget *parent = 0);
     ~Configuration();
 
-/// Функции, заполняющие значения регистров в форме.
-/// Они пересчитывают заполнение всех зависимых полей формы.
-
-    /// Заполнение всех регистров.
-    /// Входной параметр regVSK - указатель на буфер, содержащий все регистры ВСК.
-    bool update(void *regAll);
     QString getName() const { return path; }
     int getConfigReg() const;
+    /// Запись регистров.
+    QByteArray getRegistersToWrite();
+    bool readRegisters();
+    void setChecked(int num, bool ch);
+    void setWritten(int addr, int val);
+
+    /// Функции, отображающие в окне конфигурации результаты чтения/записи регистров устройства.
+    void  doneWriteReg(QByteArray array);
+    bool  doneReadReg(int, QByteArray);
 
 private:
     Ui::Configuration *ui;
@@ -123,6 +126,7 @@ private:
     bool setRegVal(addr_t addr, word16_t val, bool force = false);
     void adaptRegVSK(int num_reg, word16_t val, QString strval);
     void applyRegFlag(int num_reg, word16_t flag, bool b);
+    void markWritten(int addr);
 
     bool registerNSKInfo_read_only(int num_reg) const;
     bool registerVSKInfo_read_only(int num_reg) const;
@@ -140,12 +144,11 @@ private slots:
     void onChangeTab(int);
     bool onPushSave();
     void onPushChoose();
-    bool onPushRead();
     void onExpandVSK(int);
     void onExpandNSK(int);
-    void onCheckSelectVSK(int);
-    void onCheckSelectNSK(int);
-    void onExit(int);
+    void onCheckSelectVSK();
+    void onCheckSelectNSK();
+    void onExit();
 
     void on_comboBoxManType_currentIndexChanged(int index);
     void on_checkBoxCodec_clicked(bool checked);
@@ -180,16 +183,6 @@ private slots:
 
     void on_comboBoxLvlCor_activated(int index);
 
-    void on_checkBox_2_clicked(bool checked);
-    void on_checkBox_3_clicked(bool checked);
-    void on_checkBox_4_clicked(bool checked);
-    void on_checkBox_5_clicked(bool checked);
-    void on_checkBox_6_clicked(bool checked);
-    void on_checkBox_7_clicked(bool checked);
-    void on_checkBox_8_clicked(bool checked);
-    void on_checkBox_9_clicked(bool checked);
-    void on_checkBox_10_clicked(bool checked);
-
     void on_comboBoxSPI1_currentIndexChanged(int index);
 
     void on_comboBoxSPI2_currentIndexChanged(int index);
@@ -210,59 +203,12 @@ private slots:
 
     void on_comboBoxOff_currentIndexChanged(int index);
 
-    /// Функции, отображающие в окне конфигурации результаты чтения/записи регистров устройства.
-    void  doneWriteReg(int);
-    bool  doneReadReg(int,QByteArray);
+    void on_comboBoxRam_activated(int index);
 
 public slots:
     /// Задание конфигурации.
     bool initFrom(QString name, int* err);
-    /// Запись регистров.
-    bool onPushWrite();
-    void blockReadWrite();
-    void enableReadWrite();
 
-signals:
-    /// Сигналы устройству для чтения/записи регистров.
-    void  doWriteReg(QByteArray);
-    void  doReadReg(QByteArray);
-};
-/*
-class registerInfo
-{
-private:
-//    virtual int addr(int) const = 0;
-//    virtual QString name(int) const = 0;
-//    virtual QString description(int) const = 0;
-//    virtual word16_t value(int num_reg) const = 0;
-//    virtual void setValue(int num_reg, word16_t val) = 0;
-//    virtual bool read_only(int) const = 0;
-//    virtual bool view_always(int) const = 0;
-public:
 };
 
-class registerNSKInfo : public registerInfo
-{
-private:
-    int addr(int) const;
-    QString name(int) const;
-    QString description(int) const;
-    word16_t value(int num_reg) const { return memToWord16(imprintRegNSK, num_reg*4); }
-    void setValue(int num_reg, word16_t val) { word16ToMem(imprintRegNSK, num_reg, val); }
-    bool read_only(int) const;
-    bool view_always(int) const;
-};
-
-class registerVSKInfo : public registerInfo
-{
-private:
-    int addr(int) const = 0;
-    QString name(int) const = 0;
-    QString description(int) const = 0;
-    word16_t value(int num_reg) const = 0;
-    void setValue(int num_reg, word16_t val) { word16ToMem(imprintRegVSK, num_reg, val); }
-    bool read_only(int) const = 0;
-    bool view_always(int) const = 0;
-};
-*/
 #endif // CONFIGURATION_H
