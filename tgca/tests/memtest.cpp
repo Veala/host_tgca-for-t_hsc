@@ -125,14 +125,13 @@ void memObjToThread::doWork()
         for (; it<inCycle; it=it+1+decrement) {
             if (read_F1(&tcpSocket, readArray, answer) == -1) return;
             for (uint i=0; i<answer.size(); i+=4) {
-                if (output) outputReady("Read: " + QString::number(*(int*)(answer.data()+i), 16));
+                if (output) outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
             }
             if (pause_stop() == -1) {
                 tcpSocket.abort();
                 return;
             }
         }
-
     } else if (mode == "wr") {
         writeArray = cmdHead(1, dsz*2);
         readArray = cmdHead(3, dsz);

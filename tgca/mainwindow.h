@@ -7,6 +7,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QPrinter>
+#include <QDebug>
 #include "configuration.h"
 #include "device.h"
 #include "tests/abstracttest.h"

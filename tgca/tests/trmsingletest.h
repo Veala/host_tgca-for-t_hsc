@@ -49,6 +49,10 @@ private:
     QLabel *labelNumStep;
     QRadioButton *radioButtonRand;
 
+    QCheckBox *checkBoxCompare;
+    QCheckBox *checkBoxInit;
+    QSpinBox  *spinBoxCycle;
+
     unsigned int mnb;
     unsigned int maxNumByte();
     void recalc();
@@ -67,7 +71,10 @@ signals:
 class trmSingleObjToThread : public absObjToThread
 {
     Q_OBJECT
-    bool checkStatusReg(QTcpSocket* socket, int *status);
+    bool readReg(QTcpSocket& socket, int addr, int *val);
+    bool checkStatusReg(QTcpSocket& socket, int *status);
+    bool checkStatusRegBC(int *status);
+    bool checkStatusRegRT(int *status);
     bool checkCounters(QTcpSocket* socket);
 
 public slots:
@@ -76,9 +83,9 @@ public slots:
 public:
     trmSingleObjToThread();
 
-    uint cfgBC, cfgRT, amplBC, amplRT, time, data_size;
+    uint cfgBC, cfgRT, amplBC, amplRT, time, data_size, iter;
     addr_t rtaddr;
-    bool broad, useInt, output;
+    bool broad, useInt, outEnable, compEnable, initEnable;
     void* data;
     //char data[MAXPACKAGESIZE];
     QTcpSocket tcpSocketBC, tcpSocketRT;

@@ -85,6 +85,7 @@ typedef unsigned short  reg16_t;
 #define   fl_REG_STATUS_tx_num_buf    (1 << 10)  // номер активного буфера передатчика во внешней памяти
 #define   fl_REG_STATUS_rx_num_buf    (1 << 11)  // номер активного буфера приёмника во внешней памяти
 #define   FL_REG_STATUS_flags          0xFF      // маска, содержащая все разряды флагов, но исключающая номера активных буферов
+#define   FL_REG_STATUS_ERR_flags      0xFE      // маска, содержащая все разряды флагов ошибок
 
 
 /// Поля конфигурационного регистра.

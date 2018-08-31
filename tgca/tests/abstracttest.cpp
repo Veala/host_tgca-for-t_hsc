@@ -9,6 +9,13 @@ int GlobalState::globalState = FREELY;
 
 AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
 {
+#ifdef debug_AT
+    int nint = sizeof(int);
+    int nshort = sizeof(short);
+    qDebug() << "nint: " << QString::number(nint);
+    qDebug() << "nshort: "<< QString::number(nshort);
+#endif
+
     QAction *act;
     act = menu.addAction(tr("Настройки..."));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(showSettings()));
@@ -120,7 +127,9 @@ void AbstractTest::setConnections(Device *dev)
 
 void AbstractTest::setDisconnections(Device *dev)
 {
+#ifdef debug_AT
     qDebug() << "setDisconnections!";
+#endif
     disconnect(dev, SIGNAL(sigDelete(QString)), this, SLOT(deletingDevice(QString)));
 //    disconnect(dev, SIGNAL(sigConnectedDevice()), this, SLOT(connectingSockDevice()));
 //    disconnect(dev, SIGNAL(sigDisconnectedDevice()), this, SLOT(disconnectingSockDevice()));
@@ -220,7 +229,9 @@ void AbstractTest::deletingDevice_part()
 {
     if (sender() != NULL) {
         QString senderName(sender()->metaObject()->className());
+#ifdef debug_AT
         qDebug() << "senderName" << senderName;
+#endif
         if (senderName == "Device") {
             devices->removeWidget((Device*)sender());
         }
@@ -492,19 +503,25 @@ int absObjToThread::readAll(QTcpSocket *socket, QByteArray& array, int size)
     while (1) {
         r = socket->read(array.data()+n, size-n);
         if (r!=0) {
+#ifdef debug_AT
             qDebug() << "read: " << r;
             qDebug() << "n: " << n;
+#endif
         }
         if (r == -1) {
             socket->abort();
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             return -1;
         } else if (r==0) {
+#ifdef debug_AT
             qDebug() << "-------------if (r==0)";
-            int msec = 300;
-            if (n != 0) msec = 1;
+#endif
+            int msec = 3000;
+            //if (n != 0) msec = 1;
             if (!socket->waitForReadyRead(msec)) {
+#ifdef debug_AT
                 qDebug() << "socket->waitForReadyRead(5000) error!";
+#endif
                 socket->abort();
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
                 return -1;
@@ -522,7 +539,9 @@ int absObjToThread::writeAll(QTcpSocket *socket, QByteArray& array)
     int size = array.size();
     while (1) {
         int n = socket->write(temp, size);
+#ifdef debug_AT
         qDebug() << "wrote: " << n;
+#endif
         if (n == -1) {
             socket->abort();
             emit resultReady((int)AbstractTest::ErrorIsOccured);
@@ -537,7 +556,9 @@ int absObjToThread::writeAll(QTcpSocket *socket, QByteArray& array)
     }
 
     if (!socket->waitForBytesWritten(5000)) {
+#ifdef debug_AT
         qDebug() << "socket->waitForBytesWritten(5000) error!";
+#endif
         socket->abort();
         emit resultReady((int)AbstractTest::ErrorIsOccured);
         return -1;
@@ -552,7 +573,9 @@ int absObjToThread::write_F1(QTcpSocket *tcpSocket, QByteArray &writeArray)
     if (writeAll(tcpSocket, writeArray) == -1) return -1;
     if (readAll(tcpSocket, answer, 4) == -1) return -1;
     if (*(int*)answer.data() != cmd) {
+#ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
+#endif
         tcpSocket->abort();
         return -1;
     }
@@ -565,7 +588,9 @@ int absObjToThread::write_F2(QTcpSocket *tcpSocket, QByteArray &writeArray)
     if (writeAll(tcpSocket, writeArray) == -1) return -1;
     if (readAll(tcpSocket, answer, 4) == -1) return -1;
     if (*(int*)answer.data() != cmd) {
+#ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
+#endif
         tcpSocket->abort();
         return -1;
     }
@@ -578,7 +603,9 @@ int absObjToThread::write_Echo(QTcpSocket *tcpSocket, QByteArray &writeArray)
     if (writeAll(tcpSocket, writeArray) == -1) return -1;
     if (readAll(tcpSocket, answer, 4) == -1) return -1;
     if (*(int*)answer.data() != cmd) {
+#ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
+#endif
         tcpSocket->abort();
         return -1;
     }
@@ -595,7 +622,8 @@ int absObjToThread::read_F1(QTcpSocket *tcpSocket, QByteArray &writeArray, QByte
 int absObjToThread::read_F2(QTcpSocket *tcpSocket, QByteArray &writeArray, QByteArray &readArray)
 {
     if (writeAll(tcpSocket, writeArray) == -1) return -1;
-    if (readAll(tcpSocket, readArray, writeArray.size()-8) == -1) return -1;
+    int nr = *(int*)(writeArray.data()+12);
+    if (readAll(tcpSocket, readArray, nr) == -1) return -1;
     return 0;
 }
 

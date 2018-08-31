@@ -20,6 +20,8 @@
 #include <QDrag>
 #include "../device.h"
 
+//#define debug_AT
+
 #define FREELY 0
 #define BUSY 1
 

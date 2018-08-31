@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actConfiguration->setVisible(false);
     ui->actConfiguration->setEnabled(false);
 
-    QSettings project("../tgca/project.ini", QSettings::IniFormat);
+    QSettings project("../tgca/prj.ini", QSettings::IniFormat);
     if (project.status() == QSettings::NoError && project.allKeys().size() >= 2 &&
         project.value("Common/autoload").toString() == "1")
             prjLoaded = loadProject(project);

@@ -78,6 +78,8 @@ enum REG_COL_NUM
 #define   config_NUMREG_g_1_sp_low            0x3E
 #define   config_NUMREG_pll_reg               0x3F
 
+inline bool regVSKReserve(int row) { return row==1 || row==6 || row == 12; }
+
 class Configuration : public QDialog
 {
     Q_OBJECT
@@ -109,8 +111,6 @@ private:
 
     bool regVSKUse[NUMOFREGVSK];
     bool regVSKRO[NUMOFREGVSK];
-    //bool regVSKChecked[NUMOFREGVSK];
-    bool regVSKRes[NUMOFREGVSK];
 
     void initVSK();
     void initNSK();

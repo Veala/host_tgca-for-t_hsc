@@ -29,7 +29,9 @@ SOURCES += main.cpp\
     tests/memtest.cpp \
     tests/regtest.cpp \
     tests/trmsingletest.cpp \
-    writereadreg.cpp
+    writereadreg.cpp \
+    tests/monitortest.cpp \
+    monitor.cpp
 
 HEADERS  += mainwindow.h \
     command.h \
@@ -47,7 +49,9 @@ HEADERS  += mainwindow.h \
     tests/echotest.h \
     tests/memtest.h \
     tests/regtest.h \
-    tests/trmsingletest.h
+    tests/trmsingletest.h \
+    tests/monitortest.h \
+    monitor.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
@@ -58,7 +62,9 @@ FORMS    += mainwindow.ui \
     ../default/settings_echo_test.ui \
     ../default/settings_mem_test.ui \
     ../default/settings_reg_test.ui \
-    ../default/settings_trm_single_test.ui
+    ../default/settings_trm_single_test.ui \
+    ../default/settings_monitor_test.ui \
+    monitor.ui
 
 RESOURCES += \
     tgca.qrc

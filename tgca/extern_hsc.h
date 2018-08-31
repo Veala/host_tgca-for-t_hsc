@@ -49,8 +49,8 @@ typedef unsigned int*   p_mem_t;
 //   извлечение признака tr из командного слова
 //#define  hscl_tr_bit_VAL(cw) (((cw) & hscl_CW_tr_bit) >> 7)
 
-inline addr_t getBufTrm(int num) { return num ? 0x60000 : 0x40000; }
-inline addr_t getBufRec(int num) { return num ? 0xA0000 : 0x80000; }
+inline unsigned int getBufTrm(int num) { return num ? 0x80000 : 0x40000; }
+inline unsigned int getBufRec(int num) { return num ? 0x60000 : 0xA0000; }
 
 
 #endif // EXTERN_H

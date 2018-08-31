@@ -44,6 +44,11 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     labelStep = settings->findChild<QLabel *>("labelStep");
     labelNumStep = settings->findChild<QLabel *>("labelNumStep");
     radioButtonRand = settings->findChild<QRadioButton *>("radioButtonRand");
+
+    spinBoxCycle = settings->findChild<QSpinBox *>("spinBoxCycle");
+    checkBoxCompare = settings->findChild<QCheckBox *>("checkBoxCompare");
+    checkBoxInit = settings->findChild<QCheckBox *>("checkBoxInit");
+
 top_1
     lineEditLen->setText(out.readLine());
     comboBoxRTA->setCurrentText(out.readLine());
@@ -77,6 +82,11 @@ top_1
     checkBoxDevBC->setChecked(!out.readLine().isEmpty());
     lineEditDevRT->setText(out.readLine());
     checkBoxDevRT->setChecked(!out.readLine().isEmpty());
+
+    checkBoxCompare->setChecked(!out.readLine().isEmpty());
+    checkBoxInit->setChecked(!out.readLine().isEmpty());
+    spinBoxCycle->setValue(out.readLine().toInt());
+
     settingsFile.close();
 
     if (checkBoxDevBC->isChecked())
@@ -131,6 +141,10 @@ top_2(saveFileNameStr)
     in << (checkBoxDevBC->isChecked() ? "1" : "") << endl;
     in << lineEditDevRT->text() << endl;
     in << (checkBoxDevRT->isChecked() ? "1" : "") << endl;
+
+    in << (checkBoxCompare->isChecked() ? "1" : "") << endl;
+    in << (checkBoxInit->isChecked() ? "1" : "") << endl;
+    in << spinBoxCycle->text() << endl;
 
     settingsFile.close();
 }
@@ -193,11 +207,14 @@ void TrmSingleTest::startTest()
 
     curThread->broad = checkBoxBroad->isChecked();
     curThread->useInt = checkBoxUseInt->isChecked();
-    curThread->output = checkBoxOut->isChecked();
+    curThread->outEnable = checkBoxOut->isChecked();
     curThread->time = lineEditTime->text().toInt(0, 16);
     curThread->rtaddr = comboBoxRTA->currentIndex();
     curThread->data_size = 0;
     curThread->data = 0;
+    curThread->compEnable = checkBoxCompare->isChecked();
+    curThread->iter = spinBoxCycle->value();
+    curThread->initEnable = checkBoxInit->isChecked();
 
     ushort rta = curThread->broad ? BRD_RT_ADDR : curThread->rtaddr;
 
@@ -236,8 +253,9 @@ void TrmSingleTest::startTest()
         {
             cfgRT |= fl_REG_CFG_rtavsk_ena;
             cfgRT = (cfgRT & ~FL_REG_CFG_rtavsk) | AddrToCfg(curThread->rtaddr);
-            curThread->rtaddr = MAX_RT_ADDR + 1;
+//            curThread->rtaddr = MAX_RT_ADDR + 1;
         }
+        cfgRT = (cfgRT & ~FL_REG_CFG_rtavsk) | AddrToCfg(curThread->rtaddr);
         curThread->cfgRT= cfgRT;
         curThread->amplRT= comboBoxAmplRT->currentIndex();
     }
@@ -274,6 +292,7 @@ void TrmSingleTest::startTest()
         curThread->data = 0;
         return;
     }
+    qDebug() << "Command word = " << QString::number(*(int*)(curThread->data), 16) << "  " << "rta = " << rta;
     curThread->data_size = sz_dst;
     free(rawData);
 
@@ -288,18 +307,63 @@ trmSingleObjToThread::trmSingleObjToThread():
 {
 }
 
-bool trmSingleObjToThread::checkStatusReg(QTcpSocket* socket, int *status)
+bool trmSingleObjToThread::readReg(QTcpSocket& socket, int addr, int *val)
+{
+    QByteArray answer;
+    QByteArray readArray = cmdHead(3, 4);
+    readArray.append((char*)&addr, 4);
+    if (read_F1(&socket, readArray, answer) == -1)
+        return false;
+
+    *val = *(int*)(answer.data());
+    return true;
+}
+
+bool trmSingleObjToThread::checkStatusReg(QTcpSocket& socket, int *status)
 {
     int addr_stat = REG_VSK_status;
     QByteArray answer;
     QByteArray readArray = cmdHead(3, 4);
     readArray.append((char*)&addr_stat, 4);
-    if (read_F1(socket, readArray, answer) == -1)
+    if (read_F1(&socket, readArray, answer) == -1)
         return false;
 
     *status = *(int*)(answer.data());
-    if ((*status) & FL_REG_STATUS_flags)
-        qDebug() << "Error flags in status:  " << QString::number(*status, 16);
+    return true;
+}
+
+bool trmSingleObjToThread::checkStatusRegBC(int *status)
+{
+    if (devBC == 0)
+        return false;
+    if (!checkStatusReg(tcpSocketBC, status))
+    {
+        qDebug() << "Error reading BC status register";
+        return false;
+    }
+    if ((*status) & FL_REG_STATUS_ERR_flags)
+        qDebug() << "BC status  Trm buf = " << ((*status)&fl_REG_STATUS_tx_num_buf ? 1 : 0) << "  Rec buf = " << ((*status)&fl_REG_STATUS_rx_num_buf ? 1 : 0)
+                    << "  !!! Error flags in status:  " << QString::number(*status, 16);
+    else
+        qDebug() << "BC status  Trm buf = " << ((*status)&fl_REG_STATUS_tx_num_buf ? 1 : 0) << "  Rec buf = " << ((*status)&fl_REG_STATUS_rx_num_buf ? 1 : 0);
+
+    return true;
+}
+
+bool trmSingleObjToThread::checkStatusRegRT(int *status)
+{
+    if (devRT == 0)
+        return false;
+    if (!checkStatusReg(tcpSocketRT, status))
+    {
+        qDebug() << "Error reading BC status register";
+        return false;
+    }
+    if ((*status) & FL_REG_STATUS_ERR_flags)
+        qDebug() << "RT status  Trm buf = " << ((*status)&fl_REG_STATUS_tx_num_buf ? 1 : 0) << "  Rec buf = " << ((*status)&fl_REG_STATUS_rx_num_buf ? 1 : 0)
+                    << "  !!! Error flags in status:  " << QString::number(*status, 16);
+    else
+        qDebug() << "RT status  Trm buf = " << ((*status)&fl_REG_STATUS_tx_num_buf ? 1 : 0) << "  Rec buf = " << ((*status)&fl_REG_STATUS_rx_num_buf ? 1 : 0);
 
     return true;
 }
@@ -323,10 +387,28 @@ bool trmSingleObjToThread::checkCounters(QTcpSocket* socket)
     return true;
 }
 
+static bool split(const QByteArray all, QByteArray& even, QByteArray& odd)
+{
+    int sz = all.size();
+    if (sz%8 != 0)
+        return false;
+    for (int i=0; i<sz; i+=8)
+    {
+        int addr = *(int*)(all.data()+i);
+        int val = *(int*)(all.data()+i+4);
+        if (addr != REG_VSK_creg)
+        {
+            even.append((char*)&addr, 4);
+            odd.append((char*)&val, 4);
+        }
+    }
+    return (even.size() > 0);
+}
+
 void trmSingleObjToThread::doWork()
 {
     qDebug() << "trmSingleObjToThread doWork start";
-
+    qDebug() << "iter = " << iter;
     if (devBC)
     {
         QString ip = devBC->connection.getServerIP();
@@ -352,6 +434,8 @@ void trmSingleObjToThread::doWork()
         checkCounters(&tcpSocketRT);
     }
     emit resultReady((int)AbstractTest::Running);
+    if (pause_stop() == -1)
+        return;
 
     int addr_cfg  = REG_VSK_cfg;
     int addr_ampl = REG_VSK_amplification_factor;
@@ -359,53 +443,48 @@ void trmSingleObjToThread::doWork()
     int addr_stat = REG_VSK_status;
     int addr_creg = REG_VSK_creg;
 
-    if (devBC)
-    {
-        qDebug() << "start BC configuration";
-        devBC->configuration.setChecked(config_NUMREG_cfg, false);
-        QByteArray regBC = devBC->configuration.getRegistersToWrite();
-        if (regBC.size() > 0)
-        {
-            QByteArray regs = cmdHead(1, regBC.size());
-            regs.append(regBC);
-            if (write_F1(&tcpSocketBC, regs) == -1)
-                return;
-            devBC->configuration.doneWriteReg(regBC);
-        }
-        checkCounters(&tcpSocketBC);
-
-        QByteArray array = cmdHead(1, 8);
-        array.append((char*)&addr_cfg, 4);
-        array.append((char*)&cfgBC, 4);
-        if (write_F1(&tcpSocketBC, array) == -1)
-            return;
-        devBC->configuration.setWritten(addr_cfg, cfgBC);
-
-        if (amplBC)
-        {
-            int ampl = (amplBC == 1) ? 0 : amplBC + 14;
-            QByteArray array = cmdHead(1, 8);
-            array.append((char*)&addr_ampl, 4);
-            array.append((char*)&ampl, 4);
-            if (write_F1(&tcpSocketBC, array) == -1)
-                return;
-            devBC->configuration.setWritten(addr_ampl, ampl);
-        }
-    }
     if (devRT)
     {
-        qDebug() << "start RT configuration";
-        devRT->configuration.setChecked(config_NUMREG_cfg, false);
-        QByteArray regRT = devRT->configuration.getRegistersToWrite();
-        if (regRT.size() > 0)
+        if (initEnable)
         {
-            QByteArray regs = cmdHead(1, regRT.size());
-            regs.append(regRT);
-            if (write_F1(&tcpSocketRT, regs) == -1)
-                return;
-            devRT->configuration.doneWriteReg(regRT);
+            qDebug() << "start RT configuration";
+            devRT->configuration.setChecked(config_NUMREG_cfg, false);
+            QByteArray regRT = devRT->configuration.getRegistersToWrite();
+            if (regRT.size() > 0)
+            {
+                QByteArray regs = cmdHead(1, regRT.size());
+                regs.append(regRT);
+                if (write_F1(&tcpSocketRT, regs) == -1)
+                    return;
+                devRT->configuration.doneWriteReg(regRT);
+            }
+            if (compEnable)
+            {
+                QByteArray addrArray, valArray;
+                if (split(regRT, addrArray, valArray))
+                {
+                    // Чтение регистров КШ для сравнения
+                    QByteArray writeArray = cmdHead(3, addrArray.size());
+                    qDebug() << "size = " << addrArray.size();
+                    writeArray.append(addrArray);
+                    QByteArray readArray;
+                    if (read_F1(&tcpSocketRT, writeArray, readArray) == -1)
+                        return;
+
+                    if (readArray == valArray)
+                    {
+                        qDebug() << "Comparison RT registers OK";
+                    }
+                    else
+                    {
+                        qDebug() << "Comparison RT registers wrong";
+                        qDebug() << "Returned size = " << readArray.size();
+                        qDebug() << "Returned data = " << QString::number(*(int*)(readArray.data()), 4);
+                    }
+                }
+            }
+            checkCounters(&tcpSocketRT);
         }
-        checkCounters(&tcpSocketRT);
 
         QByteArray array = cmdHead(1, 8);
         array.append((char*)&addr_cfg, 4);
@@ -413,6 +492,21 @@ void trmSingleObjToThread::doWork()
         if (write_F1(&tcpSocketRT, array) == -1)
             return;
         devRT->configuration.setWritten(addr_cfg, cfgRT);
+        if (compEnable)
+        {
+            int rv;
+            if (readReg(tcpSocketRT, addr_cfg, &rv))
+            {
+                if (rv == cfgRT)
+                    {
+                        qDebug() << "Comparison RT cfg reg OK";
+                    }
+                    else
+                    {
+                        qDebug() << "Comparison RT cfg reg wrong";
+                    }
+            }
+        }
 
         if (amplRT)
         {
@@ -423,6 +517,21 @@ void trmSingleObjToThread::doWork()
             if (write_F1(&tcpSocketRT, array) == -1)
                 return;
             devRT->configuration.setWritten(addr_ampl, ampl);
+            if (compEnable)
+            {
+                int rv;
+                if (readReg(tcpSocketRT, addr_ampl, &rv))
+                {
+                    if (rv == ampl)
+                        {
+                            qDebug() << "Comparison RT amplification factor OK";
+                        }
+                        else
+                        {
+                            qDebug() << "Comparison RT amplification factor wrong";
+                        }
+                }
+            }
         }
 
         if (rtaddr <= MAX_RT_ADDR)
@@ -432,6 +541,113 @@ void trmSingleObjToThread::doWork()
             array.append((char*)&rtaddr, 4);
             if (write_F1(&tcpSocketRT, array) == -1)
                 return;
+            if (compEnable)
+            {
+                int rv;
+                if (readReg(tcpSocketRT, addr_rta, &rv))
+                {
+                    if (rv == rtaddr)
+                        {
+                            qDebug() << "Comparison RTA OK";
+                        }
+                        else
+                        {
+                            qDebug() << "Comparison RTA wrong";
+                        }
+                }
+            }
+        }
+    }
+    if (devBC)
+    {
+        if (initEnable)
+        {
+            qDebug() << "start BC configuration";
+            devBC->configuration.setChecked(config_NUMREG_cfg, false);
+            QByteArray regBC = devBC->configuration.getRegistersToWrite();
+            if (regBC.size() > 0)
+            {
+                QByteArray regs = cmdHead(1, regBC.size());
+                regs.append(regBC);
+                if (write_F1(&tcpSocketBC, regs) == -1)
+                    return;
+                devBC->configuration.doneWriteReg(regBC);
+            }
+            qDebug() << "comp = " << compEnable;
+            if (compEnable)
+            {
+                QByteArray addrArray, valArray;
+                if (split(regBC, addrArray, valArray))
+                {
+                    // Чтение регистров КШ для сравнения
+                    QByteArray writeArray = cmdHead(3, addrArray.size());
+                    qDebug() << "size = " << addrArray.size();
+                    writeArray.append(addrArray);
+                    QByteArray readArray;
+                    if (read_F1(&tcpSocketBC, writeArray, readArray) == -1)
+                        return;
+
+                    if (readArray == valArray)
+                    {
+                        qDebug() << "Comparison BC registers OK";
+                    }
+                    else
+                    {
+                        qDebug() << "Comparison BC registers wrong";
+                        qDebug() << "Returned size = " << readArray.size();
+                        qDebug() << "Returned data = " << QString::number(*(int*)(readArray.data()), 4);
+                    }
+                }
+            }
+            checkCounters(&tcpSocketBC);
+        }
+
+        QByteArray array = cmdHead(1, 8);
+        array.append((char*)&addr_cfg, 4);
+        array.append((char*)&cfgBC, 4);
+        if (write_F1(&tcpSocketBC, array) == -1)
+            return;
+        devBC->configuration.setWritten(addr_cfg, cfgBC);
+        if (compEnable)
+        {
+            int rv;
+            if (readReg(tcpSocketBC, addr_cfg, &rv))
+            {
+                if (rv == cfgBC)
+                    {
+                        qDebug() << "Comparison BC cfg register OK";
+                    }
+                    else
+                    {
+                        qDebug() << "Comparison BC cfg register wrong";
+                    }
+            }
+        }
+
+        if (amplBC)
+        {
+            int ampl = (amplBC == 1) ? 0 : amplBC + 14;
+            QByteArray array = cmdHead(1, 8);
+            array.append((char*)&addr_ampl, 4);
+            array.append((char*)&ampl, 4);
+            if (write_F1(&tcpSocketBC, array) == -1)
+                return;
+            devBC->configuration.setWritten(addr_ampl, ampl);
+            if (compEnable)
+            {
+                int rv;
+                if (readReg(tcpSocketBC, addr_ampl, &rv))
+                {
+                    if (rv == ampl)
+                        {
+                            qDebug() << "Comparison BC amplification factor OK";
+                        }
+                        else
+                        {
+                            qDebug() << "Comparison BC amplification factor wrong";
+                        }
+                }
+            }
         }
     }
     if (data_size <= 0)
@@ -441,84 +657,151 @@ void trmSingleObjToThread::doWork()
     else
     {
         int statusBC, statusRT;
-        if (devBC)
-        {
-            qDebug() << "Check BC status";
-            if (!checkStatusReg(&tcpSocketBC, &statusBC))
-                return;
-        }
         if (devRT)
         {
-            qDebug() << "Check RT status";
-            if (!checkStatusReg(&tcpSocketRT, &statusRT))
+            if (!checkStatusRegRT(&statusRT))
                 return;
         }
+        else iter = 1;
+
+        QByteArray pack0 = cmdHead(2, data_size+4);
+        QByteArray pack1 = cmdHead(2, data_size+4);
+        QByteArray compArrayW;
         if (devBC)
         {
-            QByteArray pack = cmdHead(2, data_size+4);
-            int buf = getBufTrm(statusBC & fl_REG_STATUS_tx_num_buf);
-            pack.append((char*)&buf, 4);
-            pack.append((char*)data, data_size);
-            free(data);
-            data = 0;
-            if (write_F2(&tcpSocketBC, pack) == -1)
+            if (!checkStatusRegBC(&statusBC))
                 return;
 
-            qDebug() << "Ready to transmit";
-            if (devRT)
-            {
-                int counter = 0;
-                QByteArray array = cmdHead(1, 8);
-                int start_bc = fl_REG_CREG_start_bc;
-                array.append((char*)&addr_creg, 4);
-                array.append((char*)&start_bc, 4);
-                QByteArray readArray = cmdHead(3, 4);
-                readArray.append((char*)&addr_stat, 4);
-                if (write_F1(&tcpSocketBC, array) == -1)
-                    return;
-#if 0
-                checkCounters(&tcpSocketRT);
+            // формирование массивов для записи в буферы передатчика КШ
+            uint buf = getBufTrm(0);
+            pack0.append((char*)&buf, 4);
+            pack0.append((char*)data, data_size);
 
-                //qDebug() << "Check RT status";
-                /*if (read_F1(&tcpSocketRT, readArray, answer) == -1) return;
-                status = *(int*)(answer.data());
-            */
-                checkStatusReg(&tcpSocketRT, &statusRT);
-                qDebug() << "RT status = " << QString::number(statusRT, 16);
-                checkCounters(&tcpSocketRT);
+            buf = getBufTrm(1);
+            pack1.append((char*)&buf, 4);
+            pack1.append((char*)data, data_size);
 
-                qDebug() << "Check BC status";
-                QTimer timer;
-                timer.setInterval(time);
-                timer.start();
-#endif
-                int status;
-                do
-                {
-                    QByteArray answer;
-                    if (read_F1(&tcpSocketBC, readArray, answer) == -1) return;
-                    status = *(int*)(answer.data());
-                    counter++;
-                }
-                while ((status & FL_REG_STATUS_flags) == 0/* && timer.remainingTime()>0*/);
-                qDebug() << "counter = " << counter;
-                qDebug() << "BC status = " << QString::number(status, 16);
-                checkCounters(&tcpSocketBC);
-                checkCounters(&tcpSocketRT);
-
-
-
-
-            }
+            // формирование массива для сравнения
+            if (compEnable)
+                compArrayW.append((char*)data, data_size);
         }
-    }
+        free(data);
+        data = 0;
+
+        if (devBC)
+        {
+            for (uint it = 0; it<iter; it++)
+            {
+                if (pause_stop() == -1)
+                    return;
+
+                // Запись данных в буфер передатчика
+                if (statusBC & fl_REG_STATUS_tx_num_buf)
+                {
+                    if (write_F2(&tcpSocketBC, pack1) == -1)
+                        return;
+                }
+                else
+                {
+                    if (write_F2(&tcpSocketBC, pack0) == -1)
+                        return;
+                }
+
+                if (compEnable && it<=1)
+                {
+                // Чтение данных из буфера передатчика КШ для сравнения
+                    QByteArray writeArray = cmdHead(4, 8);
+                    int buf = getBufTrm(statusBC & fl_REG_STATUS_tx_num_buf);
+                    writeArray.append((char*)&buf, 4);
+                    writeArray.append((char*)&data_size, 4);
+                    QByteArray readArray;
+                    if (read_F2(&tcpSocketBC, writeArray, readArray) == -1)
+                        return;
+
+                    if (readArray == compArrayW)
+                    {
+                        qDebug() << "Comparison BC OK";
+                    }
+                    else
+                    {
+                        qDebug() << "Comparison BC wrong";
+                        qDebug() << "Returned size = " << readArray.size();
+                        qDebug() << "Command word = " << QString::number(*(int*)(readArray.data()), 16);
+                    }
+                }
+
+                qDebug() << "Ready to transmit";
+                if (devRT)
+                {
+                    int counter = 0;
+                    QByteArray array = cmdHead(1, 8);
+                    int start_bc = fl_REG_CREG_start_bc;
+                    array.append((char*)&addr_creg, 4);
+                    array.append((char*)&start_bc, 4);
+                    QByteArray readArray = cmdHead(3, 4);
+                    readArray.append((char*)&addr_stat, 4);
+                    if (write_F1(&tcpSocketBC, array) == -1)
+                        return;
+    #if 1
+                    //qDebug() << "Check RT status";
+                    /*if (read_F1(&tcpSocketRT, readArray, answer) == -1) return;
+                    status = *(int*)(answer.data());
+                */
+
+                    qDebug() << "Check BC status";
+                    QTimer timer;
+                    timer.setInterval(time);
+                    timer.start();
+    #endif
+                    do
+                    {
+                        QByteArray answer;
+                        if (read_F1(&tcpSocketBC, readArray, answer) == -1) return;
+                        statusBC = *(int*)(answer.data());
+                        counter++;
+                    }
+                    while ((statusBC & FL_REG_STATUS_flags) == 0 && timer.remainingTime()>0);
+                    qDebug() << "BC status = " << QString::number(statusBC, 16);
+                    checkCounters(&tcpSocketBC);
+                    checkStatusRegRT(&statusRT);
+                    checkCounters(&tcpSocketRT);
+
+                    if (compEnable && it<=1)
+                    {
+                        for (int buf=0x40000; buf<=0xA0000; buf+=0x20000)
+                        {
+                    // Чтение данных из буфера приёмника ОУ для сравнения
+                        QByteArray writeArray = cmdHead(4, 8);
+                       // int buf = getBufRec(statusRT & fl_REG_STATUS_rx_num_buf);
+                        writeArray.append((char*)&buf, 4);
+                        writeArray.append((char*)&data_size, 4);
+                        QByteArray readArray;
+                        if (read_F2(&tcpSocketRT, writeArray, readArray) == -1)
+                            return;
+
+                        if (readArray == compArrayW)
+                        {
+                            qDebug() << "Comparison RT OK";
+                        }
+                        else
+                        {
+                            qDebug() << "Comparison RT wrong";
+                            qDebug() << "Returned size = " << readArray.size();
+                            qDebug() << "Read word = " << QString::number(*(int*)(readArray.data()), 16);
+                        }
+                        }
+                    }
+                } // devRT
+            } // цикл
+        } // devBC
+    } // data_size > 0
 
     emit resultReady((int)AbstractTest::Completed);
 }
 
 void trmSingleObjToThread::terminate(int fl)
 {
-    //qDebug() << "terminates: " << devBC << "  " << devRT << "  " << data;
+    qDebug() << "terminates: " << devBC << "  " << devRT << "  " << data;
     if (fl == AbstractTest::ErrorIsOccured || fl == AbstractTest::Completed || fl == AbstractTest::Stopped)
     {
         if (devBC)

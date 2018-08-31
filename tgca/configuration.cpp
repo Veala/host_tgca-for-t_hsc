@@ -12,10 +12,10 @@ const bool  DebugL = false;
 
 static bool regNSKRO[NUMOFREGNSK] = { false };
 
-static bool regVSKUseGlobal[NUMOFREGVSK] = { true, false, false, true, true, false, false, true,
-                                      true, false, false, false, false, true, false, false,
-                                      false, false, true, true, true, true, true, true,
-                                      true, true, false, false, false, false, false, false };
+static bool regVSKUseGlobal[NUMOFREGVSK] = { false, false, false, true, true, false, false, false,
+                                      true, false, false, false, false, true, true, true,
+                                      true, true, true, true, true, true, true, true,
+                                      true, true, true, false, false, false, false, false };
 
 //static bool regVSKRO[NUMOFREGVSK] = { false };
 /*
@@ -60,7 +60,6 @@ void resizeCol(QTableView *tab)
     tab->setColumnWidth(REG_COL_NUM::rcn_Name_Check,120);
     tab->setColumnWidth(REG_COL_NUM::rcn_Descr,300);
     //tab->setColumnWidth(REG_COL_NUM::rcn_Val,100);
-    tab->setColumnHidden(4,true);
 }
 
 void buildTable(CTableEditCol *tab)
@@ -90,11 +89,9 @@ void Configuration::initVSK()
     for (int row=0; row < NUMOFREGVSK; row++)
     {
         regVSKRO[row] = false;
-        regVSKRes[row] = false;
         regVSKUse[row] = regVSKUseGlobal[row];
     }
     regVSKRO[2] = regVSKRO[3] = regVSKRO[27] = true;
-    regVSKRes[1] = regVSKRes[6] = regVSKRes[12] = true;
     ui->comboBoxVSK->setCurrentIndex(0);
     ui->checkBoxStartBC->setIcon(QIcon());
 
@@ -422,7 +419,7 @@ void Configuration::updateRegVSK(int num_reg, word16_t regval)
     QString value = (QString("%1").arg(regval, 4, 16, QChar('0'))).toUpper();
     adaptRegVSK(addr, regval, value);
 
-    if (!regVSKRes[num_reg])
+    if (!regVSKReserve(num_reg))
     {
         ui->tableWidgetVSK->item(num_reg, REG_COL_NUM::rcn_Val)->setText(value);
         ui->tableWidgetVSK->item(num_reg, REG_COL_NUM::rcn_Val)->setTextColor(Qt::black);
@@ -1209,8 +1206,8 @@ void Configuration::setChecked(int num, bool ch)
 
 void Configuration::setWritten(int addr, int val)
 {
-    if (setRegVal(addr, val))
-        markWritten(addr);
+    setRegVal(addr, val);
+    //markWritten(addr);
 }
 
 void Configuration::markWritten(int addr)

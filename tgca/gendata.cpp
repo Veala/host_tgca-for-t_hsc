@@ -72,43 +72,43 @@ void *createRandomData(int length, int init, int minval, int maxval, int numchar
 }
 
 
-void fillRegularDataByte(void *data, int length, int init, int step, int iter)
+void fillRegularDataByte(void *data, int length, int init, int step, int itermax)
 {
-    if (iter > 0)
+    if (itermax > 0)
         for (int i=0; i<length; i++)
-            ((char*)data)[i] = (init+step*(i%iter)) & 0xFF;
+            ((char*)data)[i] = (init+step*(i%itermax)) & 0xFF;
     else
         for (int i=0; i<length; i++)
             ((char*)data)[i] = (init+step*i) & 0xFF;
 }
-void fillRegularDataDefault(void *data, int length, int init, int step, int iter)
+void fillRegularDataDefault(void *data, int length, int init, int step, int itermax)
 {
-    if (iter > 0)
+    if (itermax > 0)
         for (int i=0; i<length; i++)
-            ((char*)data)[i] = init+step*(i%iter);
+            ((char*)data)[i] = init+step*(i%itermax);
     else
         for (int i=0; i<length; i++)
             ((char*)data)[i] = init+step*i;
 }
-void fillRegularDataW16(void *data, int length, int init, int step, int iter)
+void fillRegularDataW16(void *data, int length, int init, int step, int itermax)
 {
-    if (iter > 0)
+    if (itermax > 0)
         for (int i=0; i<length; i++)
-            ((short*)data)[i] = (init+step*(i%iter)) & 0xFFFF;
+            ((short*)data)[i] = (init+step*(i%itermax)) & 0xFFFF;
     else
         for (int i=0; i<length; i++)
             ((short*)data)[i] = (init+step*i) & 0xFFFF;
 }
-void fillRegularDataW32(void *data, int length, int init, int step, int iter)
+void fillRegularDataW32(void *data, int length, int init, int step, int itermax)
 {
-    if (iter > 0)
+    if (itermax > 0)
         for (int i=0; i<length; i++)
-            ((int*)data)[i] = (init+step*(i%iter)) & 0xFFFFFFFF;
+            ((int*)data)[i] = (init+step*(i%itermax)) & 0xFFFFFFFF;
     else
         for (int i=0; i<length; i++)
             ((int*)data)[i] = (init+step*i) & 0xFFFFFFFF;
 }
-void *createRegulatData(int length, int init, int step, int iter, int numchar)
+void *createRegulatData(int length, int init, int step, int itermax, int numchar)
 {
     if (length <=0)
         return false;
@@ -123,13 +123,13 @@ void *createRegulatData(int length, int init, int step, int iter, int numchar)
         switch (numchar)
         {
         case 1:
-            fillRegularDataByte(data, length, init, step, iter);
+            fillRegularDataByte(data, length, init, step, itermax);
         case 2:
-            fillRegularDataW16(data, length/2, init, step, iter);
+            fillRegularDataW16(data, length/2, init, step, itermax);
         case 4:
-            fillRegularDataW32(data, length/4, init, step, iter);
+            fillRegularDataW32(data, length/4, init, step, itermax);
         default:
-            fillRegularDataDefault(data, length, init, step, iter);
+            fillRegularDataDefault(data, length, init, step, itermax);
         }
     }
     return data;
