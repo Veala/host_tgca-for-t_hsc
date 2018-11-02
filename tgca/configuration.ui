@@ -1123,7 +1123,7 @@
          </item>
          <item row="18" column="2">
           <property name="text">
-           <string/>
+           <string>регистр уровня корреляционной функции, СЗС</string>
           </property>
          </item>
          <item row="18" column="3">
@@ -1143,7 +1143,7 @@
          </item>
          <item row="19" column="2">
           <property name="text">
-           <string/>
+           <string>регистр уровня корреляционной функции, МЗС</string>
           </property>
          </item>
          <item row="20" column="0">
@@ -1158,7 +1158,7 @@
          </item>
          <item row="20" column="2">
           <property name="text">
-           <string/>
+           <string>зегистр уровня предварительной синхронизации, СЗС</string>
           </property>
          </item>
          <item row="21" column="0">
@@ -1173,7 +1173,7 @@
          </item>
          <item row="21" column="2">
           <property name="text">
-           <string/>
+           <string>зегистр уровня предварительной синхронизации, МЗС</string>
           </property>
          </item>
          <item row="22" column="0">
@@ -3370,7 +3370,7 @@
            <string>HH</string>
           </property>
           <property name="text">
-           <string>1</string>
+           <string>00</string>
           </property>
          </widget>
         </item>
@@ -3386,7 +3386,7 @@
            <string>HH</string>
           </property>
           <property name="text">
-           <string>19</string>
+           <string>00</string>
           </property>
          </widget>
         </item>
@@ -3552,7 +3552,7 @@
         <string>HHHH</string>
        </property>
        <property name="text">
-        <string>0040</string>
+        <string>0000</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_27">
@@ -3676,6 +3676,9 @@
      </property>
      <item>
       <widget class="QPushButton" name="pushButtonChoose">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="toolTip">
         <string>Выборстандартной или сохраненной конфигурации</string>
        </property>
@@ -3690,6 +3693,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonSave">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="layoutDirection">
         <enum>Qt::LeftToRight</enum>
        </property>
@@ -3734,6 +3740,9 @@
          <width>150</width>
          <height>0</height>
         </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
        </property>
        <property name="text">
         <string>Выход</string>
@@ -3785,7 +3794,7 @@
  <connections>
   <connection>
    <sender>pushButtonCancel</sender>
-   <signal>pressed()</signal>
+   <signal>clicked()</signal>
    <receiver>Configuration</receiver>
    <slot>reject()</slot>
    <hints>
@@ -3817,7 +3826,7 @@
   </connection>
   <connection>
    <sender>pushButtonSave</sender>
-   <signal>pressed()</signal>
+   <signal>clicked()</signal>
    <receiver>Configuration</receiver>
    <slot>onPushSave()</slot>
    <hints>
@@ -3833,7 +3842,7 @@
   </connection>
   <connection>
    <sender>pushButtonChoose</sender>
-   <signal>pressed()</signal>
+   <signal>clicked()</signal>
    <receiver>Configuration</receiver>
    <slot>onPushChoose()</slot>
    <hints>

@@ -1,8 +1,8 @@
 #include "regtest.h"
 
-void RegTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
+void RegTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName,pB,tB);
+    AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
 
     mode = settings->findChild<QComboBox*>("mode");
     startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -111,7 +111,10 @@ void regObjToThread::doWork()
 
         for (; it<inCycle; it=it+1+decrement) {
             qDebug() << "writeArray size: " << writeArray.size();
-            if (write_F1(&tcpSocket, writeArray) == -1) return;
+            if (dev->write_F1(writeArray) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
             if (pause_stop() == -1) {
                 tcpSocket.abort();
                 return;
@@ -123,7 +126,10 @@ void regObjToThread::doWork()
             readArray.append((char*)&i, 4);
 
         for (; it<inCycle; it=it+1+decrement) {
-            if (read_F1(&tcpSocket, readArray, answer) == -1) return;
+            if (dev->read_F1(readArray, answer) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
             for (uint i=0; i<answer.size(); i+=4) {
                 if (output) outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
             }
@@ -145,11 +151,17 @@ void regObjToThread::doWork()
         }
 
         for (; it<inCycle; it=it+1+decrement) {
-            if (write_F1(&tcpSocket, writeArray) == -1) return;
+            if (dev->write_F1(writeArray) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
 
             ulong same=0, diff=0;
             uint w,r;
-            if (read_F1(&tcpSocket, readArray, answer) == -1) return;
+            if (dev->read_F1(readArray, answer) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
             for (uint i=0, j=12; i<answer.size(); i+=4, j+=8) {
                 w = *(int*)(writeArray.data()+j);
                 r = *(int*)(answer.data()+i);

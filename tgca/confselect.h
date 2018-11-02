@@ -19,7 +19,7 @@ private:
     Ui::ConfSelect *ui;
 
 private slots:
-    void onRadio(bool);
+    void onRadioChoose(bool);
     void onConfirm();
     void onBrowse();
 

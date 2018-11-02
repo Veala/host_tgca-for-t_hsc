@@ -1,9 +1,9 @@
 #include "monitortest.h"
-#include "../monitor.h"
+//#include "../monitor.h"
 
-void MonitorTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
+void MonitorTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName,pB,tB);
+    AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
     disconnect(settings,SIGNAL(finished(int)),this,SLOT(checkDeviceAvailability(int)));
     connect(settings,SIGNAL(finished(int)),this,SLOT(updateSettings()));
     connect(this,SIGNAL(settingsClosed(int)),this,SLOT(checkDeviceAvailability(int)));
@@ -57,9 +57,10 @@ void MonitorTest::startTest()
 {
     monitorObjToThread* curThread = (monitorObjToThread*)objToThread;
     curThread->devBC = curThread->devRT = 0;
-    if (deviceList.count() != 2)
+    if (deviceList.count() == 0)
     {
-        message(tr("Two devices are required"));
+        message(tr("Valid devices are required"));
+        return;
     }
 
     int index = 0;
@@ -75,19 +76,21 @@ void MonitorTest::startTest()
     }
     if (index == 0)
     {
-        qDebug() << "No valid device assigned";
-        //return;
+        message(tr("No valid device assigned"));
+        return;
     }
 
     Monitor monit;
-    monit.setDevice(curThread->devBC, curThread->devRT);
+    monit.setDevices(curThread->devBC, curThread->devRT);
     connect(&monit, SIGNAL(finished(int)), &monit, SLOT(forceExit()));
     connect(curThread, SIGNAL(doneWriteBC()), &monit, SLOT(doneWriteBC()));
-    monit.writeBC = &curThread->write_size_BC;
-    monit.writeRT = &curThread->write_size_RT;
-    monit.readBC = &curThread->read_size_BC;
-    monit.readRT = &curThread->read_size_RT;
-    monit.arr = &curThread->array;
+    connect(curThread, SIGNAL(doneWriteRT()), &monit, SLOT(doneWriteRT()));
+    connect(curThread, SIGNAL(doneReadBC(QByteArray)), &monit, SLOT(doneReadBC(QByteArray)));
+    connect(curThread, SIGNAL(doneReadRT(QByteArray)), &monit, SLOT(doneReadRT(QByteArray)));
+    connect(curThread, SIGNAL(connected(int)), &monit, SLOT(onConnect(int)));
+    connect(curThread, SIGNAL(terminated()), &monit, SLOT(onPushExit()));
+    monit.signalToMonitorTest = &curThread->signalFromMonitor;
+    monit.arr = &curThread->writeArray;
     monit.force_exit = &curThread->force_exit;
 
     emit startTestTh();
@@ -101,6 +104,7 @@ void MonitorTest::updateDeviceList()
         deviceLineEditList.append(lineEditDevBC);
     if (checkBoxDevRT->isChecked())
         deviceLineEditList.append(lineEditDevRT);
+    qDebug() << deviceLineEditList.size() << " devices";
 }
 
 void MonitorTest::updateSettings()
@@ -111,36 +115,47 @@ void MonitorTest::updateSettings()
 }
 
 void monitorObjToThread::doWork()
-{/*
+{
+    signalFromMonitor = Monitor::wait,
+    force_exit = false;
     if (devBC)
     {
         QString ip = devBC->connection.getServerIP();
         ushort port = devBC->connection.getServerPORT().toUShort();
         tcpSocketBC.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocketBC.waitForConnected(5000)) {
+        if (!tcpSocketBC.waitForConnected(5000))
+        {
+            qDebug() << "BC not connected";
             emit resultReady((int)AbstractTest::ErrorIsOccured);
-            qDebug() << "return";
-            return;
         }
-        qDebug() << "BC connected";
+        else
+        {
+            devBC->setSocket(&tcpSocketBC);
+            qDebug() << "BC connected";
+            emit connected(0);
+        }
     }
     if (devRT)
     {
         QString ip = devRT->connection.getServerIP();
         ushort port = devRT->connection.getServerPORT().toUShort();
         tcpSocketRT.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocketRT.waitForConnected(5000)) {
+        if (!tcpSocketRT.waitForConnected(5000))
+        {
+            qDebug() << "RT not connected";
             emit resultReady((int)AbstractTest::ErrorIsOccured);
-            devRT = 0;
-            terminate();
-            return;
         }
-        qDebug() << "RT connected";
-    }*/
+        else
+        {
+            devRT->setSocket(&tcpSocketRT);
+            qDebug() << "RT connected";
+            emit connected(1);
+        }
+    }
     emit resultReady((int)AbstractTest::Running);
 
 //        //Monitor monit;
-//        monit.setDevice(devBC, devRT);
+//        monit.setDevices(devBC, devRT);
 //        //connect(&monit, SIGNAL(finished(int)), &monit, SLOT(forceExit()));
 //        connect(this, SIGNAL(doneWriteBC()), &monit, SLOT(doneWriteBC()));
 //        monit.writeBC = &write_size_BC;
@@ -152,58 +167,95 @@ void monitorObjToThread::doWork()
 
         qDebug() << "monitorObjToThread is working";
 
-    int write_size_BC = 0;
-    QByteArray array;
-    int c=0;
+    QByteArray readArray;
     while (1)
     {
-        if (c==0 )
+        if (signalFromMonitor)
         {
-            c=1;
-            qDebug() << "in cycle";
-        }
-        if (write_size_BC)
-        {
-            if (write_F1(&tcpSocketBC, array) == -1)
+            switch (signalFromMonitor)
             {
+            case Monitor::writeBC:
+                if (devBC->write_F1(writeArray) == -1)
+                {
+                    terminate();
+                    return;
+                }
+                signalFromMonitor = Monitor::wait;
+                emit doneWriteBC();
+                break;
+
+            case Monitor::writeRT:
+                if (devRT->write_F1(writeArray) == -1)
+                {
+                    terminate();
+                    return;
+                }
+                signalFromMonitor = Monitor::wait;
+                emit doneWriteRT();
+                break;
+
+            case Monitor::readBC:
+                readArray.clear();
+                if (devBC->read_F1(writeArray, readArray) == -1)
+                {
+                    terminate();
+                    return;
+                }
+                signalFromMonitor = Monitor::wait;
+                emit doneReadBC(readArray);
+                break;
+
+            case Monitor::readRT:
+                readArray.clear();
+                if (devRT->read_F1(writeArray, readArray) == -1)
+                {
+                    terminate();
+                    return;
+                }
+                signalFromMonitor = Monitor::wait;
+                emit doneReadRT(readArray);
+                break;
+
+            default:
+                qDebug() << "Wrong signal from monitor";
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
                 terminate();
                 return;
             }
-            write_size_BC = 0;
-            emit doneWriteBC();
         }
-        if (write_size_RT)
-        {
-            if (write_F1(&tcpSocketRT, array) == -1)
-            {
-                terminate();
-                return;
-            }
-        }
-        if (pause_stop() == -1)
-        {
-            terminate();
-            return;
-        }
-        //qDebug() << force_exit;
         if (force_exit)
         {
-            qDebug() << force_exit;
+            qDebug() << "force_exit";
             emit resultReady((int)AbstractTest::Completed);
             terminate();
             return;
         }
-        this->thread()->msleep(50);
+        if (threadState != AbstractTest::Running)
+        {
+            qDebug() << "threadState = " << threadState;
+            terminate();
+            return;
+        }
+        if (pause_stop() == -1)
+        {
+            qDebug() << "pause_stop";
+            terminate();
+            return;
+        }
+        thread()->msleep(50);
     }
-    emit resultReady((int)AbstractTest::Completed);
+    emit resultReady((int)AbstractTest::ErrorIsOccured);
 }
 
 void monitorObjToThread::terminate()
 {
-    if (devBC)
+    qDebug() << "terminates";
+    if (devBC && tcpSocketBC.state() == QAbstractSocket::ConnectedState)
         tcpSocketBC.abort();
-    if (devRT)
+    if (devRT && tcpSocketRT.state() == QAbstractSocket::ConnectedState)
         tcpSocketRT.abort();
+    emit terminated();
+    emit resultReady((int)AbstractTest::Completed);
 }
 /*
 void monitorObjToThread::forceExit()
@@ -214,17 +266,10 @@ void monitorObjToThread::forceExit()
 }
 */
 monitorObjToThread::monitorObjToThread() :
-    absObjToThread(),
     //devBC(0),
     //devRT(0),
-    write_size_BC(0),
-    write_size_RT(0),
-    read_size_BC(0),
-    read_size_RT(0),
-    force_exit(false)
-{
-}
-
-monitorObjToThread::~monitorObjToThread()
+    //signalFromMonitor(Monitor::wait),
+    //force_exit(false),
+    absObjToThread()
 {
 }

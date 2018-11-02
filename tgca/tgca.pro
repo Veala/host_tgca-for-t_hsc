@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui uitools designer
+CONFIG   += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network printsupport
 
@@ -31,7 +32,10 @@ SOURCES += main.cpp\
     tests/trmsingletest.cpp \
     writereadreg.cpp \
     tests/monitortest.cpp \
-    monitor.cpp
+    monitor.cpp \
+    #crutches.cpp \
+    tests/spipart.cpp \
+    funclib.cpp
 
 HEADERS  += mainwindow.h \
     command.h \
@@ -51,7 +55,10 @@ HEADERS  += mainwindow.h \
     tests/regtest.h \
     tests/trmsingletest.h \
     tests/monitortest.h \
-    monitor.h
+    monitor.h \
+    #crutches.h \
+    tests/spipart.h \
+    funclib.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
@@ -64,7 +71,15 @@ FORMS    += mainwindow.ui \
     ../default/settings_reg_test.ui \
     ../default/settings_trm_single_test.ui \
     ../default/settings_monitor_test.ui \
-    monitor.ui
+    monitor.ui \
+    ../default/settings_spi_part.ui \
+    ../default/stats_mem_test.ui \
+    ../default/stats_reg_test.ui \
+    ../default/stats_echo_test.ui \
+    ../default/stats_bulb_test.ui \
+    ../default/stats_monitor_test.ui \
+    ../default/stats_trm_single_test.ui \
+    ../default/stats_spi_part.ui
 
 RESOURCES += \
     tgca.qrc

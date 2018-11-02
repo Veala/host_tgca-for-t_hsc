@@ -1,12 +1,7 @@
 #include "confselect.h"
 #include "ui_confselect.h"
 
-//#include "configuration.h"
-
 #include <QFileDialog>
-
-#include <QDebug>
-#include <QTimer>
 
 ConfSelect::ConfSelect(QWidget *parent) :
     QDialog(parent),
@@ -21,7 +16,7 @@ ConfSelect::~ConfSelect()
     delete ui;
 }
 
-void ConfSelect::onRadio(bool b)
+void ConfSelect::onRadioChoose(bool b)
 {
     ui->comboBoxConfigurations->setEnabled(b);
     ui->lineEditPathToConf->setEnabled(!b);

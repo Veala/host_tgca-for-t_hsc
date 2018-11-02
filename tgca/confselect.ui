@@ -259,7 +259,7 @@
    <sender>radioButtonChoose</sender>
    <signal>toggled(bool)</signal>
    <receiver>ConfSelect</receiver>
-   <slot>onRadio(bool)</slot>
+   <slot>onRadioChoose(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>140</x>
@@ -276,6 +276,6 @@
   <signal>configurate(QString,int*)</signal>
   <slot>onBrowse()</slot>
   <slot>onConfirm()</slot>
-  <slot>onRadio(bool)</slot>
+  <slot>onRadioChoose(bool)</slot>
  </slots>
 </ui>

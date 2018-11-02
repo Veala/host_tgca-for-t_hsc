@@ -10,7 +10,7 @@ class MonitorTest : public AbstractTest
 public:
     explicit MonitorTest(QWidget *parent = 0) : AbstractTest(parent) { }
     //~MonitorTest() { qDebug()<< "MonitorTest deleted"; }
-    void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB);
+    void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     void save();
 protected:
@@ -38,9 +38,9 @@ public slots:
     virtual void doWork();
 public:
     monitorObjToThread();
-    ~monitorObjToThread();
-    int write_size_BC, write_size_RT, read_size_BC, read_size_RT;
-    QByteArray array;
+    ~monitorObjToThread() {}
+    Monitor::MonitorSignal signalFromMonitor;
+    QByteArray writeArray;
     bool force_exit;
 
     QTcpSocket tcpSocketBC, tcpSocketRT;
@@ -48,6 +48,11 @@ public:
 
 signals:
     void doneWriteBC();
+    void doneWriteRT();
+    void doneReadBC(QByteArray);
+    void doneReadRT(QByteArray);
+    void connected(int);
+    void terminated();
 };
 
 #endif // MONITORTEST_H

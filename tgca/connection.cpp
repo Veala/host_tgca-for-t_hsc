@@ -8,6 +8,9 @@ Connection::Connection(QWidget *parent) :
     ui->setupUi(this);
 
     connect(ui->pushButtonCheckDevice, SIGNAL(clicked(bool)), this, SIGNAL(checkDevice(bool)));
+    QShortcut* sc = new QShortcut(QKeySequence("Esc"), this);
+    connect(sc,SIGNAL(activated()),this,SLOT(hide()));
+    setWindowFlags(Qt::Dialog);
 }
 
 Connection::~Connection()

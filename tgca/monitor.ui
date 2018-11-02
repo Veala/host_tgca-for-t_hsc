@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>737</width>
-    <height>918</height>
+    <width>802</width>
+    <height>942</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -586,7 +586,7 @@
          </item>
          <item row="21" column="1">
           <property name="text">
-           <string>lvl_sync_ pre_rx_lsw[</string>
+           <string>lvl_sync_ pre_rx_lsw</string>
           </property>
          </item>
          <item row="21" column="2">
@@ -1311,7 +1311,7 @@
          </item>
          <item row="21" column="1">
           <property name="text">
-           <string>lvl_sync_ pre_rx_lsw[</string>
+           <string>lvl_sync_ pre_rx_lsw</string>
           </property>
          </item>
          <item row="21" column="2">
@@ -1760,22 +1760,6 @@
  </resources>
  <connections>
   <connection>
-   <sender>Monitor</sender>
-   <signal>finished(int)</signal>
-   <receiver>Monitor</receiver>
-   <slot>onExit(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>340</x>
-     <y>458</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>340</x>
-     <y>458</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>pushButtonApply</sender>
    <signal>pressed()</signal>
    <receiver>Monitor</receiver>
@@ -1863,7 +1847,6 @@
   <slot>onPushExit()</slot>
   <slot>onPushLoad()</slot>
   <slot>onChangeTab(int)</slot>
-  <slot>onExit(int)</slot>
   <slot>onExpand1(int)</slot>
   <slot>onExpand2(int)</slot>
   <slot>onCheckSelect1()</slot>

@@ -26,6 +26,15 @@
 
 typedef unsigned short  reg16_t;
 
+
+///  АДРЕСА ВСПОМОГАТЕЛЬНЫХ РЕГИСТРОВ
+
+#define REG_AUX_rtaddr             0x180   // вспомогательный регистр: адрес ОУ
+#define REG_AUX_interruption       0x184   // вспомогательный регистр: прерывание
+#define REG_AUX_win_mode           0x190   // вспомогательный регистр: оконный режим
+#define REG_AUX_bulb               0x194   // регистр "лампочек"
+
+
 ///  АДРЕСА РЕГИСТРОВ ВСК
 
 #define   REG_VSK_ram_tx_rx             0x80
@@ -125,11 +134,12 @@ typedef unsigned short  reg16_t;
 #define   val_REG_CR_SPI_spi_en_SPI_EN1    1
 #define   val_REG_CR_SPI_spi_en_SPI_EN2    2
 #define   val_REG_CR_SPI_spi_en_SPI_EN3    3
-#define   FL_REG_CR_SPI_dr8_16_32    (3 << 8)
+#define   SH_REG_CR_SPI_dr8_16_32          8
+#define   FL_REG_CR_SPI_dr8_16_32    (3 << SH_REG_CR_SPI_dr8_16_32)
 #define   val_REG_CR_SPI_dr_DEP8           0
-#define   val_REG_CR_SPI_dr_DEP16    (1 << 8)
-#define   val_REG_CR_SPI_dr_DEP32    (2 << 8)
-#define   val_REG_CR_SPI_dr_UNDEF    (3 << 8)
+#define   val_REG_CR_SPI_dr_DEP16    (1 << SH_REG_CR_SPI_dr8_16_32)
+#define   val_REG_CR_SPI_dr_DEP32    (2 << SH_REG_CR_SPI_dr8_16_32)
+#define   val_REG_CR_SPI_dr_UNDEF    (3 << SH_REG_CR_SPI_dr8_16_32)
 #define   fl_REG_CR_SPI_spif         (1 << 15)
 
 #define   fl_REG_AMPL_FACTOR_rx_ampl0      1

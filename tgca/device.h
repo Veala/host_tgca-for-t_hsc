@@ -9,12 +9,13 @@
 #include <QTextBrowser>
 #include "connection.h"
 #include "configuration.h"
+#include "funclib.h"
 
 namespace Ui {
 class Device;
 }
 
-class Device : public QFrame
+class Device : public QFrame//, public DeviceDriver
 {
     Q_OBJECT
 
@@ -32,11 +33,18 @@ public:
 
     Connection connection;
     Configuration configuration;
-    QTcpSocket socket;
 
     bool isMonitor();
     void setName(QString);
     QString getName() const;
+    void setSocket(QTcpSocket*);
+
+    int write_F1(QByteArray& writeArray);
+    int write_F2(QByteArray& writeArray);
+    int write_Echo(QByteArray& writeArray);
+    int read_F1(QByteArray& writeArray, QByteArray& readArray);
+    int read_F2(QByteArray& writeArray, QByteArray& readArray);
+    int readReg(int addr, int *val);
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -45,7 +53,11 @@ private:
     Ui::Device *ui;
     QMenu menu;
     QTextBrowser* projectBrowser;
+    QTcpSocket* sock;
     void message(QString);
+    int readAll(QByteArray&, int);
+    int writeAll(QByteArray&);
+
 
 private slots:
     void showConfiguration();

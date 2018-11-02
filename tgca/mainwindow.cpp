@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actConfiguration->setVisible(false);
     ui->actConfiguration->setEnabled(false);
 
-    QSettings project("../tgca/prj.ini", QSettings::IniFormat);
+    QSettings project("../tgca/project.ini", QSettings::IniFormat);
     if (project.status() == QSettings::NoError && project.allKeys().size() >= 2 &&
         project.value("Common/autoload").toString() == "1")
             prjLoaded = loadProject(project);
@@ -313,6 +313,29 @@ void MainWindow::onMenuTests(QPoint point)
     menu.exec(ui->labeDevicesTitle->mapToGlobal(point));
 }
 
+void MainWindow::onMenuOutput(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Очистить"));
+    connect(act, SIGNAL(triggered()), this, SLOT(outputClear()));
+    if (sender()->objectName() == "projectBrowser") {
+        act->setObjectName("pB");
+        menu.exec(ui->projectBrowser->mapToGlobal(point));
+    } else if (sender()->objectName() == "testBrowser") {
+        act->setObjectName("tB");
+        menu.exec(ui->testBrowser->mapToGlobal(point));
+    }
+}
+
+void MainWindow::outputClear()
+{
+    if (sender()->objectName() == "pB") {
+        ui->projectBrowser->clear();
+    } else if (sender()->objectName() == "tB") {
+        ui->testBrowser->clear();
+    }
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *e)
 {
     if (e->key() != Qt::Key_Escape)
@@ -444,7 +467,7 @@ void MainWindow::onPrintRep()
     QPrinter prnt;
     QPrintDialog* dialog = new QPrintDialog(&prnt, this);
     connect(dialog, SIGNAL(accepted(QPrinter*)), this, SLOT(printReport(QPrinter*)));
-    dialog->open();
+    dialog->exec();
     disconnect(dialog, SIGNAL(accepted(QPrinter*)), this, SLOT(printReport(QPrinter*)));
 }
 

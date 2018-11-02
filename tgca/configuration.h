@@ -3,11 +3,11 @@
 
 #include <QDialog>
 #include <QLabel>
-#include <QLineEdit>
 #include <QIcon>
 
 #include "extern_hsc.h"
 #include "registers.h"
+#include "ctableeditcol.h"
 
 namespace Ui {
 class Configuration;
@@ -79,6 +79,7 @@ enum REG_COL_NUM
 #define   config_NUMREG_pll_reg               0x3F
 
 inline bool regVSKReserve(int row) { return row==1 || row==6 || row == 12; }
+CONFIG_DEFAULT_TYPE parsConfigKey(QString name, word16_t& param);
 
 class Configuration : public QDialog
 {
@@ -95,6 +96,8 @@ public:
     bool readRegisters();
     void setChecked(int num, bool ch);
     void setWritten(int addr, int val);
+    CTableEditCol *getTableVSK() const;
+    CTableEditCol *tableVSK();
 
     /// Функции, отображающие в окне конфигурации результаты чтения/записи регистров устройства.
     void  doneWriteReg(QByteArray array);
@@ -137,7 +140,31 @@ private:
              QLineEdit *lineL, QLineEdit *lineH, QLabel *labelInd, QString* description, QString* name, int num);
 
     //QIcon iconStartEna, iconStartDis;
-
+/*
+    bool lineEditQ16_Edited;
+    bool lineEditQ64l_Edited;
+    bool lineEditQ64m_Edited;
+    bool lineEditQ64h_Edited;
+    bool lineEditTime_Edited;
+    bool lineEdit_11_Edited;
+    bool lineEdit_10_Edited;
+    bool lineEdit_12_Edited;
+    bool lineEdit_9_Edited;
+    bool lineEditTrCntr_Edited;
+    bool lineEditCntTrh_Edited;
+    bool lineEditCntTrl_Edited;
+    bool lineEditCntReh_Edited;
+    bool lineEditCntRel_Edited;
+    bool lineEdit_g_sp_Edited;
+    bool lineEdit_g1_sph_Edited;
+    bool lineEdit_g1_spl_Edited;
+    bool lineEdit_ID_Edited;
+    bool lineEditAmplitude_Edited;
+    bool lineEditMult_Edited;
+    bool lineEditDiv_Edited;
+    bool lineEditSPIh_Edited;
+    bool lineEditSPIl_Edited;
+*/
 private slots:
     void onEditRegVSK(QPoint);
     void onEditRegNSK(QPoint);
@@ -161,16 +188,6 @@ private slots:
 
     void onCellChangedNSK(int, int);
     void onCellChangedVSK(int, int);
-    void on_lineEditQ16_editingFinished();
-    void on_lineEditQ16_textChanged(const QString &arg1);
-    void on_lineEditQ16_textEdited(const QString &arg1);
-
-    void on_lineEditQ16_cursorPositionChanged(int arg1, int arg2);
-
-    void on_lineEditQ16_returnPressed();
-
-    void on_lineEditQ16_selectionChanged();
-
     void on_checkBoxResetFL_clicked(bool checked);
 
     void on_checkBoxResetFLT_clicked(bool checked);
@@ -205,6 +222,54 @@ private slots:
 
     void on_comboBoxRam_activated(int index);
 
+    void on_lineEditQ16_textChanged(const QString &arg1);
+    void on_lineEditQ64l_textChanged(const QString &arg1);
+    void on_lineEditQ64m_textChanged(const QString &arg1);
+    void on_lineEditQ64h_textChanged(const QString &arg1);
+    void on_lineEditTime_textChanged(const QString &arg1);
+    void on_lineEditAmplitude_textChanged(const QString &arg1);
+    void on_lineEdit_ID_textChanged(const QString &arg1);
+    void on_lineEdit_g1_sph_textChanged(const QString &arg1);
+    void on_lineEdit_g1_spl_textChanged(const QString &arg1);
+    void on_lineEdit_g_sp_textChanged(const QString &arg1);
+    void on_lineEditCntReh_textChanged(const QString &arg1);
+    void on_lineEditCntRel_textChanged(const QString &arg1);
+    void on_lineEditCntTrh_textChanged(const QString &arg1);
+    void on_lineEditCntTrl_textChanged(const QString &arg1);
+    void on_lineEditTrCntr_textChanged(const QString &arg1);
+    void on_lineEdit_12_textChanged(const QString &arg1);
+    void on_lineEdit_9_textChanged(const QString &arg1);
+    void on_lineEdit_11_textChanged(const QString &arg1);
+    void on_lineEdit_10_textChanged(const QString &arg1);
+    void on_lineEditMult_textChanged(const QString &arg1);
+    void on_lineEditDiv_textChanged(const QString &arg1);
+    void on_lineEditSPIh_textChanged(const QString &arg1);
+    void on_lineEditSPIl_textChanged(const QString &arg1);
+/*
+    void on_lineEditQ16_editingFinished();
+    void on_lineEditQ64l_editingFinished();
+    void on_lineEditQ64m_editingFinished();
+    void on_lineEditQ64h_editingFinished();
+    void on_lineEditTime_editingFinished();
+    void on_lineEdit_11_editingFinished();
+    void on_lineEdit_10_editingFinished();
+    void on_lineEdit_12_editingFinished();
+    void on_lineEdit_9_editingFinished();
+    void on_lineEditTrCntr_editingFinished();
+    void on_lineEditCntTrh_editingFinished();
+    void on_lineEditCntTrl_editingFinished();
+    void on_lineEditCntReh_editingFinished();
+    void on_lineEditCntRel_editingFinished();
+    void on_lineEdit_g_sp_editingFinished();
+    void on_lineEdit_g1_sph_editingFinished();
+    void on_lineEdit_g1_spl_editingFinished();
+    void on_lineEdit_ID_editingFinished();
+    void on_lineEditAmplitude_editingFinished();
+    void on_lineEditMult_editingFinished();
+    void on_lineEditDiv_editingFinished();
+    void on_lineEditSPIh_editingFinished();
+    void on_lineEditSPIl_editingFinished();
+*/
 public slots:
     /// Задание конфигурации.
     bool initFrom(QString name, int* err);

@@ -2,17 +2,16 @@
 #include "ui_configuration.h"
 
 #include "confselect.h"
-#include "ctableeditcol.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDebug>
 
-const bool  DebugL = false;
+//const bool  DebugL = false;
 
 static bool regNSKRO[NUMOFREGNSK] = { false };
 
-static bool regVSKUseGlobal[NUMOFREGVSK] = { false, false, false, true, true, false, false, false,
+bool regVSKUseGlobal[NUMOFREGVSK] = { false, false, false, true, true, false, false, false,
                                       true, false, false, false, false, true, true, true,
                                       true, true, true, true, true, true, true, true,
                                       true, true, true, false, false, false, false, false };
@@ -49,6 +48,16 @@ Configuration::Configuration(QWidget *parent) :
 Configuration::~Configuration()
 {
     delete ui;
+}
+
+CTableEditCol* Configuration::getTableVSK() const
+{
+    return ui->tableWidgetVSK;
+}
+
+CTableEditCol* Configuration::tableVSK()
+{
+    return ui->tableWidgetVSK;
 }
 
 //////////////////////////////////////////////////////////
@@ -108,6 +117,14 @@ void Configuration::initVSK()
     ui->comboBoxRTA->setCurrentText("");
     ui->comboBoxLvlCor->setCurrentText("");
     ui->comboBoxLvlPre->setCurrentText("");
+/*
+    lineEditQ16_Edited = lineEditQ64l_Edited = lineEditQ64m_Edited = lineEditQ64h_Edited =
+    lineEditTime_Edited = lineEdit_11_Edited = lineEdit_10_Edited = lineEdit_12_Edited =
+    lineEdit_9_Edited = lineEditTrCntr_Edited = lineEditCntTrh_Edited = lineEditCntTrl_Edited =
+    lineEditCntReh_Edited = lineEditCntRel_Edited = lineEdit_g_sp_Edited = lineEdit_g1_sph_Edited =
+    lineEdit_g1_spl_Edited = lineEdit_ID_Edited = lineEditAmplitude_Edited = lineEditMult_Edited =
+    lineEditDiv_Edited = lineEditSPIh_Edited = lineEditSPIl_Edited = false;
+*/
  }
 
 void Configuration::initNSK()
@@ -826,6 +843,14 @@ void Configuration::onExit()
         ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
     for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
         ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
+ /*
+    lineEditQ16_Edited = lineEditQ64l_Edited = lineEditQ64m_Edited = lineEditQ64h_Edited =
+    lineEditTime_Edited = lineEdit_11_Edited = lineEdit_10_Edited = lineEdit_12_Edited =
+    lineEdit_9_Edited = lineEditTrCntr_Edited = lineEditCntTrh_Edited = lineEditCntTrl_Edited =
+    lineEditCntReh_Edited = lineEditCntRel_Edited = lineEdit_g_sp_Edited = lineEdit_g1_sph_Edited =
+    lineEdit_g1_spl_Edited = lineEdit_ID_Edited = lineEditAmplitude_Edited = lineEditMult_Edited =
+    lineEditDiv_Edited = lineEditSPIh_Edited = lineEditSPIl_Edited = false;
+*/
 }
 
 bool Configuration::initFrom(QString name, int* err)
@@ -1001,49 +1026,22 @@ void Configuration::on_comboBoxRTA_currentIndexChanged(int index)
         ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
     }
 }
-
-
-
+/*
 void Configuration:: on_lineEditQ16_editingFinished()
 {
-    if (currentTab==2 && !stopSign && !DebugL)
-    qDebug() << "editingFinished";
-//    regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam16)] = true;
-//    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Name_Check)->setCheckState(Qt::Checked);
-//    ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Val)->setText(ui->lineEditQ16->text());
+    if (currentTab==2 && !stopSign)
+        qDebug() << "editingFinished";
 }
-
+*/
 void Configuration::on_lineEditQ16_textChanged(const QString &arg1)
 {
-    if (currentTab==2 && !stopSign && !DebugL)
-    qDebug() << "textChanged   " << arg1 << "    END";
-}
-
-void Configuration::on_lineEditQ16_textEdited(const QString &arg1)
-{
-    if (currentTab==2 && !stopSign && !DebugL)
-    qDebug() << "textEdited   " << arg1 << "    END";
-}
-
-void Configuration::on_lineEditQ16_cursorPositionChanged(int arg1, int arg2)
-{
-    if (currentTab==2 && !stopSign && !DebugL)
-    qDebug() << "cursorPositionChanged  " << arg1 << " " << arg2;
-
-}
-
-void Configuration::on_lineEditQ16_returnPressed()
-{
-    if (currentTab==2 && !stopSign && !DebugL)
-    qDebug() << "returnPressed";
-
-}
-
-void Configuration::on_lineEditQ16_selectionChanged()
-{
-    if (currentTab==2 && !stopSign && !DebugL)
-    qDebug() << "selectionChanged";
-
+    if (currentTab==2 && !stopSign)
+    {
+        regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam16)] = true;
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam16), rcn_Val)->setTextColor(Qt::black);
+    }
 }
 
 void Configuration::on_checkBoxResetFL_clicked(bool checked)
@@ -1074,13 +1072,81 @@ void Configuration::on_checkBoxStartBC_clicked(bool checked)
     }
 }
 
+
+/*
+void Configuration::on_lineEditQ64l_editingFinished()
+{
+
+}
+*/
+void Configuration::on_lineEditQ64l_textChanged(const QString &arg1)
+{
+    if (currentTab==2 && !stopSign)
+    {
+        regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low)] = true;
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_low), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+/*
+void Configuration::on_lineEditQ64m_editingFinished()
+{
+
+}
+*/
+void Configuration::on_lineEditQ64m_textChanged(const QString &arg1)
+{
+    if (currentTab==2 && !stopSign)
+    {
+        regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle)] = true;
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_middle), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+/*
+void Configuration::on_lineEditQ64h_editingFinished()
+{
+    if (currentTab==2 && !stopSign && !DebugL)
+        lineEditQ64h_Edited = true;
+}
+*/
+void Configuration::on_lineEditQ64h_textChanged(const QString &arg1)
+{
+    if (currentTab==2 && !stopSign)
+    {
+        regVSKUse[ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high)] = true;
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_qam64_high), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+/*
+void Configuration::on_lineEditTime_editingFinished()
+{
+
+}
+*/
+void Configuration::on_lineEditTime_textChanged(const QString &arg1)
+{
+    if (currentTab==2 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_time_rsp), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_time_rsp), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_time_rsp), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
 //////////////////////////////////////////////////////////////
 /// СЛОТЫ ДЛЯ ЭЛЕМЕНТОВ СТРАНИЦЫ "Дополнительно"
 
 void Configuration::on_comboBoxLvlPre_activated(int index)
 {
+    qDebug() << "comboBoxLvlPre_activated";   ///LLL!!!
     if (currentTab==3 && !stopSign)
     {
+        qDebug() << "comboBoxLvlPre_activated yes";   ///LLL!!!
         applyRegFlag(config_NUMREG_rx_cntr, fl_REG_RX_CNTR_max_Rn_sync_pre, index);
         switchRegisterAsgmt(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_msw), ui->label_20, ui->label_8, ui->label_9,
                   ui->lineEdit_10, ui->lineEdit_11, ui->labelD0D4RO, TXT_lvl_sync_pre_rx_OR_prs_level_max_rn,
@@ -1111,6 +1177,217 @@ void Configuration::on_comboBoxRam_activated(int index)
         item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
         item->setTextColor(Qt::black);
         ui->tableWidgetVSK->item(config_NUMREG_ram_tx_rx-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(Qt::Checked);
+    }
+}
+
+/*
+void Configuration::on_lineEdit_11_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_10_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_12_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_9_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditTrCntr_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditCntTrh_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditCntTrl_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditCntReh_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditCntRel_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_g_sp_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_g1_sph_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_g1_spl_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEdit_ID_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditAmplitude_editingFinished()
+{
+
+}
+*/
+void Configuration::on_lineEditAmplitude_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_amplitude_signal), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_amplitude_signal), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_amplitude_signal), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_ID_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_id), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_id), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_id), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_g1_sph_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_1_sp_high), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_1_sp_high), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_1_sp_high), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_g1_spl_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_1_sp_low), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_1_sp_low), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_1_sp_low), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_g_sp_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_sp), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_sp), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_g_sp), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEditCntReh_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_rx_msw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_rx_msw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_rx_msw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEditCntRel_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_rx_lsw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_rx_lsw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_rx_lsw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEditCntTrh_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_tx_msw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_tx_msw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_tx_msw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEditCntTrl_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_tx_lsw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_tx_lsw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_cnt_pct_tx_lsw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEditTrCntr_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_tx_cntr), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_tx_cntr), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_tx_cntr), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_12_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_msw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_msw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_msw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_9_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_lsw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_lsw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_kf_rx_lsw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_11_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_lsw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_lsw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_lsw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+
+void Configuration::on_lineEdit_10_textChanged(const QString &arg1)
+{
+    if (currentTab==3 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_msw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_msw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_lvl_sync_pre_rx_msw), rcn_Val)->setTextColor(Qt::black);
     }
 }
 
@@ -1191,6 +1468,103 @@ void Configuration::on_comboBoxOff_currentIndexChanged(int index)
         applyRegFlag(config_NUMREG_pll_reg, fl_REG_PLL_pd, index);
 }
 
+void Configuration::on_lineEditSPIh_textChanged(const QString &arg1)
+{
+    if (currentTab==4 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_dr_spi_msw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_dr_spi_msw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_dr_spi_msw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+/*
+void Configuration::on_lineEditSPIh_editingFinished()
+{
+
+}
+*/
+void Configuration::on_lineEditSPIl_textChanged(const QString &arg1)
+{
+    if (currentTab==4 && !stopSign)
+    {
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_dr_spi_lsw), rcn_Name_Check)->setCheckState(Qt::Checked);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_dr_spi_lsw), rcn_Val)->setText(arg1);
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_dr_spi_lsw), rcn_Val)->setTextColor(Qt::black);
+    }
+}
+/*
+void Configuration::on_lineEditSPIl_editingFinished()
+{
+
+}
+*/
+
+void Configuration::on_lineEditMult_textChanged(const QString &arg1)
+{
+    if (currentTab==4 && !stopSign)
+    {
+        stopSign = true;
+        int arg = 0;
+        if (!arg1.isEmpty())
+            arg = arg1.toInt(0, 16);
+        if (arg > 0x3F)
+        {
+            arg &= 0x3F;
+            ui->lineEditMult->setText(QString::number(arg, 16));
+        }
+
+        QTableWidgetItem *item = ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_pll_reg), rcn_Val);
+        word16_t newval = 0;
+        if (!item->text().isEmpty())
+            newval = (item->text().toInt(0,16)) & ~FL_REG_PLL_ns;
+        newval += arg;
+
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_pll_reg), rcn_Name_Check)->setCheckState(Qt::Checked);
+        item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
+        item->setTextColor(Qt::black);
+        stopSign = false;
+    }
+}
+
+void Configuration::on_lineEditDiv_textChanged(const QString &arg1)
+{
+    if (currentTab==4 && !stopSign)
+    {
+        stopSign = true;
+        int arg = arg1.toInt(0, 16);
+        if (arg > 0x3F)
+        {
+            arg &= 0x3F;
+            ui->lineEditDiv->setText(QString::number(arg, 16));
+        }
+
+        QTableWidgetItem *item = ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_pll_reg), rcn_Val);
+        word16_t newval = 0;
+        if (!item->text().isEmpty())
+            newval = (item->text().toInt(0,16)) & ~FL_REG_PLL_ms;
+        newval += (arg << 6);
+
+        ui->tableWidgetVSK->item(ADDR_2_VSK_ROW(REG_VSK_pll_reg), rcn_Name_Check)->setCheckState(Qt::Checked);
+        item->setText((QString("%1").arg(newval, 4, 16, QChar('0'))).toUpper());
+        item->setTextColor(Qt::black);
+        stopSign = false;
+    }
+}
+/*
+void Configuration::on_lineEditMult_editingFinished()
+{
+
+}
+
+void Configuration::on_lineEditDiv_editingFinished()
+{
+
+}
+*/
+
+////////////////////////////////////////////////////////////////////////
+/// ВНЕШНИЕ ФУНКЦИИ
+
 int Configuration::getConfigReg() const
 {
     return ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Val)->text().toInt(0,16);
@@ -1225,4 +1599,3 @@ void Configuration::markWritten(int addr)
             ui->tableWidgetVSK->item(row, rcn_Val)->setTextColor(Qt::blue);
     }
 }
-

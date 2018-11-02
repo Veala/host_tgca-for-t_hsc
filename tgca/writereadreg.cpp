@@ -33,8 +33,9 @@ QByteArray Configuration::getRegistersToWrite()
     for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
     {
         ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
-        if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked &&
-            i != config_NUMREG_creg-config_NUMREG_BEGIN_VSK)
+        if (ui->tableWidgetVSK->item(i, rcn_Name_Check)->checkState() == Qt::Checked
+            && i != config_NUMREG_creg-config_NUMREG_BEGIN_VSK
+            && i != config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK)
         {
             int addr = ROW_REG_VSK_2_ADDR(i);
             QString strval = ui->tableWidgetVSK->item(i, rcn_Val)->text();
@@ -42,6 +43,14 @@ QByteArray Configuration::getRegistersToWrite()
             array.append((char*)&addr, 4);
             array.append((char*)&val, 4);
         }
+    }
+    if (ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->checkState() == Qt::Checked)
+    {
+        int addr = REG_VSK_creg;
+        QString strval = ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Val)->text();
+        int val = strval.isEmpty() ? 0 : strval.toInt(0,16);
+        array.append((char*)&addr, 4);
+        array.append((char*)&val, 4);
     }
     return array;
 }

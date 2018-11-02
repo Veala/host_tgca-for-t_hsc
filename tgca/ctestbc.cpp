@@ -4,7 +4,8 @@
 #include <string.h>
 #include "command.h"
 
-#include <QString>
+//#include <QString>
+//#include <QDebug>
 
 CTestBC::CTestBC():
     loaded(false)
@@ -26,7 +27,7 @@ int CTestBC::NumSymOFDM(int num_byte)
     if (num_byte < 0)
         return -1;
 
-    unsigned short len = numWordInSymbol();
+    unsigned short len = numWordInSymbol()*sizeof(word32_t);
     if (len == 0)
         return -1;
 
@@ -63,7 +64,7 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
         if (size_src > maxNumByte())
             return false;   // размер данных не поместится в один пакет
 
-        if (NumSymOFDM(size_src) < 0)
+        if ((num_s = NumSymOFDM(size_src)) < 0)
             return false;   // ошибка метода NumSymOFDM()
     }
 
@@ -74,9 +75,9 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
 
     createCommandWord(&command, addr, num_s, tr, code);
     memcpy((void*)ptr_dst, (void*)(&command), sizeof(word32_t));
-    ptr_dst += sizeof(word32_t);
 
-    unsigned nc = nw - sizeof(word32_t);
+    unsigned nb = nw * sizeof(word32_t);
+    unsigned nc = nb - sizeof(word32_t);
     if (tr != tgca_tr_REC)
         size_src = 0;
 
@@ -84,34 +85,21 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
     if (nc > size_src)
         nc = size_src;
     size_src -= nc;
-    int rest = (NUMWORDINOFDMSYM-1)*sizeof(word32_t) - nc;
+    //qDebug() << "nc " << nc << " nw " << nw << " nb " << nb << " size_src " << size_src << " size_dst " << size_dst;
     if (nc > 0)
     {
-        memcpy((void*)ptr_dst, (void*)ptr_src, nc);
-        ptr_dst += nc;
+        memcpy((void*)(ptr_dst + sizeof(word32_t)), (void*)ptr_src, nc);
         ptr_src += nc;
     }
-    memset((void*)ptr_dst, 0, rest);
-    ptr_dst += rest;
-    ptr_src += rest;
 
     /// Копирование остальных символов
     while(size_src > 0)
     {
-        nc = nw > size_src ? size_src : nw;
+        ptr_dst += (NUMWORDINOFDMSYM * sizeof(word32_t));
+        nc = nb > size_src ? size_src : nb;
         size_src -= nc;
-        rest = NUMWORDINOFDMSYM * sizeof(word32_t) - nc;
         memcpy((void*)ptr_dst, (void*)ptr_src, nc);
-        ptr_dst += nc;
         ptr_src += nc;
-        memset((void*)ptr_dst, 0, rest);
-        ptr_dst += rest;
-        ptr_src += rest;
     };
     return true;
 }
-
-
-//hscl_SingleExchange
-//Test_BC_TRM
-//CatchStatusChange

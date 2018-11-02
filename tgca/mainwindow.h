@@ -7,10 +7,11 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QPrinter>
-#include <QDebug>
 #include "configuration.h"
 #include "device.h"
 #include "tests/abstracttest.h"
+
+#include <QDebug>
 
 namespace Ui {
 class MainWindow;
@@ -91,6 +92,8 @@ private slots:
     void printReport(QPrinter* prnt);
     void onMenuDevices(QPoint);
     void onMenuTests(QPoint);
+    void onMenuOutput(QPoint);
+    void outputClear();
     void actDevMode();
 };
 

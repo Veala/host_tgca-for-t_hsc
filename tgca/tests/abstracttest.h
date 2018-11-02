@@ -18,6 +18,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QDrag>
+#include "../funclib.h"
 #include "../device.h"
 
 //#define debug_AT
@@ -43,7 +44,7 @@ class AbstractTest : public QFrame, public GlobalState
                     if (!settingsFile.open(QFile::ReadOnly)) \
                         return; \
                     QTextStream out(&settingsFile); \
-                    out.readLine(); out.readLine();
+                    out.readLine(); out.readLine(); out.readLine();
 
 #define top_2(str)          if (str.isEmpty()) \
                                 return; \
@@ -52,12 +53,14 @@ class AbstractTest : public QFrame, public GlobalState
                                 return; \
                             QTextStream in(&settingsFile); \
                             in << name_enabled->text() << endl; \
-                            in << name_enabled->isChecked() << endl;
+                            in << name_enabled->isChecked() << endl; \
+                            in << mark->text() << endl; \
+                            message(tr("Настройки теста сохранены (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
 
 public:
     explicit AbstractTest(QWidget *parent = 0);
     virtual ~AbstractTest();
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
     QString getName() const;
     bool isReady() const;
 
@@ -90,25 +93,29 @@ protected:
     void mousePressEvent(QMouseEvent *);
     void dragEnterEvent(QDragEnterEvent *);
     void dropEvent(QDropEvent *);
+    bool event(QEvent *e);
     virtual void startTest() = 0;
     QThread testThread;
     absObjToThread *objToThread;
     QList<QLineEdit*> deviceLineEditList;
     QList<Device*> deviceList;
+    QMap<QString, QLabel*> statsMap;
     QString saveFileNameStr;
     QCheckBox *name_enabled;
     QLabel *fileName, *status;
     QPushButton *startButton, *pauseButton, *stopButton;
     QDialog *settings;
+    QWidget *stats;
     QVBoxLayout *devices;
     QTextBrowser *projectBrowser, *testsBrowser;
+    QLineEdit* mark;
     void message(QString);
     void setConnections(Device*);
     void setDisconnections(Device*);
 
 protected slots:
-    void showSettings();
     virtual void save();
+    void markChanged(QString);
     void firstStartTest();
     void pauseTest();
     void stopTest();
@@ -120,6 +127,7 @@ protected slots:
 //    void disconnectingSockDevice();
 //    void errorDevice(QAbstractSocket::SocketError);
     void testOutout(QString);
+    virtual void statsTestOutput(QString, long);
     void setRunningState(int);
 
 private:
@@ -131,19 +139,20 @@ private:
 
 };
 
-class absObjToThread : public QObject
+class absObjToThread : public QObject//, public DeviceDriver
 {
     Q_OBJECT
+
+//    int readAll(QTcpSocket*, QByteArray&, int);
+//    int writeAll(QTcpSocket*, QByteArray&);
 public:
     AbstractTest::RunningState threadState;
-    int readAll(QTcpSocket*, QByteArray&, int);
-    int writeAll(QTcpSocket*, QByteArray&);
-    int write_F1(QTcpSocket* tcpSocket, QByteArray& writeArray);
-    int write_F2(QTcpSocket* tcpSocket, QByteArray& writeArray);
-    int write_Echo(QTcpSocket* tcpSocket, QByteArray& writeArray);
-    int read_F1(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
-    int read_F2(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
-    QByteArray cmdHead(int cmd, int dsz);
+//    int write_F1(QTcpSocket* tcpSocket, QByteArray& writeArray);
+//    int write_F2(QTcpSocket* tcpSocket, QByteArray& writeArray);
+//    int write_Echo(QTcpSocket* tcpSocket, QByteArray& writeArray);
+//    int read_F1(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
+//    int read_F2(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
+//    QByteArray cmdHead(int cmd, int dsz);
 
 public slots:
     virtual void doWork() = 0;
@@ -151,6 +160,7 @@ public slots:
 signals:
     void resultReady(int);
     void outputReady(QString);
+    void statsOutputReady(QString,long);
 protected:
     int pause_stop();
 };

@@ -9,7 +9,7 @@ class TrmSingleTest : public AbstractTest
     Q_OBJECT
 public:
     explicit TrmSingleTest(QWidget *parent = 0) : AbstractTest(parent) { }
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     virtual void save();
 protected:
@@ -35,6 +35,7 @@ private:
     QComboBox *comboBoxUnit;
 
     QLineEdit *lineEditTime;
+    QLineEdit *lineEditPause;
     QCheckBox *checkBoxUseInt;
     QCheckBox *checkBoxOut;
 
@@ -53,15 +54,50 @@ private:
     QCheckBox *checkBoxInit;
     QSpinBox  *spinBoxCycle;
 
+    QRadioButton *radioButtonSingle;
+    QRadioButton *radioButtonUnlimited;
+    QRadioButton *radioButtonEnter;
+
+    QLineEdit *lineEditSPIData;
+    QCheckBox *checkBoxConfRegLoad;
+    QCheckBox *checkBoxRTALoad;
+    QCheckBox *checkBoxSPILoad;
+    QCheckBox *checkBoxCounters;
+    QComboBox *comboBoxSPIdr;
+    QComboBox *comboBoxSPIen;
+
+    QCheckBox *checkBoxBCOut;
+    QCheckBox *checkBoxRTOut;
+//    QLabel    *labelBCStat;
+//    QLabel    *labelRTStat;
+//    QLabel    *labelCounters;
+    QComboBox *comboBoxCountPref;
+    QComboBox *comboBoxBCOutPref;
+    QComboBox *comboBoxRTOutPref;
+    QLineEdit *lineEditCountOut;
+    QLineEdit *lineEditBCOut;
+    QLineEdit *lineEditRTOut;
+
+    QLabel *labelMarkFatalErr;
+    QLabel *labelMarkStatBCErr;
+    QLabel *labelMarkStatRTErr;
+    QLabel *labelMarkCompErr;
+    QCheckBox *checkBoxFatalErr;
+    QCheckBox *checkBoxStatBCErr;
+    QCheckBox *checkBoxStatRTErr;
+    QCheckBox *checkBoxCompErr;
+    QCheckBox *checkBoxWinMode;
+
     unsigned int mnb;
     unsigned int maxNumByte();
     void recalc();
     void updateDeviceList();
 
 private slots:
-    void onRadio();
-    void onCodec();
-    void onManType();
+    void onRadioData();
+    void onRadioCycle();
+    void onCheckInit();
+    void recalcMax();
     void updateSettings();
 
 signals:
@@ -71,11 +107,11 @@ signals:
 class trmSingleObjToThread : public absObjToThread
 {
     Q_OBJECT
-    bool readReg(QTcpSocket& socket, int addr, int *val);
-    bool checkStatusReg(QTcpSocket& socket, int *status);
+    bool checkStatusReg(Device *dev, int *status);
     bool checkStatusRegBC(int *status);
     bool checkStatusRegRT(int *status);
-    bool checkCounters(QTcpSocket* socket);
+    bool checkCounters(Device *dev);
+    void stdOutput(QString);
 
 public slots:
     virtual void doWork();
@@ -83,9 +119,12 @@ public slots:
 public:
     trmSingleObjToThread();
 
-    uint cfgBC, cfgRT, amplBC, amplRT, time, data_size, iter;
+    uint cfgBC, cfgRT, amplBC, amplRT, waitTime, pauseTime, data_size;
+    int iterCycle;
     addr_t rtaddr;
-    bool broad, useInt, outEnable, compEnable, initEnable;
+    bool broad, useInt, outEnable, compEnable, initEnable, writeCfg, checkCountersEnable;
+    bool statusBCOut, statusRTOut, exitOnNoFin, windowMode;
+    int dataSPI, modeSPI;
     void* data;
     //char data[MAXPACKAGESIZE];
     QTcpSocket tcpSocketBC, tcpSocketRT;

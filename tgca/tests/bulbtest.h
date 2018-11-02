@@ -8,7 +8,7 @@ class BulbTest : public AbstractTest
     Q_OBJECT
 public:
     explicit BulbTest(QWidget *parent = 0) : AbstractTest(parent) { }
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB);
+    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     virtual void save();
 protected:
@@ -23,14 +23,14 @@ class bulbObjToThread : public absObjToThread
 public slots:
     virtual void doWork();
 public:
-    void setIter(QLineEdit* ed) { iter = ed->text().toInt(); }
-    void setPause(QLineEdit* ed) { pause = ed->text().toInt(); }
+    void setIter(QLineEdit* ed) { iterCount = ed->text().toInt(); }
+    void setPause(QLineEdit* ed) { iterTime = ed->text().toInt(); }
     QTcpSocket tcpSocket;
     Device *dev;
 private slots:
     void switchOff(int);
 private:
-    uint iter, pause;
+    uint iterCount, iterTime;
 };
 
 #endif // BULBTEST_H

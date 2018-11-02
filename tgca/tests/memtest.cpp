@@ -1,8 +1,11 @@
 #include "memtest.h"
 
-void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
+void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName,pB,tB);
+    AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
+
+    statsMap.insert("counter_iter", stats->findChild<QLabel*>("counter_iter"));
+    statsMap.insert("counter_err", stats->findChild<QLabel*>("counter_err"));
 
     mode = settings->findChild<QComboBox*>("mode");
     startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -34,6 +37,7 @@ top_1
     connect(&testThread,SIGNAL(finished()), objToThread,SLOT(deleteLater()));
     connect(objToThread,SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
     connect(objToThread,SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
+    connect(objToThread,SIGNAL(statsOutputReady(QString,long)), this, SLOT(statsTestOutput(QString,long)));
     connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
     testThread.start();
 }
@@ -83,6 +87,7 @@ void memObjToThread::doWork()
         tcpSocket.abort();
         return;
     }
+    dev->setSocket(&tcpSocket);
 
     emit resultReady((int)AbstractTest::Running);
 
@@ -111,26 +116,34 @@ void memObjToThread::doWork()
 
         for (; it<inCycle; it=it+1+decrement) {
             qDebug() << "writeArray size: " << writeArray.size();
-            if (write_F1(&tcpSocket, writeArray) == -1) return;
+            if (dev->write_F1(writeArray) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
             if (pause_stop() == -1) {
                 tcpSocket.abort();
                 return;
             }
         }
+        emit statsOutputReady("counter_iter", 1);
     } else if (mode == "r") {
         readArray = cmdHead(3, dsz);
         for (uint i=addr; i+3<=range; i+=addrinc)
             readArray.append((char*)&i, 4);
 
         for (; it<inCycle; it=it+1+decrement) {
-            if (read_F1(&tcpSocket, readArray, answer) == -1) return;
+            if (dev->read_F1(readArray, answer) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
             for (uint i=0; i<answer.size(); i+=4) {
-                if (output) outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
+                if (output) emit outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
             }
             if (pause_stop() == -1) {
                 tcpSocket.abort();
                 return;
             }
+            emit statsOutputReady("counter_iter", 1);
         }
     } else if (mode == "wr") {
         writeArray = cmdHead(1, dsz*2);
@@ -145,11 +158,17 @@ void memObjToThread::doWork()
         }
 
         for (; it<inCycle; it=it+1+decrement) {
-            if (write_F1(&tcpSocket, writeArray) == -1) return;
+            if (dev->write_F1(writeArray) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
 
             ulong same=0, diff=0;
             uint w,r;
-            if (read_F1(&tcpSocket, readArray, answer) == -1) return;
+            if (dev->read_F1(readArray, answer) == -1) {
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                return;
+            }
             for (uint i=0, j=12; i<answer.size(); i+=4, j+=8) {
                 w = *(int*)(writeArray.data()+j);
                 r = *(int*)(answer.data()+i);
@@ -157,6 +176,8 @@ void memObjToThread::doWork()
                 if (w != r) diff++; else same++;
             }
             emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
+            emit statsOutputReady("counter_iter", 1);
+            emit statsOutputReady("counter_err", diff);
             if (pause_stop() == -1) {
                 tcpSocket.abort();
                 return;

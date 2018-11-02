@@ -108,7 +108,7 @@ void fillRegularDataW32(void *data, int length, int init, int step, int itermax)
         for (int i=0; i<length; i++)
             ((int*)data)[i] = (init+step*i) & 0xFFFFFFFF;
 }
-void *createRegulatData(int length, int init, int step, int itermax, int numchar)
+void *createRegularData(int length, int init, int step, int itermax, int numchar)
 {
     if (length <=0)
         return false;

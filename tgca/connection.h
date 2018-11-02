@@ -2,6 +2,7 @@
 #define CONNECTIONFORM_H
 
 #include <QWidget>
+#include <QShortcut>
 #include <QtNetwork>
 
 namespace Ui {

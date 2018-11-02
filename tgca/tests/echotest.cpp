@@ -1,8 +1,8 @@
 #include "echotest.h"
 
-void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QTextBrowser *pB, QTextBrowser *tB)
+void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
-    AbstractTest::setSettings(b,d,ch,tType,fName,pB,tB);
+    AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
     echo = settings->findChild<QLineEdit *>("echo");
     deviceEdit = settings->findChild<QLineEdit*>("device");
     deviceLineEditList.append(deviceEdit);
@@ -50,12 +50,16 @@ void echoObjToThread::doWork()
         tcpSocket.abort();
         return;
     }
+    dev->setSocket(&tcpSocket);
 
     emit resultReady((int)AbstractTest::Running);
 
     QByteArray writeArray = cmdHead(5, echoText.size()+1);
     writeArray.append(echoText.toStdString().c_str(), echoText.size()+1);
-    if (write_Echo(&tcpSocket, writeArray) == -1) return;
+    if (dev->write_Echo(writeArray) == -1) {
+        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        return;
+    }
     tcpSocket.abort();
     emit resultReady(AbstractTest::Completed);
 }
