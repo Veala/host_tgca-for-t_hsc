@@ -41,25 +41,28 @@ void EchoTest::startTest()
 
 void echoObjToThread::doWork()
 {
-    QString ip = dev->connection.getServerIP();
-    ushort port = dev->connection.getServerPORT().toUShort();
+    try
+    {
+        QString ip = dev->connection.getServerIP();
+        ushort port = dev->connection.getServerPORT().toUShort();
 
-    tcpSocket.connectToHost(QHostAddress(ip), port);
-    if (!tcpSocket.waitForConnected(5000)) {
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        tcpSocket.connectToHost(QHostAddress(ip), port);
+        if (!tcpSocket.waitForConnected(5000)) {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            tcpSocket.abort();
+            return;
+        }
+        dev->setSocket(&tcpSocket);
+
+        emit resultReady((int)AbstractTest::Running);
+
+        dev->write_Echo(echoText);
         tcpSocket.abort();
-        return;
+        emit resultReady(AbstractTest::Completed);
     }
-    dev->setSocket(&tcpSocket);
-
-    emit resultReady((int)AbstractTest::Running);
-
-    QByteArray writeArray = cmdHead(5, echoText.size()+1);
-    writeArray.append(echoText.toStdString().c_str(), echoText.size()+1);
-    if (dev->write_Echo(writeArray) == -1) {
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
-        return;
+    catch (const QString& exception)
+    {
+        if (exception == "socket")
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
     }
-    tcpSocket.abort();
-    emit resultReady(AbstractTest::Completed);
 }

@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     monitor.cpp \
     #crutches.cpp \
     tests/spipart.cpp \
-    funclib.cpp
+    funclib.cpp \
+    #data_structs.cpp
 
 HEADERS  += mainwindow.h \
     command.h \
@@ -58,7 +59,8 @@ HEADERS  += mainwindow.h \
     monitor.h \
     #crutches.h \
     tests/spipart.h \
-    funclib.h
+    funclib.h \
+    data_structs.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \

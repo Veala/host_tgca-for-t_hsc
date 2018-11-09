@@ -20,6 +20,7 @@
 #include <QDrag>
 #include "../funclib.h"
 #include "../device.h"
+#include "../data_structs.h"
 
 //#define debug_AT
 
@@ -128,6 +129,8 @@ protected slots:
 //    void errorDevice(QAbstractSocket::SocketError);
     void testOutout(QString);
     virtual void statsTestOutput(QString, long);
+    virtual void statsToZero();
+    virtual void statsSave();
     void setRunningState(int);
 
 private:

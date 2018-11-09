@@ -56,7 +56,7 @@ private slots:
     void onCheckSelect2();
     void onCellChanged1(int, int);
     void onCellChanged2(int, int);
-    void onSignalError(int);
+    //void onSignalError(int);
     void onConnect(int);
 
     void forceExit();

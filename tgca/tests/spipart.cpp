@@ -73,70 +73,69 @@ void SpiPart::startTest()
 
 void spiObjToThread::doWork()
 {
-    QString ip = dev->connection.getServerIP();
-    ushort port = dev->connection.getServerPORT().toUShort();
+    try {
+        QString ip = dev->connection.getServerIP();
+        ushort port = dev->connection.getServerPORT().toUShort();
 
-    tcpSocket.connectToHost(QHostAddress(ip), port);
-    if (!tcpSocket.waitForConnected(5000)) {
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
-        tcpSocket.abort();
-        return;
-    }
-    dev->setSocket(&tcpSocket);
+        tcpSocket.connectToHost(QHostAddress(ip), port);
+        if (!tcpSocket.waitForConnected(5000)) {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            tcpSocket.abort();
+            return;
+        }
+        dev->setSocket(&tcpSocket);
 
-    emit resultReady((int)AbstractTest::Running);
+        emit resultReady((int)AbstractTest::Running);
 
-    QByteArray writeArray, answer;
-    QByteArray readArray;
+        QByteArray writeArray, answer;
+        QByteArray readArray;
 
-    do {
-        for (int i=0; i<lines; i+=2)
-        {
-            writeArray = cmdHead(1, 16);
-            writeArray.append((char*)&addr.at(i), 4);   writeArray.append((char*)&data.at(i), 4);
-            writeArray.append((char*)&addr.at(i+1), 4); writeArray.append((char*)&data.at(i+1), 4);
-            if (dev->write_F1(writeArray) == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
+        do {
+            for (int i=0; i<lines; i+=2)
+            {
+                writeArray = cmdHead(1, 16);
+                writeArray.append((char*)&addr.at(i), 4);   writeArray.append((char*)&data.at(i), 4);
+                writeArray.append((char*)&addr.at(i+1), 4); writeArray.append((char*)&data.at(i+1), 4);
+                dev->write_F1(writeArray);
 
-            readArray = cmdHead(3, 4);
-            readArray.append((char*)&addr.at(i+1), 4);
+                readArray = cmdHead(3, 4);
+                readArray.append((char*)&addr.at(i+1), 4);
 
-            int n = 0, ans = fl_REG_CR_SPI_spif + data.at(i+1);
-            while (1) {
-                if (dev->read_F1(readArray, answer) == -1) {
-                    emit resultReady((int)AbstractTest::ErrorIsOccured);
+                int n = 0, ans = fl_REG_CR_SPI_spif + data.at(i+1);
+                while (1) {
+                    dev->read_F1(readArray, answer);
+                    if (*(int*)(answer.data()) == ans) {
+                        emit outputReady(tr("Answer == %1").arg(ans,0,16));
+                        break;
+                    } else {
+                        n++;
+                        emit outputReady(tr("Answer != %1").arg(ans,0,16));
+                        if (n>1000) {
+                            tcpSocket.abort();
+                            emit resultReady((int)AbstractTest::ErrorIsOccured);
+                            return;
+                        }
+                        answer.clear();
+                    }
+                }
+
+                writeArray.clear();
+                readArray.clear();
+                answer.clear();
+
+                //threadState = AbstractTest::Paused;
+                if (pause_stop() == -1) {
+                    tcpSocket.abort();
                     return;
                 }
-                if (*(int*)(answer.data()) == ans) {
-                    emit outputReady(tr("Answer == %1").arg(ans,0,16));
-                    break;
-                } else {
-                    n++;
-                    emit outputReady(tr("Answer != %1").arg(ans,0,16));
-                    if (n>1000) {
-                        tcpSocket.abort();
-                        emit resultReady((int)AbstractTest::ErrorIsOccured);
-                        return;
-                    }
-                    answer.clear();
-                }
             }
+        } while (cycle);
 
-            writeArray.clear();
-            readArray.clear();
-            answer.clear();
-
-            //threadState = AbstractTest::Paused;
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-        }
-    } while (cycle);
-
-    tcpSocket.abort();
-    emit outputReady(tr("SPI загружено"));
-    emit resultReady(AbstractTest::Completed);
+        tcpSocket.abort();
+        emit outputReady(tr("SPI загружено"));
+        emit resultReady(AbstractTest::Completed);
+    } catch(const QString& exception) {
+        if (exception == "socket")
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+    }
 }

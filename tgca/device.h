@@ -7,15 +7,17 @@
 #include <QAction>
 #include <QDebug>
 #include <QTextBrowser>
+#include <QVector>
 #include "connection.h"
 #include "configuration.h"
 #include "funclib.h"
+#include "data_structs.h"
 
 namespace Ui {
 class Device;
 }
 
-class Device : public QFrame//, public DeviceDriver
+class Device : public QFrame
 {
     Q_OBJECT
 
@@ -39,13 +41,16 @@ public:
     QString getName() const;
     void setSocket(QTcpSocket*);
 
-    int write_F1(QByteArray& writeArray);
-    int write_F2(QByteArray& writeArray);
-    int write_Echo(QByteArray& writeArray);
-    int read_F1(QByteArray& writeArray, QByteArray& readArray);
-    int read_F2(QByteArray& writeArray, QByteArray& readArray);
-    int readReg(int addr, int *val);
-
+    void write_F1(QByteArray& writeArray);
+    void write_F2(QByteArray& writeArray);
+    void write_Echo(QString& text);
+    void read_F1(QByteArray& writeArray, QByteArray& readArray);
+    void read_F2(QByteArray& writeArray, QByteArray& readArray);
+    void writeReg(BaseReg* reg);
+    void readReg(BaseReg* reg);
+    void writeRegs(QVector<BaseReg*>& regs);
+    void readRegs(QVector<BaseReg*>& regs);
+    //int readReg(int addr, int *val);
 protected:
     void mousePressEvent(QMouseEvent *event);
 
@@ -55,8 +60,8 @@ private:
     QTextBrowser* projectBrowser;
     QTcpSocket* sock;
     void message(QString);
-    int readAll(QByteArray&, int);
-    int writeAll(QByteArray&);
+    void readAll(QByteArray&, int);
+    void writeAll(QByteArray&);
 
 
 private slots:

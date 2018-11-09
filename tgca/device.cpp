@@ -62,7 +62,7 @@ void Device::setSocket(QTcpSocket *s)
     sock = s;
 }
 
-int Device::readAll(QByteArray& array, int size)
+void Device::readAll(QByteArray& array, int size)
 {
     array.clear();
     array.resize(size);
@@ -79,7 +79,7 @@ int Device::readAll(QByteArray& array, int size)
         if (r == -1) {
             sock->abort();
             //emit resultReady((int)AbstractTest::ErrorIsOccured);
-            return -1;
+            throw QString("socket");
         } else if (r==0) {
 #ifdef debug_AT
             qDebug() << "-------------if (r==0)";
@@ -92,16 +92,16 @@ int Device::readAll(QByteArray& array, int size)
 #endif
                 sock->abort();
                 //emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return -1;
+                throw QString("socket");
             }
         } else {
             n+=r;
-            if (n>=size) return 0;
+            if (n>=size) return;
         }
     }
 }
 
-int Device::writeAll(QByteArray& array)
+void Device::writeAll(QByteArray& array)
 {
     char* temp = array.data();
     int size = array.size();
@@ -113,7 +113,7 @@ int Device::writeAll(QByteArray& array)
         if (n == -1) {
             sock->abort();
             //emit resultReady((int)AbstractTest::ErrorIsOccured);
-            return -1;
+            throw QString("socket");
         } else  if (n < size) {
             size -=  n;
             temp = array.right(size).data();
@@ -129,70 +129,107 @@ int Device::writeAll(QByteArray& array)
 #endif
         sock->abort();
         //emit resultReady((int)AbstractTest::ErrorIsOccured);
-        return -1;
-    } else {
-        return 0;
+        throw QString("socket");
     }
 }
 
-int Device::write_F1(QByteArray &writeArray)
+void Device::write_F1(QByteArray &writeArray)
 {
     int cmd = 1;    QByteArray answer;
-    if (writeAll(writeArray) == -1) return -1;
-    if (readAll(answer, 4) == -1) return -1;
+    writeAll(writeArray);
+    readAll(answer, 4);
     if (*(int*)answer.data() != cmd) {
 #ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
 #endif
         sock->abort();
-        return -1;
+        throw QString("socket");
     }
-    return 0;
 }
 
-int Device::write_F2(QByteArray &writeArray)
+void Device::write_F2(QByteArray &writeArray)
 {
     int cmd = 2;    QByteArray answer;
-    if (writeAll(writeArray) == -1) return -1;
-    if (readAll(answer, 4) == -1) return -1;
+    writeAll(writeArray);
+    readAll(answer, 4);
     if (*(int*)answer.data() != cmd) {
 #ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
 #endif
         sock->abort();
-        return -1;
+        throw QString("socket");
     }
-    return 0;
 }
 
-int Device::write_Echo(QByteArray &writeArray)
+void Device::write_Echo(QString &text)
 {
+    QByteArray writeArray = cmdHead(5, text.size()+1);
+    writeArray.append(text.toStdString().c_str(), text.size()+1);
     int cmd = 5;    QByteArray answer;
-    if (writeAll(writeArray) == -1) return -1;
-    if (readAll(answer, 4) == -1) return -1;
+    writeAll(writeArray);
+    readAll(answer, 4);
     if (*(int*)answer.data() != cmd) {
 #ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
 #endif
         sock->abort();
-        return -1;
+        throw QString("socket");
     }
-    return 0;
 }
 
-int Device::read_F1(QByteArray &writeArray, QByteArray &readArray)
+void Device::read_F1(QByteArray &writeArray, QByteArray &readArray)
 {
-    if (writeAll(writeArray) == -1) return -1;
-    if (readAll(readArray, writeArray.size()-8) == -1) return -1;
-    return 0;
+    writeAll(writeArray);
+    readAll(readArray, writeArray.size()-8);
 }
 
-int Device::read_F2(QByteArray &writeArray, QByteArray &readArray)
+void Device::writeReg(BaseReg *reg)
 {
-    if (writeAll(writeArray) == -1) return -1;
+    int len = sizeof(BaseReg);
+    QByteArray array = cmdHead(1, 2*len);
+    array.append((char*)reg, 2*len);
+    write_F1(array);
+}
+
+void Device::readReg(BaseReg *reg)
+{
+    int len = sizeof(BaseReg);
+    QByteArray array = cmdHead(3, len);
+    QByteArray answer;
+    array.append((char*)reg, len);
+    read_F1(array, answer);
+    *((quint32*)reg+1) = *(quint32*)answer.data();
+}
+
+void Device::writeRegs(QVector<BaseReg *>& regs)
+{
+    int len = sizeof(BaseReg);
+    QByteArray array = cmdHead(1, regs.size()*2*len);
+    foreach (BaseReg* r, regs) {
+        array.append((char*)r, 2*len);
+    }
+    write_F1(array);
+}
+
+void Device::readRegs(QVector<BaseReg *>& regs)
+{
+    int len = sizeof(BaseReg);
+    QByteArray array = cmdHead(3, regs.size()*len);
+    QByteArray answer;
+    foreach (BaseReg* r, regs) {
+        array.append((char*)r, len);
+    }
+    read_F1(array, answer);
+    for (int i=0; i<regs.size(); i++) {
+        *((quint32*)regs[i]+1) = *((quint32*)answer.data()+i);
+    }
+}
+
+void Device::read_F2(QByteArray &writeArray, QByteArray &readArray)
+{
+    writeAll(writeArray);
     int nr = *(int*)(writeArray.data()+12);
-    if (readAll(readArray, nr) == -1) return -1;
-    return 0;
+    readAll(readArray, nr);
 }
 
 void Device::message(QString m)
@@ -237,14 +274,14 @@ void Device::doError(QAbstractSocket::SocketError err)
     sock->abort();
 }
 
-int Device::readReg(int addr, int *val)
-{
-    QByteArray answer;
-    QByteArray readArray = cmdHead(3, 4);
-    readArray.append((char*)&addr, 4);
-    if (read_F1(readArray, answer) == -1)
-        return -1;
+//int Device::readReg(int addr, int *val)
+//{
+//    QByteArray answer;
+//    QByteArray readArray = cmdHead(3, 4);
+//    readArray.append((char*)&addr, 4);
+//    if (read_F1(readArray, answer) == -1)
+//        return -1;
 
-    *val = *(int*)(answer.data());
-    return 0;
-}
+//    *val = *(int*)(answer.data());
+//    return 0;
+//}

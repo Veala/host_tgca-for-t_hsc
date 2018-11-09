@@ -9,7 +9,7 @@ class TrmSingleTest : public AbstractTest
     Q_OBJECT
 public:
     explicit TrmSingleTest(QWidget *parent = 0) : AbstractTest(parent) { }
-    virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
+    void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     virtual void save();
 protected:
@@ -87,11 +87,13 @@ private:
     QCheckBox *checkBoxStatRTErr;
     QCheckBox *checkBoxCompErr;
     QCheckBox *checkBoxWinMode;
+    QLineEdit *lineEditWinModePause;
 
     unsigned int mnb;
     unsigned int maxNumByte();
     void recalc();
     void updateDeviceList();
+    void setStatSettings();
 
 private slots:
     void onRadioData();
@@ -107,11 +109,12 @@ signals:
 class trmSingleObjToThread : public absObjToThread
 {
     Q_OBJECT
-    bool checkStatusReg(Device *dev, int *status);
-    bool checkStatusRegBC(int *status);
-    bool checkStatusRegRT(int *status);
-    bool checkCounters(Device *dev);
+    //void checkStatusReg(Device *dev, int *status);
+    int checkStatusRegBC();
+    int checkStatusRegRT();
+    void checkCounters(Device *dev);
     void stdOutput(QString);
+    int readReg(Device* dev, int addr);
 
 public slots:
     virtual void doWork();
@@ -119,7 +122,7 @@ public slots:
 public:
     trmSingleObjToThread();
 
-    uint cfgBC, cfgRT, amplBC, amplRT, waitTime, pauseTime, data_size;
+    uint cfgBC, cfgRT, amplBC, amplRT, waitTime, pauseTime, delayTime, data_size;
     int iterCycle;
     addr_t rtaddr;
     bool broad, useInt, outEnable, compEnable, initEnable, writeCfg, checkCountersEnable;

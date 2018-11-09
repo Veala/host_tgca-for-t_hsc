@@ -32,7 +32,7 @@ typedef unsigned short  reg16_t;
 #define REG_AUX_rtaddr             0x180   // вспомогательный регистр: адрес ОУ
 #define REG_AUX_interruption       0x184   // вспомогательный регистр: прерывание
 #define REG_AUX_win_mode           0x190   // вспомогательный регистр: оконный режим
-#define REG_AUX_bulb               0x194   // регистр "лампочек"
+//#define REG_AUX_bulb               0x194   // регистр "лампочек"
 
 
 ///  АДРЕСА РЕГИСТРОВ ВСК

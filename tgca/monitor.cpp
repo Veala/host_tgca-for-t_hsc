@@ -527,11 +527,6 @@ void Monitor::onCellChanged2(int, int)
 
 }
 
-void Monitor::onSignalError(int err)
-{
-    //reject();
-}
-
 bool Monitor::onPushStore()
 {
     setDisabled(true);

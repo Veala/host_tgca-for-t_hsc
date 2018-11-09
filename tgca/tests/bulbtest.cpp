@@ -52,51 +52,81 @@ void bulbObjToThread::switchOff(int rs)
 {
     if (rs == AbstractTest::Stopped && tcpSocket.state() == QAbstractSocket::ConnectedState)
     {
-        int addr=REG_AUX_bulb, val=0;
-        QByteArray array = cmdHead(1, 8);
-        array.append((char*)&addr, 4);
-        array.append((char*)&val, 4);
-        dev->write_F1(array);
+        REG_AUX_bulb bulbreg;
+        dev->writeReg(&bulbreg);
+//        int addr=REG_AUX_bulb, val=0;
+//        QByteArray array = cmdHead(1, 8);
+//        array.append((char*)&addr, 4);
+//        array.append((char*)&val, 4);
+//        dev->write_F1(array);
         tcpSocket.abort();
     }
 }
 
 void bulbObjToThread::doWork()
 {
-    QString ip = dev->connection.getServerIP();
-    ushort port = dev->connection.getServerPORT().toUShort();
-    tcpSocket.connectToHost(QHostAddress(ip), port);
-    if (!tcpSocket.waitForConnected(5000)) {
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
-        emit outputReady(tr("Нет соединения"));
-        tcpSocket.abort();
-        return;
-    }
-    dev->setSocket(&tcpSocket);
-    emit resultReady((int)AbstractTest::Running);
-    emit outputReady(tr("Тест лампочек запущен"));
-
-    int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
-                     7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
-    int addr = REG_AUX_bulb;
-
-    for (uint i=0; i<iterCount; i++)
+    try
     {
-        for (int j=0; j<24; j++)
-        {
-            QByteArray array = cmdHead(1, 8);
-            array.append((char*)&addr, 4);
-            array.append((char*)&(vals[j]), 4);
-
-            if (dev->write_F1(array) == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
-            if (pause_stop() == -1)
-                return;
-            thread()->msleep(iterTime);
+        QString ip = dev->connection.getServerIP();
+        ushort port = dev->connection.getServerPORT().toUShort();
+        tcpSocket.connectToHost(QHostAddress(ip), port);
+        if (!tcpSocket.waitForConnected(5000)) {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            emit outputReady(tr("Нет соединения"));
+            tcpSocket.abort();
+            return;
         }
+        dev->setSocket(&tcpSocket);
+        emit resultReady((int)AbstractTest::Running);
+        emit outputReady(tr("Тест лампочек запущен"));
+
+//        int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
+//                         7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
+//        int addr = REG_AUX_bulb;
+
+//        for (uint i=0; i<iterCount; i++)
+//        {
+//            for (int j=0; j<24; j++)
+//            {
+//                QByteArray array = cmdHead(1, 8);
+//                array.append((char*)&addr, 4);
+//                array.append((char*)&(vals[j]), 4);
+
+//                if (dev->write_F1(array) == -1) {
+//                    emit resultReady((int)AbstractTest::ErrorIsOccured);
+//                    return;
+//                }
+//                if (pause_stop() == -1)
+//                    return;
+//                thread()->msleep(iterTime);
+//            }
+//        }
+
+        REG_AUX_bulb bulbreg;
+        int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
+                         7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
+
+        for (uint i=0; i<iterCount; i++)
+        {
+            for (int j=0; j<24; j++)
+            {
+                bulbreg.first=1;
+                bulbreg.second=1;
+                bulbreg.third=1;
+                bulbreg.fourth=1;
+                *(((quint32*)&bulbreg)+1) &= vals[j];
+                dev->writeReg(&bulbreg);
+                if (pause_stop() == -1)
+                    return;
+                thread()->msleep(iterTime);
+            }
+        }
+        tcpSocket.abort();
+        emit resultReady((int)AbstractTest::Completed);
     }
-    tcpSocket.abort();
-    emit resultReady((int)AbstractTest::Completed);
+    catch(const QString& exception)
+    {
+        if (exception == "socket")
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+    }
 }

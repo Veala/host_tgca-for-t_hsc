@@ -6,6 +6,8 @@ void MemTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QS
 
     statsMap.insert("counter_iter", stats->findChild<QLabel*>("counter_iter"));
     statsMap.insert("counter_err", stats->findChild<QLabel*>("counter_err"));
+    connect(stats->findChild<QPushButton*>("save"),SIGNAL(clicked(bool)),this,SLOT(statsSave()));
+    connect(stats->findChild<QPushButton*>("toZero"),SIGNAL(clicked(bool)),this,SLOT(statsToZero()));
 
     mode = settings->findChild<QComboBox*>("mode");
     startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -78,112 +80,105 @@ void MemTest::startTest()
 
 void memObjToThread::doWork()
 {
-    QString ip = dev->connection.getServerIP();
-    ushort port = dev->connection.getServerPORT().toUShort();
+    try {
+        QString ip = dev->connection.getServerIP();
+        ushort port = dev->connection.getServerPORT().toUShort();
 
-    tcpSocket.connectToHost(QHostAddress(ip), port);
-    if (!tcpSocket.waitForConnected(5000)) {
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        tcpSocket.connectToHost(QHostAddress(ip), port);
+        if (!tcpSocket.waitForConnected(5000)) {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            tcpSocket.abort();
+            return;
+        }
+        dev->setSocket(&tcpSocket);
+
+        emit resultReady((int)AbstractTest::Running);
+
+        long it = 0, decrement = 0;
+        if (inCycle == 0) { it=-1;  decrement=-1;   }
+
+        int dsz;
+
+        uint temp = (((range - addr + 1) / addrinc) * addrinc) + addr - 1 + 4;
+        if (temp <= range)   dsz = ((range - addr + 1) / addrinc + 1)*4;
+        else    dsz = ((range - addr + 1) / addrinc)*4;
+        qDebug() << "dsz: " << dsz;
+
+        QByteArray writeArray, answer;
+        QByteArray readArray;
+
+        if (mode == "w") {
+            writeArray = cmdHead(1, dsz*2);
+            uint final;
+            for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
+                if (inverse) final = ~j;    else    final = j;
+                writeArray.append((char*)&i, 4);
+                writeArray.append((char*)&final, 4);
+            }
+            qDebug() << "tcpSocket.readBufferSize(): " << tcpSocket.readBufferSize();
+
+            for (; it<inCycle; it=it+1+decrement) {
+                qDebug() << "writeArray size: " << writeArray.size();
+                dev->write_F1(writeArray);
+                if (pause_stop() == -1) {
+                    tcpSocket.abort();
+                    return;
+                }
+            }
+            emit statsOutputReady("counter_iter", 1);
+        } else if (mode == "r") {
+            readArray = cmdHead(3, dsz);
+            for (uint i=addr; i+3<=range; i+=addrinc)
+                readArray.append((char*)&i, 4);
+
+            for (; it<inCycle; it=it+1+decrement) {
+                dev->read_F1(readArray, answer);
+                for (uint i=0; i<answer.size(); i+=4) {
+                    if (output) emit outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
+                }
+                if (pause_stop() == -1) {
+                    tcpSocket.abort();
+                    return;
+                }
+                emit statsOutputReady("counter_iter", 1);
+            }
+        } else if (mode == "wr") {
+            writeArray = cmdHead(1, dsz*2);
+            readArray = cmdHead(3, dsz);
+
+            uint final;
+            for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
+                if (inverse) final = ~j;    else    final = j;
+                writeArray.append((char*)&i, 4);
+                writeArray.append((char*)&final, 4);
+                readArray.append((char*)&i, 4);
+            }
+
+            for (; it<inCycle; it=it+1+decrement) {
+                dev->write_F1(writeArray);
+
+                ulong same=0, diff=0;
+                uint w,r;
+                dev->read_F1(readArray, answer);
+                for (uint i=0, j=12; i<answer.size(); i+=4, j+=8) {
+                    w = *(int*)(writeArray.data()+j);
+                    r = *(int*)(answer.data()+i);
+                    if (output) emit outputReady(tr("Write: %1; Read: %2").arg(QString::number(w, 16)).arg(QString::number(r, 16)));
+                    if (w != r) diff++; else same++;
+                }
+                emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
+                emit statsOutputReady("counter_iter", 1);
+                emit statsOutputReady("counter_err", diff);
+                if (pause_stop() == -1) {
+                    tcpSocket.abort();
+                    return;
+                }
+            }
+        }
         tcpSocket.abort();
-        return;
+        emit resultReady(AbstractTest::Completed);
+    } catch (const QString& exception) {
+        if (exception == "socket")
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
     }
-    dev->setSocket(&tcpSocket);
-
-    emit resultReady((int)AbstractTest::Running);
-
-    long it = 0, decrement = 0;
-    if (inCycle == 0) { it=-1;  decrement=-1;   }
-
-    int dsz;
-
-    uint temp = (((range - addr + 1) / addrinc) * addrinc) + addr - 1 + 4;
-    if (temp <= range)   dsz = ((range - addr + 1) / addrinc + 1)*4;
-    else    dsz = ((range - addr + 1) / addrinc)*4;
-    qDebug() << "dsz: " << dsz;
-
-    QByteArray writeArray, answer;
-    QByteArray readArray;
-
-    if (mode == "w") {
-        writeArray = cmdHead(1, dsz*2);
-        uint final;
-        for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
-            if (inverse) final = ~j;    else    final = j;
-            writeArray.append((char*)&i, 4);
-            writeArray.append((char*)&final, 4);
-        }
-        qDebug() << "tcpSocket.readBufferSize(): " << tcpSocket.readBufferSize();
-
-        for (; it<inCycle; it=it+1+decrement) {
-            qDebug() << "writeArray size: " << writeArray.size();
-            if (dev->write_F1(writeArray) == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-        }
-        emit statsOutputReady("counter_iter", 1);
-    } else if (mode == "r") {
-        readArray = cmdHead(3, dsz);
-        for (uint i=addr; i+3<=range; i+=addrinc)
-            readArray.append((char*)&i, 4);
-
-        for (; it<inCycle; it=it+1+decrement) {
-            if (dev->read_F1(readArray, answer) == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
-            for (uint i=0; i<answer.size(); i+=4) {
-                if (output) emit outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
-            }
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-            emit statsOutputReady("counter_iter", 1);
-        }
-    } else if (mode == "wr") {
-        writeArray = cmdHead(1, dsz*2);
-        readArray = cmdHead(3, dsz);
-
-        uint final;
-        for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
-            if (inverse) final = ~j;    else    final = j;
-            writeArray.append((char*)&i, 4);
-            writeArray.append((char*)&final, 4);
-            readArray.append((char*)&i, 4);
-        }
-
-        for (; it<inCycle; it=it+1+decrement) {
-            if (dev->write_F1(writeArray) == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
-
-            ulong same=0, diff=0;
-            uint w,r;
-            if (dev->read_F1(readArray, answer) == -1) {
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                return;
-            }
-            for (uint i=0, j=12; i<answer.size(); i+=4, j+=8) {
-                w = *(int*)(writeArray.data()+j);
-                r = *(int*)(answer.data()+i);
-                if (output) emit outputReady(tr("Write: %1; Read: %2").arg(QString::number(w, 16)).arg(QString::number(r, 16)));
-                if (w != r) diff++; else same++;
-            }
-            emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
-            emit statsOutputReady("counter_iter", 1);
-            emit statsOutputReady("counter_err", diff);
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-        }
-    }
-    tcpSocket.abort();
-    emit resultReady(AbstractTest::Completed);
 }

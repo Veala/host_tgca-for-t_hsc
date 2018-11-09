@@ -175,43 +175,27 @@ void monitorObjToThread::doWork()
             switch (signalFromMonitor)
             {
             case Monitor::writeBC:
-                if (devBC->write_F1(writeArray) == -1)
-                {
-                    terminate();
-                    return;
-                }
+                devBC->write_F1(writeArray);
                 signalFromMonitor = Monitor::wait;
                 emit doneWriteBC();
                 break;
 
             case Monitor::writeRT:
-                if (devRT->write_F1(writeArray) == -1)
-                {
-                    terminate();
-                    return;
-                }
+                devRT->write_F1(writeArray);
                 signalFromMonitor = Monitor::wait;
                 emit doneWriteRT();
                 break;
 
             case Monitor::readBC:
                 readArray.clear();
-                if (devBC->read_F1(writeArray, readArray) == -1)
-                {
-                    terminate();
-                    return;
-                }
+                devBC->read_F1(writeArray, readArray);
                 signalFromMonitor = Monitor::wait;
                 emit doneReadBC(readArray);
                 break;
 
             case Monitor::readRT:
                 readArray.clear();
-                if (devRT->read_F1(writeArray, readArray) == -1)
-                {
-                    terminate();
-                    return;
-                }
+                devRT->read_F1(writeArray, readArray);
                 signalFromMonitor = Monitor::wait;
                 emit doneReadRT(readArray);
                 break;
