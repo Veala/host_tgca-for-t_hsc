@@ -194,7 +194,7 @@ top_1
 
     settingsFile.close();
 
-    trmode = comboBoxTestType->currentIndex() ? tgca_tr_TRM : tgca_tr_REC;
+    comboBoxTestType -> setCurrentIndex(1);
 
     if (checkBoxDevBC->isChecked())
         deviceLineEditList.append(lineEditDevBC);
@@ -336,8 +336,8 @@ void TrmSingleTest::startTest()
 {
     trmSingleObjToThread* curThread = (trmSingleObjToThread*)objToThread;
 
-    curThread->trmode = trmode;
-    curThread->broad = trmode == tgca_tr_REC ? checkBoxBroad->isChecked() : false;
+    curThread->trmode = comboBoxTestType->currentIndex() ? tgca_tr_REC : tgca_tr_TRM;
+    curThread->broad = curThread->trmode == tgca_tr_REC ? checkBoxBroad->isChecked() : false;
     curThread->useInt = checkBoxUseInt->isChecked() && checkBoxEnaInt->isChecked();
     curThread->outEnable = checkBoxOut->isChecked();
     curThread->waitTime = lineEditTime->text().toInt(0, 16);
@@ -373,7 +373,7 @@ void TrmSingleTest::startTest()
         index ++;
         quint32 cfgBC = curThread->devBC->configuration.getConfigReg();
         curThread->devBC->reg_hsc_cfg.setData(cfgBC);
-        curThread->devBC->reg_hsc_cfg.rt_bc = val_REG_CFG_mode_BC;   // признак КШ
+        curThread->devBC->reg_hsc_cfg.rt_bc = CFG_MODE_BC;   // признак КШ
         curThread->devBC->reg_hsc_cfg.type_man = comboBoxManType->currentIndex();
         curThread->devBC->reg_hsc_cfg.en_rt_bc_int = checkBoxEnaInt->isChecked() ? 1 : 0;
         curThread->devBC->reg_hsc_cfg.ena_codec = checkBoxCodec->isChecked() ? 1 : 0;
@@ -386,9 +386,6 @@ void TrmSingleTest::startTest()
         }
 
         curThread->amplBC= comboBoxAmplBC->currentIndex();
-
-        if (curThread->windowMode)
-            curThread->devBC->reg_aux_winmode.mode = 1;
     }
     else
         curThread->devBC = 0;
@@ -400,14 +397,14 @@ void TrmSingleTest::startTest()
 
         quint32 cfgRT = curThread->devRT->configuration.getConfigReg();
         curThread->devRT->reg_hsc_cfg.setData(cfgRT);
-        curThread->devBC->reg_hsc_cfg.rt_bc = val_REG_CFG_mode_RT;     // признак ОУ
-        curThread->devBC->reg_hsc_cfg.type_man = comboBoxManType->currentIndex();
-//        curThread->devBC->reg_hsc_cfg.en_rt_bc_int = checkBoxEnaInt->isChecked() ? 1 : 0;   // прерывание ОУ не было включено
-        curThread->devBC->reg_hsc_cfg.ena_codec = checkBoxCodec->isChecked() ? 1 : 0;
-        curThread->devBC->reg_hsc_cfg.rtavsk_ena = checkBoxEnaAddr->isChecked() ? 1 : 0;
+        curThread->devRT->reg_hsc_cfg.rt_bc = CFG_MODE_RT;     // признак ОУ
+        curThread->devRT->reg_hsc_cfg.type_man = comboBoxManType->currentIndex();
+//        curThread->devRT->reg_hsc_cfg.en_rt_bc_int = checkBoxEnaInt->isChecked() ? 1 : 0;   // прерывание ОУ не было включено
+        curThread->devRT->reg_hsc_cfg.ena_codec = checkBoxCodec->isChecked() ? 1 : 0;
+        curThread->devRT->reg_hsc_cfg.rtavsk_ena = checkBoxEnaAddr->isChecked() ? 1 : 0;
         if (checkBoxEnaAddr->isChecked())
         {
-            curThread->devBC->reg_hsc_cfg.rtavsk = curThread->rtaddr;
+            curThread->devRT->reg_hsc_cfg.rtavsk = curThread->rtaddr;
             curThread->rtaddr = MAX_RT_ADDR + 1;
         }
         curThread->amplRT = comboBoxAmplRT->currentIndex();
@@ -417,8 +414,6 @@ void TrmSingleTest::startTest()
             curThread->devRT->reg_hsc_cr_spi.dr8_16_32 = comboBoxSPIdr->currentIndex();
             curThread->devRT->reg_hsc_cr_spi.spi_en = comboBoxSPIen->currentIndex();
         }
-        if (curThread->windowMode)
-            curThread->devRT->reg_aux_winmode.mode = 1;
     }
     else
         curThread->devRT = 0;
@@ -435,7 +430,7 @@ void TrmSingleTest::startTest()
         lineEditLen->setText("max");
     }
     CTestBC test;
-    test.setConfigFlds(curThread->devBC->reg_hsc_cfg.type_man, curThread->devBC->reg_hsc_cfg.ena_codec);
+    test.setConfigFlds(comboBoxManType->currentIndex(), checkBoxCodec->isChecked());
     if (test.maxNumByte() != mnb)
         qDebug() << "Error max num byte: " << mnb << " " << test.maxNumByte();
 
@@ -449,7 +444,8 @@ void TrmSingleTest::startTest()
                                     lineEditNumStep->text().toInt(0, 16), comboBoxUnit->currentText().toInt(0,10));
 
 
-    int ns = trmode == tgca_tr_REC ? test.NumSymOFDM(num_b) + 1 : 1;
+    int ns = (curThread->trmode == tgca_tr_REC) ? test.NumSymOFDM(num_b) + 1 : 1;
+
     int sz_dst = ns * NUMWORDINOFDMSYM * sizeof(word32_t);
     qDebug() << "sizes: " << num_b << " " << ns << " " << sz_dst;
     curThread->trmData = malloc(sz_dst);
@@ -460,7 +456,7 @@ void TrmSingleTest::startTest()
         return;
     }
     memset(curThread->trmData, 0, sz_dst);
-    if (!test.createCommandPack(curThread->trmData, sz_dst, rawData, num_b, rta, trmode, comboBoxCode->currentIndex()))
+    if (!test.createCommandPack(curThread->trmData, sz_dst, rawData, num_b, rta, curThread->trmode, comboBoxCode->currentIndex()))
     {
         message(tr("Error in createCommandPack() !!!"));
         destroyData(rawData);
@@ -470,7 +466,7 @@ void TrmSingleTest::startTest()
     }
     curThread->data_size = sz_dst;
 
-    if (trmode != tgca_tr_REC)
+    if (curThread->trmode != tgca_tr_REC)
     {
         curThread->testData = malloc(MAXPACKAGESIZE);
         if (curThread->testData == 0)
@@ -583,9 +579,9 @@ int trmSingleObjToThread::checkStatusRegRT()
     if ((status) & FL_REG_STATUS_ERR_flags)
         qDebug() << "RT status  Trm buf = " << ((status)&fl_REG_STATUS_tx_num_buf ? 1 : 0) << "  Rec buf = " << ((status)&fl_REG_STATUS_rx_num_buf ? 1 : 0)
                     << "  !!! Error flags in status:  " << QString("%1").arg(status, 4, 16, QLatin1Char('0'));
-    else
+  /*  else
         qDebug() << "RT status  Trm buf = " << ((status)&fl_REG_STATUS_tx_num_buf ? 1 : 0) << "  Rec buf = " << ((status)&fl_REG_STATUS_rx_num_buf ? 1 : 0);
-
+  */
     return status;
 }
 
@@ -710,6 +706,7 @@ void trmSingleObjToThread::doWork()
 
     if (devRT)
     {
+#if 1
         if (initEnable)
         {
             qDebug() << "start RT configuration";
@@ -822,6 +819,7 @@ void trmSingleObjToThread::doWork()
                 }
             }
         }
+#endif
     }
     if (devBC)
     {
@@ -920,7 +918,7 @@ void trmSingleObjToThread::doWork()
             }
         }
     }
-    qDebug() << "data_size = " << data_size;
+//    qDebug() << "data_size = " << data_size;
     if (data_size > 0 && devBC != 0 && iterCycle != 0)
     {
         int statusBC, statusRT;
@@ -1017,6 +1015,8 @@ void trmSingleObjToThread::doWork()
                 // Оконный режим
                 if(windowMode && devRT)
                 {
+                    devRT->reg_aux_winmode.mode = 1;
+                    devBC->reg_aux_winmode.mode = 1;
                     devRT->writeReg(&devRT->reg_aux_winmode);
                     devBC->writeReg(&devBC->reg_aux_winmode);
 
@@ -1094,6 +1094,8 @@ void trmSingleObjToThread::doWork()
                     // Оконный режим
                     if(windowMode)
                     {
+                        devRT->reg_aux_winmode.mode = 0;
+                        devBC->reg_aux_winmode.mode = 0;
                         devRT->writeReg(&devRT->reg_aux_winmode);
                         devBC->writeReg(&devBC->reg_aux_winmode);
                     }

@@ -14,7 +14,7 @@ class CTestBC
 public:
     CTestBC();
 
-    bool setConfigFlds(int man, int cod);
+    bool setConfigFlds(int man, bool enacodec);
     unsigned short numWordInSymbol() const { return loaded ? nw : 0; }
     int NumSymOFDM(int num_byte);
     unsigned int maxNumByte();

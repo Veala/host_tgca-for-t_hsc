@@ -12,10 +12,10 @@ CTestBC::CTestBC():
 {
 }
 
-bool CTestBC::setConfigFlds(int man, int cod)
+bool CTestBC::setConfigFlds(int man, bool enacodec)
 {
     mt = man;
-    codec = cod != 0;
+    codec = enacodec;
     nw = calcNumWordInSymbol(mt, codec);
     loaded = true;
 

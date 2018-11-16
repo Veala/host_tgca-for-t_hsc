@@ -82,7 +82,6 @@ private:
     QLabel *labelNumStep;               // меняется при переключении radioButtonRand-radioButtonLin
     QRadioButton *radioButtonRand;      // выбор генерации данных: случайные
 
-    QCheckBox *checkBoxCompare;                                                        // больше не существует !!!
     QCheckBox *checkBoxInit;            // загрузка начальной конфигурации
     QSpinBox  *spinBoxCycle;            // число итераций
 
@@ -92,7 +91,7 @@ private:
 
     QLineEdit *lineEditSPIData;         // данные SPI
     QCheckBox *checkBoxConfRegLoad;     // загрузка в конфигурационный регистр настроек теста
-    QCheckBox *checkBoxRTALoad;         // запись rta во вспомогательный регистр в случае rtavsk=0 (checkBoxEnaAddr выключен)
+    QCheckBox *checkBoxRTALoad;         // запись rta во вспомогательный регистр в случае выключенного checkBoxEnaAddr (бит rtavsk_ena=0)
     QComboBox *comboBoxSPILoad;         // устройство, для которого надо задать загрузку по SPI: пусто, КШ или ОУ
     QComboBox *comboBoxSPIdr;           // глубина данных по SPI
     QComboBox *comboBoxSPIen;           // номер устройства на шине SPI
@@ -111,7 +110,6 @@ private:
     QLineEdit *lineEditWinModePause;    // задержка для оконного режима      // используется, не сохраняется
 
     unsigned int mnb;
-    int trmode;
     unsigned int maxNumByte();
     void recalc();
     void updateDeviceList();
@@ -149,9 +147,10 @@ public:
     quint32 /*cfgBC, cfgRT,*/ amplBC, amplRT, waitTime, pauseTime, delayTime, data_size;
     int iterCycle;
     int trmode;
+    //bool trm_mode;
     addr_t rtaddr;
     bool broad, useInt, outEnable, initEnable, writeCfg, checkCountersEnable;
-    bool statusBCOut, statusRTOut, exitOnNoFin, windowMode;
+    bool statusBCOut, statusRTOut, windowMode;
     int compEnableReg, compEnableMemBC, compEnableMemRT;
     int dataSPI;
     QString loadSPI;
