@@ -52,8 +52,9 @@ void bulbObjToThread::switchOff(int rs)
 {
     if (rs == AbstractTest::Stopped && tcpSocket.state() == QAbstractSocket::ConnectedState)
     {
-        REG_AUX_bulb bulbreg;
-        dev->writeReg(&bulbreg);
+        dev->reg_aux_bulb.first=0; dev->reg_aux_bulb.second=0;
+        dev->reg_aux_bulb.third=0; dev->reg_aux_bulb.fourth=0;
+        dev->writeReg(&dev->reg_aux_bulb);
 //        int addr=REG_AUX_bulb, val=0;
 //        QByteArray array = cmdHead(1, 8);
 //        array.append((char*)&addr, 4);
@@ -102,7 +103,6 @@ void bulbObjToThread::doWork()
 //            }
 //        }
 
-        REG_AUX_bulb bulbreg;
         int vals[24] = { 1, 2, 4, 8,   0, 1, 3, 7,   15, 14, 13, 11,
                          7, 3, 12, 6,  9, 6, 9, 0,   15, 0, 15, 0 };
 
@@ -110,12 +110,12 @@ void bulbObjToThread::doWork()
         {
             for (int j=0; j<24; j++)
             {
-                bulbreg.first=1;
-                bulbreg.second=1;
-                bulbreg.third=1;
-                bulbreg.fourth=1;
-                *(((quint32*)&bulbreg)+1) &= vals[j];
-                dev->writeReg(&bulbreg);
+                dev->reg_aux_bulb.first=1;
+                dev->reg_aux_bulb.second=1;
+                dev->reg_aux_bulb.third=1;
+                dev->reg_aux_bulb.fourth=1;
+                *(((quint32*)&dev->reg_aux_bulb)+1) &= vals[j];
+                dev->writeReg(&dev->reg_aux_bulb);
                 if (pause_stop() == -1)
                     return;
                 thread()->msleep(iterTime);

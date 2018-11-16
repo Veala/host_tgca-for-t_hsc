@@ -14,11 +14,12 @@ class CTestBC
 public:
     CTestBC();
 
-    bool setConfiguration(reg16_t cfg);
+    bool setConfigFlds(int man, int cod);
     unsigned short numWordInSymbol() const { return loaded ? nw : 0; }
     int NumSymOFDM(int num_byte);
     unsigned int maxNumByte();
     bool createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src, int addr, int tr, unsigned int code);
+    bool createTestPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src);
 
 };
 

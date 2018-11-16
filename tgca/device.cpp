@@ -9,9 +9,9 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
     setName(name);
     projectBrowser = tB;
     QAction *act = menu.addAction(tr("Параметры tcp-ip"));
-    connect(act, SIGNAL(triggered(bool)), this, SLOT(showConnection()));
+    connect(act, SIGNAL(triggered(bool)), &connection, SLOT(show()));
     act = menu.addAction(tr("Конфигурация"));
-    connect(act, SIGNAL(triggered(bool)), this, SLOT(showConfiguration()));
+    connect(act, SIGNAL(triggered(bool)), &configuration, SLOT(show()));
     act = menu.addAction(tr("Удалить"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteLater()));
 
@@ -62,14 +62,14 @@ void Device::setSocket(QTcpSocket *s)
     sock = s;
 }
 
-void Device::readAll(QByteArray& array, int size)
+void Device::readAll(char* array, int size)
 {
-    array.clear();
-    array.resize(size);
+//    array.clear();
+//    array.resize(size);
 
     int n = 0; int r = 0;
     while (1) {
-        r = sock->read(array.data()+n, size-n);
+        r = sock->read(array+n, size-n);
         if (r!=0) {
 #ifdef debug_AT
             qDebug() << "read: " << r;
@@ -101,10 +101,48 @@ void Device::readAll(QByteArray& array, int size)
     }
 }
 
-void Device::writeAll(QByteArray& array)
+//void Device::readAll(QByteArray& array, int size)
+//{
+//    array.clear();
+//    array.resize(size);
+
+//    int n = 0; int r = 0;
+//    while (1) {
+//        r = sock->read(array.data()+n, size-n);
+//        if (r!=0) {
+//#ifdef debug_AT
+//            qDebug() << "read: " << r;
+//            qDebug() << "n: " << n;
+//#endif
+//        }
+//        if (r == -1) {
+//            sock->abort();
+//            //emit resultReady((int)AbstractTest::ErrorIsOccured);
+//            throw QString("socket");
+//        } else if (r==0) {
+//#ifdef debug_AT
+//            qDebug() << "-------------if (r==0)";
+//#endif
+//            int msec = 3000;
+//            //if (n != 0) msec = 1;
+//            if (!sock->waitForReadyRead(msec)) {
+//#ifdef debug_AT
+//                qDebug() << "sock->waitForReadyRead(5000) error!";
+//#endif
+//                sock->abort();
+//                //emit resultReady((int)AbstractTest::ErrorIsOccured);
+//                throw QString("socket");
+//            }
+//        } else {
+//            n+=r;
+//            if (n>=size) return;
+//        }
+//    }
+//}
+
+void Device::writeAll(char* array, int size)
 {
-    char* temp = array.data();
-    int size = array.size();
+    char* temp = array;
     while (1) {
         int n = sock->write(temp, size);
 #ifdef debug_AT
@@ -116,7 +154,7 @@ void Device::writeAll(QByteArray& array)
             throw QString("socket");
         } else  if (n < size) {
             size -=  n;
-            temp = array.right(size).data();
+            temp = array+n;
             continue;
         } else if (n == size) {
             break;
@@ -133,11 +171,45 @@ void Device::writeAll(QByteArray& array)
     }
 }
 
-void Device::write_F1(QByteArray &writeArray)
+//void Device::writeAll(QByteArray& array)
+//{
+//    char* temp = array.data();
+//    int size = array.size();
+//    while (1) {
+//        int n = sock->write(temp, size);
+//#ifdef debug_AT
+//        qDebug() << "wrote: " << n;
+//#endif
+//        if (n == -1) {
+//            sock->abort();
+//            //emit resultReady((int)AbstractTest::ErrorIsOccured);
+//            throw QString("socket");
+//        } else  if (n < size) {
+//            size -=  n;
+//            temp = array.right(size).data();
+//            continue;
+//        } else if (n == size) {
+//            break;
+//        }
+//    }
+
+//    if (!sock->waitForBytesWritten(5000)) {
+//#ifdef debug_AT
+//        qDebug() << "sock->waitForBytesWritten(5000) error!";
+//#endif
+//        sock->abort();
+//        //emit resultReady((int)AbstractTest::ErrorIsOccured);
+//        throw QString("socket");
+//    }
+//}
+
+void Device::write_F1(char* writeArray, int size)
 {
-    int cmd = 1;    QByteArray answer;
-    writeAll(writeArray);
-    readAll(answer, 4);
+    int cmd = 1;    QByteArray answer; answer.resize(4);
+    writeAll(cmdHead(1, size).append(writeArray, size).data(), size+8);
+//    writeAll(cmdHead(1, size).data(), 8);
+//    writeAll(writeArray, size);
+    readAll(answer.data(), 4);
     if (*(int*)answer.data() != cmd) {
 #ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
@@ -147,11 +219,13 @@ void Device::write_F1(QByteArray &writeArray)
     }
 }
 
-void Device::write_F2(QByteArray &writeArray)
+void Device::write_F2(int startAddr, char *writeArray, int size)
 {
-    int cmd = 2;    QByteArray answer;
-    writeAll(writeArray);
-    readAll(answer, 4);
+    int cmd = 2;    QByteArray answer; answer.resize(4);
+    writeAll(cmdHead(2, size+4).data(), 8);
+    writeAll((char*)&startAddr, 4);
+    writeAll(writeArray, size);
+    readAll(answer.data(), 4);
     if (*(int*)answer.data() != cmd) {
 #ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
@@ -165,9 +239,9 @@ void Device::write_Echo(QString &text)
 {
     QByteArray writeArray = cmdHead(5, text.size()+1);
     writeArray.append(text.toStdString().c_str(), text.size()+1);
-    int cmd = 5;    QByteArray answer;
-    writeAll(writeArray);
-    readAll(answer, 4);
+    int cmd = 5;    QByteArray answer; answer.resize(4);
+    writeAll(writeArray.data(), writeArray.size());
+    readAll(answer.data(), 4);
     if (*(int*)answer.data() != cmd) {
 #ifdef debug_AT
         qDebug() << "(int*)answer.data() != cmd";
@@ -177,75 +251,63 @@ void Device::write_Echo(QString &text)
     }
 }
 
-void Device::read_F1(QByteArray &writeArray, QByteArray &readArray)
+void Device::read_F1(char *writeArray, char *readArray, int wrsize)
 {
-    writeAll(writeArray);
-    readAll(readArray, writeArray.size()-8);
+    writeAll(cmdHead(3, wrsize).append(writeArray, wrsize).data(), wrsize+8);
+    //writeAll(cmdHead(3, wrsize).data(), 8);
+    //writeAll(writeArray, wrsize);
+    readAll(readArray, wrsize);
+}
+
+void Device::read_F2(int startAddr, int count, char *readArray)
+{
+    writeAll(cmdHead(4, 8).data(), 8);
+    writeAll((char*)&startAddr, 4);
+    writeAll((char*)&count, 4);
+    readAll(readArray, count);
 }
 
 void Device::writeReg(BaseReg *reg)
 {
-    int len = sizeof(BaseReg);
-    QByteArray array = cmdHead(1, 2*len);
-    array.append((char*)reg, 2*len);
-    write_F1(array);
+    write_F1((char*)reg, RegLen);
 }
 
 void Device::readReg(BaseReg *reg)
 {
-    int len = sizeof(BaseReg);
-    QByteArray array = cmdHead(3, len);
-    QByteArray answer;
-    array.append((char*)reg, len);
-    read_F1(array, answer);
-    *((quint32*)reg+1) = *(quint32*)answer.data();
+    read_F1((char*)reg, (char*)reg+BaseRegLen, BaseRegLen);
 }
 
 void Device::writeRegs(QVector<BaseReg *>& regs)
 {
-    int len = sizeof(BaseReg);
-    QByteArray array = cmdHead(1, regs.size()*2*len);
+    QByteArray array;
     foreach (BaseReg* r, regs) {
-        array.append((char*)r, 2*len);
+        array.append((char*)r, RegLen);
     }
-    write_F1(array);
+    write_F1(array.data(), array.size());
 }
 
 void Device::readRegs(QVector<BaseReg *>& regs)
 {
-    int len = sizeof(BaseReg);
-    QByteArray array = cmdHead(3, regs.size()*len);
-    QByteArray answer;
+    QByteArray array;
+    QByteArray answer; answer.resize(regs.size()*BaseRegLen);
     foreach (BaseReg* r, regs) {
-        array.append((char*)r, len);
+        array.append((char*)r, BaseRegLen);
     }
-    read_F1(array, answer);
+    read_F1(array.data(), answer.data(), regs.size()*BaseRegLen);
     for (int i=0; i<regs.size(); i++) {
         *((quint32*)regs[i]+1) = *((quint32*)answer.data()+i);
     }
 }
 
-void Device::read_F2(QByteArray &writeArray, QByteArray &readArray)
+void Device::writeDataToMem(char *writeArray, int size)
 {
-    writeAll(writeArray);
-    int nr = *(int*)(writeArray.data()+12);
-    readAll(readArray, nr);
+
 }
 
 void Device::message(QString m)
 {
     QDateTime local(QDateTime::currentDateTime());
     projectBrowser->append(local.toString(tr("dd.MM.yyyy hh:mm:ss - ")) + ui->name->text() + ". " + m);
-}
-
-void Device::showConfiguration()
-{
-    configuration.show();
-}
-
-void Device::showConnection()
-{
-    connection.show();
 }
 
 void Device::checkDevice()

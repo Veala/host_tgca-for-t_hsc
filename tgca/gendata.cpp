@@ -2,7 +2,6 @@
 #include "gendata.h"
 #include <stdlib.h>    // malloc, rand
 
-
 inline int randomValue(int minval, int maxval)
 {
     return rand() % maxval + minval;

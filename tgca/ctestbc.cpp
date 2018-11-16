@@ -12,10 +12,10 @@ CTestBC::CTestBC():
 {
 }
 
-bool CTestBC::setConfiguration(reg16_t cfg)
+bool CTestBC::setConfigFlds(int man, int cod)
 {
-    mt = manType(cfg);
-    codec = (cfg & fl_REG_CFG_ena_codec) != 0;
+    mt = man;
+    codec = cod != 0;
     nw = calcNumWordInSymbol(mt, codec);
     loaded = true;
 
@@ -45,7 +45,7 @@ unsigned int CTestBC::maxNumByte()
 
 
 /// Создает командное слово и копирует его в mem_dst вместе с соответствующим количеством слов данных из mem_src.
-/// Размеры буфера назначения и входных данных задаются в байтах.
+/// Размеры буфера назначения и входных данных задаются в байтах. Входной буфер mem_dst заранее заполнен нулями.
 bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src, int addr, int tr, unsigned int code)
 {
     word32_t command;
@@ -79,7 +79,61 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
     unsigned nb = nw * sizeof(word32_t);
     unsigned nc = nb - sizeof(word32_t);
     if (tr != tgca_tr_REC)
-        size_src = 0;
+        return true;
+
+    /// Копирование первого символа
+    if (nc > size_src)
+        nc = size_src;
+    size_src -= nc;
+    //qDebug() << "nc " << nc << " nw " << nw << " nb " << nb << " size_src " << size_src << " size_dst " << size_dst;
+    if (nc > 0)
+    {
+        memcpy((void*)(ptr_dst + sizeof(word32_t)), (void*)ptr_src, nc);
+        ptr_src += nc;
+    }
+
+    /// Копирование остальных символов
+    while(size_src > 0)
+    {
+        ptr_dst += (NUMWORDINOFDMSYM * sizeof(word32_t));
+        nc = nb > size_src ? size_src : nb;
+        size_src -= nc;
+        memcpy((void*)ptr_dst, (void*)ptr_src, nc);
+        ptr_src += nc;
+    };
+    return true;
+}
+
+/// Создает образ данных для записи в буфер передатчика ОУ для команды приёма от ОУ.
+/// Входной буфер mem_dst заранее заполнен нулями.
+/// Нулевое слово нулевого символа (отсутствующее командное слово) остаётся заполненным нулями.
+/// Размеры буфера назначения и входных данных задаются в байтах.
+bool CTestBC::createTestPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src)
+{
+    char* ptr_dst = (char*)mem_dst;
+    char* ptr_src = (char*)mem_src;
+
+    if (!loaded)
+        return false;   // регистр конфигурации не установлен
+
+    if (mem_src == NULL)
+        return false;   // отсутствуют данные
+
+    if (size_src == 0)
+        return false;   // запрещаем передачу 0 байт
+
+    if (size_src > maxNumByte())
+        return false;   // размер данных не поместится в один пакет
+
+    int num_s = NumSymOFDM(size_src);
+    if (num_s < 0)
+            return false;   // ошибка метода NumSymOFDM()
+
+    if ((num_s + 1) * NUMWORDINOFDMSYM * sizeof(word32_t) > (int)size_dst)
+        return false;   // длина выходного массива недостаточна
+
+    unsigned nb = nw * sizeof(word32_t);
+    unsigned nc = nb - sizeof(word32_t);
 
     /// Копирование первого символа
     if (nc > size_src)

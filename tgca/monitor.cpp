@@ -27,12 +27,6 @@ Monitor::~Monitor()
     delete ui;
 }
 
-static void cmdHead(QByteArray* head, int cmd, int dsz)
-{
-    head->append((char*)&cmd, 4);
-    head->append((char*)&dsz, 4);
-}
-
 static void initTab(CTableEditCol* tab)
 {
     for (int row=0; row < tab->rowCount(); row++)
@@ -183,13 +177,10 @@ bool Monitor::onPushRead()
     }
     else
     {
-        QByteArray arr2 = getRegistersToRead();
-        int sz = arr2.size();
-        if (sz > 0)
+        arr->clear();
+        *arr = getRegistersToRead();
+        if (arr->size() > 0)
         {
-            arr->clear();
-            cmdHead(arr, 3, sz);
-            arr->append(arr2);
             *signalToMonitorTest = isSecondPage() ? readRT : readBC;
             bRet = true;
         }
@@ -209,13 +200,10 @@ bool Monitor::onPushWrite()
     }
     else
     {
-        QByteArray arr2 = getRegistersToWrite();
-        int sz = arr2.size();
-        if (sz > 0)
+        arr->clear();
+        *arr = getRegistersToWrite();
+        if (arr->size() > 0)
         {
-            arr->clear();
-            cmdHead(arr, 1, sz);
-            arr->append(arr2);
             *signalToMonitorTest = isSecondPage() ? writeRT : writeBC;
             bRet = true;
         }
@@ -291,7 +279,7 @@ void Monitor::doneWriteRT()
 
 void Monitor::doneRead(CTableEditCol *tab, QByteArray readArray)
 {
-    if(readArray.size() != arr->size()-8)
+    if(readArray.size() != arr->size())
     {
         qDebug() << "Unknown error different arrays";
     }
@@ -303,7 +291,7 @@ void Monitor::doneRead(CTableEditCol *tab, QByteArray readArray)
         }
         for (int i=0; i<readArray.size(); i+=4)
         {
-            int addr = *(int*)(arr->data()+i+8);
+            int addr = *(int*)(arr->data()+i);
             int newval = *(int*)(readArray.data()+i);
             int row = ADDR_2_VSK_ROW(addr);
             QString newstrval = QString::number(newval, 16);

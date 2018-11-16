@@ -1,12 +1,19 @@
 #ifndef DATA_STRUCTS_H
 #define DATA_STRUCTS_H
 #include <QtGlobal>
+#include "device.h"
 
 class BaseReg
 {
 public:
     BaseReg(quint32 address) : address(address) {  }
     const quint32 address;
+    void setData(quint32& data) {
+        *((quint32*)this+1) = data;
+    }
+    quint32 getData() {
+        return *((quint32*)this+1);
+    }
 };
 
 class REG_HSC_ram_tx_rx : public BaseReg
@@ -28,16 +35,9 @@ public:
 class REG_HSC_id : public BaseReg
 {
 public:
-    REG_HSC_id(quint32 rt_bc_int = 0, quint32 rs_err = 0, quint32 no_aw_err = 0, quint32 yes_aw_gr_err = 0, quint32 tx_num_buf = 0, quint32 rx_num_buf = 0) : BaseReg(0x88),
-        rt_bc_int(rt_bc_int), rs_err(rs_err), no_aw_err(no_aw_err), yes_aw_gr_err(yes_aw_gr_err), tx_num_buf(tx_num_buf), rx_num_buf(rx_num_buf) { }
-    quint32 rt_bc_int : 1;
-    quint32 : 3;
-    quint32 rs_err : 1;
-    quint32 no_aw_err : 1;
-    quint32 yes_aw_gr_err : 1;
-    quint32 : 3;
-    quint32 tx_num_buf : 1;
-    quint32 rx_num_buf : 1;
+    REG_HSC_id(quint32 data = 0) : BaseReg(0x88),
+        data(data) { }
+    quint32 data;
 };
 
 class REG_HSC_status : public BaseReg
@@ -314,6 +314,30 @@ public:
     quint32 ms : 6;
     quint32 frange : 1;
     quint32 pd : 1;
+};
+
+class REG_AUX_rtaddr : public BaseReg
+{
+public:
+    REG_AUX_rtaddr(quint32 addr = 0) : BaseReg(0x180),
+        addr(addr) { }
+    quint32 addr;
+};
+
+class REG_AUX_interruption : public BaseReg
+{
+public:
+    REG_AUX_interruption(quint32 inter = 0) : BaseReg(0x184),
+        inter(inter) { }
+    quint32 inter;
+};
+
+class REG_AUX_winmode : public BaseReg
+{
+public:
+    REG_AUX_winmode(quint32 mode = 0) : BaseReg(0x190),
+        mode(mode) { }
+    quint32 mode;
 };
 
 class REG_AUX_bulb : public BaseReg

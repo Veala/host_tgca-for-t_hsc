@@ -101,7 +101,6 @@ void regObjToThread::doWork()
         QByteArray readArray;
 
         if (mode == "w") {
-            writeArray = cmdHead(1, dsz*2);
             uint final;
             for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
                 if (inverse) final = ~j;    else    final = j;
@@ -112,19 +111,19 @@ void regObjToThread::doWork()
 
             for (; it<inCycle; it=it+1+decrement) {
                 qDebug() << "writeArray size: " << writeArray.size();
-                dev->write_F1(writeArray);
+                dev->write_F1(writeArray.data(), dsz*2);
                 if (pause_stop() == -1) {
                     tcpSocket.abort();
                     return;
                 }
             }
         } else if (mode == "r") {
-            readArray = cmdHead(3, dsz);
             for (uint i=addr; i+3<=range; i+=addrinc)
                 readArray.append((char*)&i, 4);
+            answer.resize(readArray.size());
 
             for (; it<inCycle; it=it+1+decrement) {
-                dev->read_F1(readArray, answer);
+                dev->read_F1(readArray.data(), answer.data(), readArray.size());
                 for (uint i=0; i<answer.size(); i+=4) {
                     if (output) outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
                 }
@@ -134,9 +133,6 @@ void regObjToThread::doWork()
                 }
             }
         } else if (mode == "wr") {
-            writeArray = cmdHead(1, dsz*2);
-            readArray = cmdHead(3, dsz);
-
             uint final;
             for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
                 if (inverse) final = ~j;    else    final = j;
@@ -144,13 +140,14 @@ void regObjToThread::doWork()
                 writeArray.append((char*)&final, 4);
                 readArray.append((char*)&i, 4);
             }
+            answer.resize(readArray.size());
 
             for (; it<inCycle; it=it+1+decrement) {
-                dev->write_F1(writeArray);
+                dev->write_F1(writeArray.data(), writeArray.size());
 
                 ulong same=0, diff=0;
                 uint w,r;
-                dev->read_F1(readArray, answer);
+                dev->read_F1(readArray.data(), answer.data(), readArray.size());
                 for (uint i=0, j=12; i<answer.size(); i+=4, j+=8) {
                     w = *(int*)(writeArray.data()+j);
                     r = *(int*)(answer.data()+i);

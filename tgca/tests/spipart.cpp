@@ -87,41 +87,32 @@ void spiObjToThread::doWork()
 
         emit resultReady((int)AbstractTest::Running);
 
-        QByteArray writeArray, answer;
-        QByteArray readArray;
+        QVector<BaseReg*> regs;
+        regs.append(&dev->reg_hsc_dr_spi_lsw);
+        regs.append(&dev->reg_hsc_cr_spi);
 
         do {
             for (int i=0; i<lines; i+=2)
             {
-                writeArray = cmdHead(1, 16);
-                writeArray.append((char*)&addr.at(i), 4);   writeArray.append((char*)&data.at(i), 4);
-                writeArray.append((char*)&addr.at(i+1), 4); writeArray.append((char*)&data.at(i+1), 4);
-                dev->write_F1(writeArray);
-
-                readArray = cmdHead(3, 4);
-                readArray.append((char*)&addr.at(i+1), 4);
-
-                int n = 0, ans = fl_REG_CR_SPI_spif + data.at(i+1);
+                dev->reg_hsc_dr_spi_lsw.data=data.at(i);
+                *(((quint32*)&dev->reg_hsc_cr_spi)+1) = data.at(i+1);
+                dev->writeRegs(regs);
+                int n = 0;
                 while (1) {
-                    dev->read_F1(readArray, answer);
-                    if (*(int*)(answer.data()) == ans) {
-                        emit outputReady(tr("Answer == %1").arg(ans,0,16));
+                    dev->readReg(&dev->reg_hsc_cr_spi);
+                    if (dev->reg_hsc_cr_spi.spif == 1) {
+                        emit outputReady(tr("reg_cr_spi.spif == %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
                         break;
                     } else {
                         n++;
-                        emit outputReady(tr("Answer != %1").arg(ans,0,16));
+                        emit outputReady(tr("reg_cr_spi.spif != %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
                         if (n>1000) {
                             tcpSocket.abort();
                             emit resultReady((int)AbstractTest::ErrorIsOccured);
                             return;
                         }
-                        answer.clear();
                     }
                 }
-
-                writeArray.clear();
-                readArray.clear();
-                answer.clear();
 
                 //threadState = AbstractTest::Paused;
                 if (pause_stop() == -1) {

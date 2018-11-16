@@ -29,10 +29,10 @@ typedef unsigned short  reg16_t;
 
 ///  АДРЕСА ВСПОМОГАТЕЛЬНЫХ РЕГИСТРОВ
 
-#define REG_AUX_rtaddr             0x180   // вспомогательный регистр: адрес ОУ
-#define REG_AUX_interruption       0x184   // вспомогательный регистр: прерывание
-#define REG_AUX_win_mode           0x190   // вспомогательный регистр: оконный режим
-//#define REG_AUX_bulb               0x194   // регистр "лампочек"
+#define REG_AUX_T_rtaddr                 0x180   // вспомогательный регистр: адрес ОУ
+#define REG_AUX_T_interruption           0x184   // вспомогательный регистр: прерывание
+#define REG_AUX_T_win_mode               0x190   // вспомогательный регистр: оконный режим
+#define REG_AUX_T_bulb                   0x194   // регистр "лампочек"
 
 
 ///  АДРЕСА РЕГИСТРОВ ВСК
@@ -146,6 +146,7 @@ typedef unsigned short  reg16_t;
 #define   fl_REG_AMPL_FACTOR_rx_ampl1      2
 #define   fl_REG_AMPL_FACTOR_rx_ampl2      4
 #define   fl_REG_AMPL_FACTOR_rx_ampl3      8
+#define   FL_REG_AMPL_FACTOR_rx_ampl      15
 #define   fl_REG_AMPL_FACTOR_rx_oe_ampl (1 << 4)
 
 #define   FL_REG_PLL_ns                 0x3F
