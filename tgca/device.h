@@ -61,21 +61,24 @@ public:
     REG_HSC_amplificatoin_factor reg_hsc_amplificatoin_factor; REG_HSC_amplitude_signal reg_hsc_amplitude_signal; REG_HSC_g_sp reg_hsc_g_sp; REG_HSC_g_1_sp_high reg_hsc_g_1_sp_high; REG_HSC_g_1_sp_low reg_hsc_g_1_sp_low; REG_HSC_pll_reg reg_hsc_pll_reg;
     REG_AUX_rtaddr reg_aux_rtaddr; REG_AUX_interruption reg_aux_interruption; REG_AUX_winmode reg_aux_winmode; REG_AUX_bulb reg_aux_bulb;
 
-    //int readReg(int addr, int *val);
 protected:
     void mousePressEvent(QMouseEvent *event);
 
 private:
-    int BaseRegLen = sizeof(BaseReg);
-    int RegLen = 2*sizeof(BaseReg);
     Ui::Device *ui;
     QMenu menu;
     QTextBrowser* projectBrowser;
-    CMDHead head;
-    QTcpSocket* sock;
     void message(QString);
+
+    //CMDHead head;
+    QTcpSocket* sock;
     void readAll(char* array, int size);
     void writeAll(char* array, int size);
+
+    int BaseRegLen = sizeof(BaseReg);
+    int RegLen = 2*sizeof(BaseReg);
+    CommandWord commandWord;
+    ResponseWord responseWord;
 
 
 private slots:

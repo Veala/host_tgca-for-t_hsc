@@ -301,6 +301,7 @@ void Device::readRegs(QVector<BaseReg *>& regs)
 
 void Device::writeDataToMem(char *writeArray, int size)
 {
+    if ()
 
 }
 
@@ -335,15 +336,3 @@ void Device::doError(QAbstractSocket::SocketError err)
     message(tr("Ошибка: %1").arg(sock->errorString()));
     sock->abort();
 }
-
-//int Device::readReg(int addr, int *val)
-//{
-//    QByteArray answer;
-//    QByteArray readArray = cmdHead(3, 4);
-//    readArray.append((char*)&addr, 4);
-//    if (read_F1(readArray, answer) == -1)
-//        return -1;
-
-//    *val = *(int*)(answer.data());
-//    return 0;
-//}
