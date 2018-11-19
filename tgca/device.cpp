@@ -18,6 +18,8 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
     connect(&connection, SIGNAL(checkDevice(bool)), this, SLOT(checkDevice()));
     //connect(sock, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(doError(QAbstractSocket::SocketError)));
 
+    littleAnswer.resize(4);
+
     setAutoFillBackground(true);
     setFrameStyle(QFrame::Box | QFrame::Plain);
     QPalette palette;
@@ -64,9 +66,6 @@ void Device::setSocket(QTcpSocket *s)
 
 void Device::readAll(char* array, int size)
 {
-//    array.clear();
-//    array.resize(size);
-
     int n = 0; int r = 0;
     while (1) {
         r = sock->read(array+n, size-n);
@@ -101,45 +100,6 @@ void Device::readAll(char* array, int size)
     }
 }
 
-//void Device::readAll(QByteArray& array, int size)
-//{
-//    array.clear();
-//    array.resize(size);
-
-//    int n = 0; int r = 0;
-//    while (1) {
-//        r = sock->read(array.data()+n, size-n);
-//        if (r!=0) {
-//#ifdef debug_AT
-//            qDebug() << "read: " << r;
-//            qDebug() << "n: " << n;
-//#endif
-//        }
-//        if (r == -1) {
-//            sock->abort();
-//            //emit resultReady((int)AbstractTest::ErrorIsOccured);
-//            throw QString("socket");
-//        } else if (r==0) {
-//#ifdef debug_AT
-//            qDebug() << "-------------if (r==0)";
-//#endif
-//            int msec = 3000;
-//            //if (n != 0) msec = 1;
-//            if (!sock->waitForReadyRead(msec)) {
-//#ifdef debug_AT
-//                qDebug() << "sock->waitForReadyRead(5000) error!";
-//#endif
-//                sock->abort();
-//                //emit resultReady((int)AbstractTest::ErrorIsOccured);
-//                throw QString("socket");
-//            }
-//        } else {
-//            n+=r;
-//            if (n>=size) return;
-//        }
-//    }
-//}
-
 void Device::writeAll(char* array, int size)
 {
     char* temp = array;
@@ -171,48 +131,16 @@ void Device::writeAll(char* array, int size)
     }
 }
 
-//void Device::writeAll(QByteArray& array)
-//{
-//    char* temp = array.data();
-//    int size = array.size();
-//    while (1) {
-//        int n = sock->write(temp, size);
-//#ifdef debug_AT
-//        qDebug() << "wrote: " << n;
-//#endif
-//        if (n == -1) {
-//            sock->abort();
-//            //emit resultReady((int)AbstractTest::ErrorIsOccured);
-//            throw QString("socket");
-//        } else  if (n < size) {
-//            size -=  n;
-//            temp = array.right(size).data();
-//            continue;
-//        } else if (n == size) {
-//            break;
-//        }
-//    }
-
-//    if (!sock->waitForBytesWritten(5000)) {
-//#ifdef debug_AT
-//        qDebug() << "sock->waitForBytesWritten(5000) error!";
-//#endif
-//        sock->abort();
-//        //emit resultReady((int)AbstractTest::ErrorIsOccured);
-//        throw QString("socket");
-//    }
-//}
-
 void Device::write_F1(char* writeArray, int size)
 {
-    int cmd = 1;    QByteArray answer; answer.resize(4);
+    int cmd = 1;
     writeAll(cmdHead(1, size).append(writeArray, size).data(), size+8);
 //    writeAll(cmdHead(1, size).data(), 8);
 //    writeAll(writeArray, size);
-    readAll(answer.data(), 4);
-    if (*(int*)answer.data() != cmd) {
+    readAll(littleAnswer.data(), 4);
+    if (*(int*)littleAnswer.data() != cmd) {
 #ifdef debug_AT
-        qDebug() << "(int*)answer.data() != cmd";
+        qDebug() << "(int*)littleAnswer.data() != cmd";
 #endif
         sock->abort();
         throw QString("socket");
@@ -221,14 +149,14 @@ void Device::write_F1(char* writeArray, int size)
 
 void Device::write_F2(int startAddr, char *writeArray, int size)
 {
-    int cmd = 2;    QByteArray answer; answer.resize(4);
+    int cmd = 2;
     writeAll(cmdHead(2, size+4).data(), 8);
     writeAll((char*)&startAddr, 4);
     writeAll(writeArray, size);
-    readAll(answer.data(), 4);
-    if (*(int*)answer.data() != cmd) {
+    readAll(littleAnswer.data(), 4);
+    if (*(int*)littleAnswer.data() != cmd) {
 #ifdef debug_AT
-        qDebug() << "(int*)answer.data() != cmd";
+        qDebug() << "(int*)littleAnswer.data() != cmd";
 #endif
         sock->abort();
         throw QString("socket");
@@ -239,12 +167,12 @@ void Device::write_Echo(QString &text)
 {
     QByteArray writeArray = cmdHead(5, text.size()+1);
     writeArray.append(text.toStdString().c_str(), text.size()+1);
-    int cmd = 5;    QByteArray answer; answer.resize(4);
+    int cmd = 5;
     writeAll(writeArray.data(), writeArray.size());
-    readAll(answer.data(), 4);
-    if (*(int*)answer.data() != cmd) {
+    readAll(littleAnswer.data(), 4);
+    if (*(int*)littleAnswer.data() != cmd) {
 #ifdef debug_AT
-        qDebug() << "(int*)answer.data() != cmd";
+        qDebug() << "(int*)littleAnswer.data() != cmd";
 #endif
         sock->abort();
         throw QString("socket");
@@ -299,10 +227,51 @@ void Device::readRegs(QVector<BaseReg *>& regs)
     }
 }
 
+void Device::sendDataToRT(quint32 addrRT, char *writeArray, int size)
+{
+    commandWord.rtaddr = addrRT;
+    commandWord.t_r = 0;
+    int SL = symbolLength();
+    int DL = size + sizeof(commandWord)/2;
+    int Ns = DL/SL + (DL%SL != 0 ? 1 : 0);
+    int Np = Ns/maxNumSymbols + (Ns%maxNumSymbols != 0 ? 1 : 0);
+    for (int i=1; i<=Np; i++) {
+        readReg(reg_hsc_status);
+        int curAddr;
+        if (reg_hsc_status.tx_num_buf == 0)
+            curAddr = ADDR_MEM2P_BUF_TX_0;
+        else if (reg_hsc_status.tx_num_buf == 1)
+            curAddr = ADDR_MEM2P_BUF_TX_1;
+        commandWord.addr = curAddr;
+
+        int realSymbolLength;
+
+        if (i==0) {
+            curAddr+=sizeof(commandWord)/2;
+
+        } else if ()
+
+        write_F1();
+    }
+}
+
+int Device::symbolLength()
+{
+    if (reg_hsc_cfg.ena_codec == 0 && reg_hsc_cfg.type_man == VAL_reg_hsc_cfg_type_man_QPSK)    return 112; //28*4=112
+    if (reg_hsc_cfg.ena_codec == 0 && reg_hsc_cfg.type_man == VAL_reg_hsc_cfg_type_man_QAM16)   return 224; //56*4=224
+    if (reg_hsc_cfg.ena_codec == 0 && reg_hsc_cfg.type_man == VAL_reg_hsc_cfg_type_man_QAM64)   return 336; //84*4=336
+    if (reg_hsc_cfg.ena_codec == 1 && reg_hsc_cfg.type_man == VAL_reg_hsc_cfg_type_man_QPSK)    return 96;  //24*4=96
+    if (reg_hsc_cfg.ena_codec == 1 && reg_hsc_cfg.type_man == VAL_reg_hsc_cfg_type_man_QAM16)   return 176; //44*4=176
+    if (reg_hsc_cfg.ena_codec == 1 && reg_hsc_cfg.type_man == VAL_reg_hsc_cfg_type_man_QAM64)   return 224; //56*4=224
+    throw QString("codec_or_type_man_incorrect");
+}
+
 void Device::writeDataToMem(char *writeArray, int size)
 {
-    if ()
-
+    int SL = symbolLength();
+    int DL = size + sizeof(commandWord)/2;
+    int Ns = DL/SL + (DL%SL != 0 ? 1 : 0);
+    int Np = Ns/maxNumSymbols + (Ns%maxNumSymbols != 0 ? 1 : 0);
 }
 
 void Device::message(QString m)
