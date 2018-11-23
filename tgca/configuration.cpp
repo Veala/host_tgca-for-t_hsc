@@ -680,9 +680,9 @@ bool matchSTD0(const QStringList& list, word16_t& param)
     param = 0;
 
     if (list[1] == "RT")
-         param |= val_REG_CFG_mode_RT;
+        param |= fl_REG_CFG_mode_rt_bc * CFG_MODE_RT;
     else if (list[1] == "BC")
-        param |= val_REG_CFG_mode_BC;
+        param |= fl_REG_CFG_mode_rt_bc * CFG_MODE_BC;
     else
         return bRet;
 

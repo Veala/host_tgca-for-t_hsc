@@ -16,18 +16,23 @@ protected:
     virtual void startTest();
 
 private:
-    QComboBox *comboBoxErrStatusBC;    // проверка флагов ошибок в регистре статуса КШ        не и не с
-    QComboBox *comboBoxErrStatusRT;    // проверка флагов ошибок в регистре статуса ОУ        не и не с
-    QComboBox *comboBoxCheckRW;        // проверка ответного пакета                           не и не с
-    QComboBox *comboBoxRec;            // проверка, что сообщение от КШ принято ОУ                 не и не с
-    QComboBox *comboBoxBCIntErr;       // реакция на отсутствие признака завершения обмена КШ      не и не с
-    QComboBox *comboBoxRTIntErr;       // реакция на отсутствие признака завершения обмена ОУ      не и не с
-    QComboBox *comboBoxMemBC;          // сравнение командного пакета с содержимым буфера передачи КШ    не с
-    QComboBox *comboBoxMemRT;          // сравнение командного пакета с содержимым буфера приёма ОУ      не с
-    QComboBox *comboBoxErrRegComp;     // проверка загрузки регистров                                    не с
-    QComboBox *comboBoxWrongCfgReg;    // проверка правильности конфигурационного регистра в случае выключенной загрузки регистров   не и не с
+    QComboBox *comboBoxErrStatusBC;    // проверка флагов ошибок в регистре статуса КШ        не и
+    QComboBox *comboBoxErrStatusRT;    // проверка флагов ошибок в регистре статуса ОУ        не и
+    QComboBox *comboBoxCheckRW;        // проверка ответного пакета                           не и
+    QComboBox *comboBoxRec;            // проверка, что сообщение от КШ принято ОУ                 не и
+    QComboBox *comboBoxBCIntErr;       // реакция на отсутствие признака завершения обмена КШ      не и
+    QComboBox *comboBoxRTIntErr;       // реакция на отсутствие признака завершения обмена ОУ      не и
+    QComboBox *comboBoxMemBC;          // сравнение командного пакета с содержимым буфера передачи КШ    не и ???
+    QComboBox *comboBoxMemRT;          // сравнение командного пакета с содержимым буфера приёма ОУ      не и
+    QComboBox *comboBoxErrRegComp;     // проверка загрузки регистров
+    QComboBox *comboBoxWrongCfgReg;    // проверка правильности конфигурационного регистра:
+                                       // это важно в случае выключенной загрузки регистров   не и
+    QCheckBox *checkBoxParamView;      // вывод параметров теста в окно тестов или проекта    не и
 
-    QComboBox *comboBoxTestType;    // тип: приём/передача   не с
+    QComboBox *comboBoxCompSPI;        // проверка бита завершения обмена в регистре управления обменом по SPI
+    QComboBox *comboBoxCompData;       // сравнение полученных после передачи данных с исходными       не и
+
+    QComboBox *comboBoxTestType;    // тип: приём/передача/цирк.возврат    не и-
 
     QLabel *labelSPIData;              // элемент секции загрузки по SPI      // не блокируется  // не меняет маску (по сигналу от labelSPIdr)
     QLabel *labelSPIdr;                // элемент секции загрузки по SPI      // не блокируется
@@ -45,6 +50,8 @@ private:
 
 
 
+
+
     QLineEdit *lineEditLen;             // длина передаваемых данных в байтах
     QComboBox *comboBoxRTA;             // адрес ОУ
     QComboBox *comboBoxCode;            // код команды
@@ -53,22 +60,26 @@ private:
     // параметры конфигурационного регистра
     QComboBox *comboBoxManType;         // КШ и ОУ
     QCheckBox *checkBoxCodec;           // КШ и ОУ
-    QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ
+    QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ          не и-
     QCheckBox *checkBoxEnaAddr;         // ОУ
 
     QComboBox *comboBoxAmplBC;          // коэффициент усиления КШ
     QComboBox *comboBoxAmplRT;          // коэффициент усиления ОУ
 
-    // параметр генерации данных
+    // параметры генерации данных
     QRadioButton *radioButtonLin;       // выбор способа генерации: линейное со сбросом ("пила")
     QLineEdit *lineEditBegin;           // начальнон значение для генерации данных                           // не меняет маску (по сигналу от comboBoxUnit)
     QLineEdit *lineEditStep;            // приращение для линейных данных или минимум для случайных  // не меняет маску (по сигналу от comboBoxUnit)
     QLineEdit *lineEditNumStep;         // число шагов до сброса или максимум для случайных чисел  // не меняет маску (по сигналу от comboBoxUnit)
     QComboBox *comboBoxUnit;            // длина единицы данных в байтах: 1, 2 или 4
 
-    QLineEdit *lineEditTime;            // максимальное время ожидания прерывания
+    // паузы
+    QLineEdit *lineEditTime;            // максимальное время ожидания прерывания прерывания (завершения цикла обмена, в т.ч. обмена по SPI)
     QLineEdit *lineEditPause;           // пауза между итерациями
-    QCheckBox *checkBoxUseInt;          // определение завершения обмена по прерыванию КШ, если прерывание разрешено в cfg
+    QLineEdit *lineEditWinModePause;    // задержка для оконного режима
+
+    QCheckBox *checkBoxUseInt;          // определение завершения обмена по прерыванию КШ, если прерывание разрешено в cfg   не б
+    QLabel    *labelUseInt;             // метка блокируется одновременно с checkBoxUseInt, если прерывание не разрешено конфигурационным регистром        не б
     QCheckBox *checkBoxOut;             // включение вывода в окно тестов
 
     QLineEdit *lineEditDevBC;           // имя устройства, назначенного КШ
@@ -96,24 +107,25 @@ private:
     QComboBox *comboBoxSPIdr;           // глубина данных по SPI
     QComboBox *comboBoxSPIen;           // номер устройства на шине SPI
 
-    QCheckBox *checkBoxCounters;        // запрос регистров счётчиков  // сохраняется, не используется, не блокирует зависимые поля
-    QCheckBox *checkBoxBCOut;           // запрос регистра статуса КШ  // сохраняется, не используется, не блокирует зависимые поля
-    QCheckBox *checkBoxRTOut;           // запрос регистра статуса ОУ  // сохраняется, не используется, не блокирует зависимые поля
-    QComboBox *comboBoxCountPref;       // выбор периодичности чтения и вывода счётчиков принятых и переданных пакетов // сохраняется, не используется, не блокируется
-    QComboBox *comboBoxBCOutPref;       // выбор периодичности вывода статуса КШ  // сохраняется, не используется, не блокируется
-    QComboBox *comboBoxRTOutPref;       // выбор периодичности вывода статуса ОУ  // сохраняется, не используется, не блокируется
-    QLineEdit *lineEditCountOut;        // частота чтения и вывода счётчиков принятых и переданных пакетов  // сохраняется, не используется, не блокируется
-    QLineEdit *lineEditBCOut;           // частота вывода статуса КШ        // сохраняется, не используется, не блокируется
-    QLineEdit *lineEditRTOut;           // частота вывода статуса ОУ        // сохраняется, не используется, не блокируется
+    QCheckBox *checkBoxCounters;        // запрос регистров счётчиков  // не используется, не блокирует зависимые поля
+    QCheckBox *checkBoxBCOut;           // запрос регистра статуса КШ  // не используется, не блокирует зависимые поля
+    QCheckBox *checkBoxRTOut;           // запрос регистра статуса ОУ  // не используется, не блокирует зависимые поля
+    QComboBox *comboBoxCountPref;       // выбор периодичности чтения и вывода счётчиков принятых и переданных пакетов //  не используется, не блокируется
+    QComboBox *comboBoxBCOutPref;       // выбор периодичности вывода статуса КШ  //  не используется, не блокируется
+    QComboBox *comboBoxRTOutPref;       // выбор периодичности вывода статуса ОУ  //  не используется, не блокируется
+    QLineEdit *lineEditCountOut;        // частота чтения и вывода счётчиков принятых и переданных пакетов  //  не используется, не блокируется
+    QLineEdit *lineEditBCOut;           // частота вывода статуса КШ        //  не используется, не блокируется
+    QLineEdit *lineEditRTOut;           // частота вывода статуса ОУ        //  не используется, не блокируется
 
     QCheckBox *checkBoxWinMode;         // включение оконного режима
-    QLineEdit *lineEditWinModePause;    // задержка для оконного режима      // используется, не сохраняется
 
     unsigned int mnb;
     unsigned int maxNumByte();
     void recalc();
     void updateDeviceList();
     void setStatSettings();
+    void load(QString fName);
+    void defineFields();
 
 private slots:
     void onRadioData();
@@ -137,6 +149,7 @@ class trmSingleObjToThread : public absObjToThread
 //    int readRegVal(Device* dev, int addr);
     void setErrorsBeforeCycle(int numerr);
     void setErrorsWithinCycle(bool fatal);
+    bool checkSPI(Device* dev);
 
 public slots:
     virtual void doWork();
@@ -144,18 +157,21 @@ public slots:
 public:
     trmSingleObjToThread();
 
-    quint32 /*cfgBC, cfgRT,*/ amplBC, amplRT, waitTime, pauseTime, delayTime, data_size;
+    quint32 /*cfgBC, cfgRT,*/ amplBC, amplRT, waitTime, pauseTime, delayTime, trm_size;
     int iterCycle;
-    int trmode;
+    bool BCtoRT, RTtoBC;
     //bool trm_mode;
     addr_t rtaddr;
     bool broad, useInt, outEnable, initEnable, writeCfg, checkCountersEnable;
     bool statusBCOut, statusRTOut, windowMode;
+    int checkFinSPI;
     int compEnableReg, compEnableMemBC, compEnableMemRT;
     int dataSPI;
     QString loadSPI;
-    void* trmData;
-    void* testData;
+    void *trmData;
+    void *recData;
+    void *testData;
+    void destroyData();
     QTcpSocket tcpSocketBC, tcpSocketRT;
     Device *devBC, *devRT;
 };

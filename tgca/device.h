@@ -6,9 +6,9 @@
 #define ADDR_MEM2P_BUF_RX_0 0x60000
 #define ADDR_MEM2P_BUF_RX_1 0xA0000
 #define ADDR_MEM2P_DELTA    0x200  //128words*4b=d512b=h200
-#define VAL_reg_hsc_cfg_type_man_QPSK   0x00
-#define VAL_reg_hsc_cfg_type_man_QAM16  0x01
-#define VAL_reg_hsc_cfg_type_man_QAM64  0x10
+#define VAL_reg_hsc_cfg_type_man_QPSK   0//0b00
+#define VAL_reg_hsc_cfg_type_man_QAM16  1//0b01
+#define VAL_reg_hsc_cfg_type_man_QAM64  2//0b10
 
 #include <QFrame>
 #include <QMouseEvent>
@@ -61,6 +61,7 @@ public:
     void writeRegs(QVector<BaseReg*>& regs);
     void readRegs(QVector<BaseReg*>& regs);
     void sendDataToRT(quint32 addrRT, char *writeArray, int size);
+    void writePath(quint32 addr2pmem, char *writeArray, int size);
     void recvDataFromRT(quint32 addrRT, char *writeArray, int size);
     void writeDataToMem(char *writeArray, int size);
     REG_HSC_ram_tx_rx reg_hsc_ram_tx_rx; REG_HSC_id reg_hsc_id; REG_HSC_status reg_hsc_status; REG_HSC_cfg reg_hsc_cfg; REG_HSC_tx_cntr reg_hsc_tx_cntr; REG_HSC_rx_cntr reg_hsc_rx_cntr;
@@ -86,6 +87,7 @@ private:
     void readAll(char* array, int size);
     void writeAll(char* array, int size);
     QByteArray littleAnswer;
+    void getLittleAnswer(int cmdCode);
 
     int BaseRegLen = sizeof(BaseReg);
     int RegLen = 2*sizeof(BaseReg);

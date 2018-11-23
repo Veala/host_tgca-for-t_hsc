@@ -116,8 +116,6 @@ typedef unsigned short  reg16_t;
 /// режим работы ВСК КШ/ОУ
 #define   CFG_MODE_RT    1
 #define   CFG_MODE_BC    0
-#define   val_REG_CFG_mode_RT    (fl_REG_CFG_mode_rt_bc * CFG_MODE_RT)
-#define   val_REG_CFG_mode_BC    (fl_REG_CFG_mode_rt_bc * CFG_MODE_BC)
 
 #define AddrToCfg(addr)    (((addr) << 7) & FL_REG_CFG_rtavsk)
 

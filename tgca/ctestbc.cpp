@@ -5,7 +5,7 @@
 #include "command.h"
 
 //#include <QString>
-//#include <QDebug>
+#include <QDebug>
 
 CTestBC::CTestBC():
     loaded(false)
@@ -48,13 +48,18 @@ unsigned int CTestBC::maxNumByte()
 /// Размеры буфера назначения и входных данных задаются в байтах. Входной буфер mem_dst заранее заполнен нулями.
 bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_src, unsigned int size_src, int addr, int tr, unsigned int code)
 {
+    //qDebug() << size_dst << " " << tr;
     word32_t command;
     char* ptr_dst = (char*)mem_dst;
     char* ptr_src = (char*)mem_src;
-    int num_s = 0;   // это значение будет при tr != tgca_tr_REC
 
     if (!loaded)
         return false;   // регистр конфигурации не установлен
+
+    int num_s =  NumSymOFDM(size_src);   // это значение будет при tr == tgca_tr_REC
+
+    if (num_s < 0)
+        return false;   // ошибка метода NumSymOFDM()
 
     if (tr == tgca_tr_REC)  // передача КШ -> ОУ
     {
@@ -64,16 +69,20 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
         if (size_src > maxNumByte())
             return false;   // размер данных не поместится в один пакет
 
-        if ((num_s = NumSymOFDM(size_src)) < 0)
-            return false;   // ошибка метода NumSymOFDM()
+        if ((num_s + 1) * NUMWORDINOFDMSYM * sizeof(word32_t) > (int)size_dst)
+            return false;   // длина выходного массива недостаточна
     }
 
-    if ((num_s + 1) * NUMWORDINOFDMSYM * sizeof(word32_t) > (int)size_dst)
-        return false;   // длина выходного массива недостаточна
 
     /// Преамбулы будут созданы автоматически. Записываем в память только OFDM символы.
 
     createCommandWord(&command, addr, num_s, tr, code);
+    if (tr == tgca_tr_TRM)  // передача ОУ -> КШ
+    {
+        num_s = 0;
+        if ((num_s + 1) * NUMWORDINOFDMSYM * sizeof(word32_t) > (int)size_dst)
+            return false;   // длина выходного массива недостаточна
+    }
     memcpy((void*)ptr_dst, (void*)(&command), sizeof(word32_t));
 
     unsigned nb = nw * sizeof(word32_t);

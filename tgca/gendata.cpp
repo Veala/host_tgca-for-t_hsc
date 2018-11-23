@@ -110,7 +110,7 @@ void fillRegularDataW32(void *data, int length, int init, int step, int itermax)
 void *createRegularData(int length, int init, int step, int itermax, int numchar)
 {
     if (length <=0)
-        return false;
+        return 0;
     if (numchar == 2)
         length += length % numchar;
     else if (numchar == 4 && length%numchar != 0)
