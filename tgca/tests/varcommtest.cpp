@@ -16,7 +16,7 @@ void VarCommandTest::setStatSettings()
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
     statsMap.insert("otherErr", stats->findChild<QLabel*>("otherErr"));
-    connectStats();
+    connectStatisticSlots();
 }
 
 void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
@@ -29,7 +29,7 @@ void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tT
 
     setFieldConnections();
 
-    disableUnused();    // отключить нереализованные настройки
+    disableUnimplemented();    // отключить нереализованные настройки
 
     deviceLineEditList.append(lineEditDevBC);
     deviceLineEditList.append(lineEditDevRT);
@@ -73,7 +73,7 @@ void VarCommandTest::defineFields()
     lineEditBCOut = settings->findChild<QLineEdit*>("lineEditBCOut");
     lineEditRTOut = settings->findChild<QLineEdit*>("lineEditRTOut");
 
-    lineEditWinModePause = settings->findChild<QLineEdit*>("lineEditWinModePause");
+    lineEditReservePause = settings->findChild<QLineEdit*>("lineEditReservePause");
 
     comboBoxErrStatusBC = settings->findChild<QComboBox*>("comboBoxErrStatusBC");
     comboBoxErrStatusRT = settings->findChild<QComboBox*>("comboBoxErrStatusRT");
@@ -133,7 +133,7 @@ top_1
     comboBoxMemBC->setCurrentIndex(out.readLine().toInt());
     comboBoxMemRT->setCurrentIndex(out.readLine().toInt());
     comboBoxWrongCfgReg->setCurrentIndex(out.readLine().toInt());
-    lineEditWinModePause->setText(out.readLine());
+    lineEditReservePause->setText(out.readLine());
     QString genDataLen = out.readLine();
     comboBoxCheckRTA->setCurrentIndex(out.readLine().toInt());
 
@@ -185,7 +185,7 @@ top_2(saveFileNameStr)
     in << comboBoxMemBC->currentIndex() << endl;
     in << comboBoxMemRT->currentIndex() << endl;
     in << comboBoxWrongCfgReg->currentIndex() << endl;
-    in << lineEditWinModePause->text() << endl;
+    in << lineEditReservePause->text() << endl;
     in << dataGen.dataLen() << endl;
     in << comboBoxCheckRTA->currentIndex() << endl;
 
@@ -196,7 +196,7 @@ void VarCommandTest::setFieldConnections()
 {
 }
 
-void VarCommandTest::disableUnused()
+void VarCommandTest::disableUnimplemented()
 {
     // ПОКА НЕ РЕАЛИЗОВАНЫ
     comboBoxCheckRW->setDisabled(true);                             // проверка ответного пакета
@@ -215,7 +215,7 @@ void VarCommandTest::setEnabledSpecial(bool b)
 
     if (b)
     {
-        disableUnused();    // отключить нереализованные настройки
+        disableUnimplemented();    // отключить нереализованные настройки
     }
     else
     {
@@ -258,7 +258,7 @@ void VarCommandTest::startTest()
     if (curThread->iterCycle <= 0)
         curThread->iterCycle = 1;
     curThread->pauseTime = lineEditPause->text().toInt(0, 10);
-    curThread->delayTime = lineEditWinModePause->text().toInt(0, 10);
+    curThread->postponeTime = lineEditReservePause->text().toInt(0, 10);
     curThread->checkStatusErrBC = (comboBoxErrStatusBC->currentIndex() > 0);
     curThread->checkStatusErrRT = (comboBoxErrStatusRT->currentIndex() > 0);
     curThread->noIntFatalBC = (comboBoxBCIntErr->currentIndex() != 0);
@@ -270,7 +270,7 @@ void VarCommandTest::startTest()
     curThread->initEnable = checkBoxInit->isChecked();
     curThread->checkLoadCfg = comboBoxWrongCfgReg->currentIndex() > 0;
 
-    curThread->manipulation = comboBoxManType->currentText();
+    //curThread->manipulation = comboBoxManType->currentText();
     curThread->codec = checkBoxCodec->isChecked();
 
     curThread->devBC = deviceList.at(0);
@@ -301,7 +301,10 @@ void VarCommandTest::startTest()
     curThread->checkRTA = (comboBoxCheckRTA->currentIndex() > 0) && !checkBoxRTALoad->isChecked() && !checkBoxEnaAddr->isChecked();
 
     curThread->dataSize = dataGen.getDataLen();
-    curThread->testData = dataGen.createData(curThread->dataSize * 2);
+    int dataSizeRequired = MAXNUMSYM * calcNumWordInSymbol(comboBoxManType->currentIndex(), curThread->codec?1:0) - sizeof(word32_t);
+    if (curThread->dataSize < dataSizeRequired)
+        curThread->dataSize = dataSizeRequired;
+    curThread->testData = dataGen.createData(curThread->dataSize, 2);
 
     emit startTestTh();
 }
@@ -327,20 +330,20 @@ bool varCommandObjToThread::checkStatusRegBC(int statusBC, int interruption, int
     if ( checkStatusErrBC && ( (codec && ((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
         (statusBC & fl_REG_STATUS_no_aw_err) != 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
     {
-            stdOutput(QString(tr("Итерация = %1   Ошибка в статусе КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0'))),
-                      QString(tr("Iter = %1   Errors in BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0'))));
+            stdOutput(tr("Итерация = %1   Ошибка в статусе КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')),
+                      tr("Iter = %1   Errors in BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')));
         *error = true;
         emit statsOutputReady("errStatusBC", 1);
     }
     else if (bNoInt)
     {
-            stdOutput(QString(tr("Статус КШ: %1").arg(statusBC, 4, 16, QLatin1Char('0'))),
-                      QString(tr("BC status: %1").arg(statusBC, 4, 16, QLatin1Char('0'))));
+            stdOutput(tr("Статус КШ: %1").arg(statusBC, 4, 16, QLatin1Char('0')),
+                      tr("BC status: %1").arg(statusBC, 4, 16, QLatin1Char('0')));
     }
     else if ((it < perOutBC && modeOutBC == 0) || (perOutBC != 0 && modeOutBC == 1 && (it%perOutBC) == 0))
     {
-            stdOutput(QString(tr("Итерация = %1   Статус КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0'))),
-                      QString(tr("Iter = %1   BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0'))));
+            stdOutput(tr("Итерация = %1   Статус КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')),
+                      tr("Iter = %1   BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')));
     }
     if (bNoInt)
         emit statsOutputReady("errNoFinBC", 1);
@@ -352,6 +355,7 @@ bool varCommandObjToThread::checkStatusRegRT(int status, int it, bool *error)
 {
     bool bNoInt = false;
 
+    /*
     if (useInt && noIntFatalRT)
     {
         devRT->readReg(&devRT->reg_aux_interruption);
@@ -360,24 +364,25 @@ bool varCommandObjToThread::checkStatusRegRT(int status, int it, bool *error)
         *error = true;
         bNoInt = true;
     }
+    */
     if ((status & fl_REG_STATUS_rt_bc_int) == 0 && (noIntFatalRT || checkStatusErrRT))
     {
-        stdOutput(QString(tr("Итерация = %1   Нет признака завершения обмена ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0'))),
-                  QString(tr("Iter = %1   No interruption flag in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0'))));
+        stdOutput(tr("Итерация = %1   Нет признака завершения обмена ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
+                  tr("Iter = %1   No interruption flag in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
         *error = true;
         bNoInt = true;
     }
     if (checkStatusErrRT && codec && ((status & fl_REG_STATUS_rs_err) != 0))
     {
-        stdOutput(QString(tr("Итерация = %1   Есть ошибки в статусе ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0'))),
-                  QString(tr("Iter = %1   Error flags in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0'))));
+        stdOutput(tr("Итерация = %1   Ошибка кодека в статусе ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
+                  tr("Iter = %1   Codec error in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
         emit statsOutputReady("errStatusRT", 1);
         *error = true;
     }
     else if ((it < perOutRT && modeOutRT == 0) || (perOutRT != 0 && modeOutRT == 1 && (it%perOutRT) == 0))
     {
-            stdOutput(QString(tr("Итерация = %1   Статус ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0'))),
-                      QString(tr("Iter = %1   RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0'))));
+            stdOutput(tr("Итерация = %1   Статус ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
+                      tr("Iter = %1   RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
     }
     if (bNoInt)
         emit statsOutputReady("errNoFinRT", 1);
@@ -391,343 +396,183 @@ varCommandObjToThread::varCommandObjToThread():
 
 void varCommandObjToThread::perform()
 {
-        int errorsBefore = 0;
-        if (testData == 0)
+    int errorsBefore = 0;
+    if (testData == 0)
+    {
+        stdOutput(tr("Не удалось сгенерировать данные"), tr("Data generation failed"));
+        //emit resultReady((int)AbstractTest::ErrorIsOccured);
+        emit statsOutputReady("otherErr", 1);
+        setErrorsBeforeCycle(++errorsBefore);
+        return;
+    }
+
+    qDebug() << "varCommandObjToThread::perform() started";
+
+    if (connectBC() != AbstractTest::Running)
+        return;
+    qDebug() << tr("BC connected");
+
+    if (connectRT() != AbstractTest::Running)
+        return;
+    qDebug() << tr("RT connected");
+
+    if (initEnable)
+    {
+        // Начальная конфигурация ОУ
+        qDebug() << "start RT configuration";
+        devRT->configuration.setChecked(config_NUMREG_cfg, false);
+        QByteArray regRT = devRT->configuration.getRegistersToWrite();
+        if (regRT.size() > 0)
         {
-            stdOutput(tr("Не удалось сгенерировать данные"), tr("Data generation failed"));
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            return;
+            devRT->write_F1(regRT.data(), regRT.size());
+            devRT->configuration.doneWriteReg(regRT);
         }
+    }
+    devRT->writeReg(&devRT->reg_hsc_cfg);
+    setRegWritten(devRT, devRT->reg_hsc_cfg);
+    //devRT->configuration.setWritten(devRT->reg_hsc_cfg.address, devRT->reg_hsc_cfg.getData());
 
-        qDebug() << "varCommandObjToThread::perform() started";
+    if (checkLoadCfg && devRT->reg_hsc_cfg.getData() != readRegVal(devRT, &devRT->reg_hsc_cfg))
+    {
+        stdOutput(tr("Ошибка сравнения конфигурационного регистра ОУ"), tr("Comparison RT cfg register wrong"));
+        emit statsOutputReady("errCompare", 1);
+        setErrorsBeforeCycle(++errorsBefore);
+        return;
+    }
 
-        if (connectBC() != AbstractTest::Running)
-            return;
-        qDebug() << tr("BC connected");
+    if (loadRTA)
+    {
+        devRT->reg_aux_rtaddr.addr = rtaddr;
+        devRT->writeReg(&devRT->reg_aux_rtaddr);
+    }
 
-        if (connectRT() != AbstractTest::Running)
-            return;
-        qDebug() << tr("RT connected");
-
-        if (initEnable)
+    if (checkRTA) // проверка адреса ОУ
+    {
+        if (devRT->reg_hsc_cfg.rtavsk_ena == 0)
         {
-            // Начальная конфигурация ОУ
-            qDebug() << "start RT configuration";
-            devRT->configuration.setChecked(config_NUMREG_cfg, false);
-            QByteArray regRT = devRT->configuration.getRegistersToWrite();
-            if (regRT.size() > 0)
+            // проверяем вспомогательный регистр
+            REG_AUX_rtaddr reg;
+            devRT->readReg(&reg);
+            if (reg.addr != rtaddr)
             {
-                devRT->write_F1(regRT.data(), regRT.size());
-                devRT->configuration.doneWriteReg(regRT);
+                stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
+                errorsBefore++;
+                emit statsOutputReady("errCompare", 1);
+                setErrorsBeforeCycle(++errorsBefore);
+                return;
             }
         }
-        devRT->writeReg(&devRT->reg_hsc_cfg);
-        //setRegWritten(devRT, devRT->reg_hsc_cfg);
-        devRT->configuration.setWritten(devRT->reg_hsc_cfg.address, devRT->reg_hsc_cfg.getData());
-
-        if (checkLoadCfg && devRT->reg_hsc_cfg.getData() != readRegVal(devRT, &devRT->reg_hsc_cfg))
+        else if (!checkLoadCfg)
         {
-            stdOutput(tr("Ошибка сравнения конфигурационного регистра ОУ"), tr("Comparison RT cfg register wrong"));
-            emit statsOutputReady("errCompare", 1);
-            setErrorsBeforeCycle(++errorsBefore);
-            return;
-        }
-
-        if (loadRTA)
-        {
-            devRT->reg_aux_rtaddr.addr = rtaddr;
-            devRT->writeReg(&devRT->reg_aux_rtaddr);
-        }
-
-        if (checkRTA) // проверка адреса ОУ
-        {
-            if (devRT->reg_hsc_cfg.rtavsk_ena == 0)
+            REG_HSC_cfg cfg;
+            devRT->readReg(&cfg);
+            if (cfg.rtavsk_ena == 0)
             {
-                // проверяем вспомогательный регистр
-                REG_AUX_rtaddr reg;
-                devRT->readReg(&reg);
-                if (reg.addr != rtaddr)
-                {
-                    stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
-                    errorsBefore++;
-                    emit statsOutputReady("errCompare", 1);
-                    setErrorsBeforeCycle(++errorsBefore);
-                    return;
-                }
-            }
-            else if (!checkLoadCfg)
-            {
-                REG_HSC_cfg cfg;
-                devRT->readReg(&cfg);
-                if (cfg.rtavsk_ena == 0)
-                {
-                    stdOutput(tr("Ошибка конфигурационного регистра ОУ"), tr("Invalid RT configuration register"));
-                    if (cfg.rtavsk != rtaddr)
-                        stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
-                    errorsBefore++;
-                    emit statsOutputReady("errCompare", 1);
-                    setErrorsBeforeCycle(++errorsBefore);
-                    return;
-                }
+                stdOutput(tr("Ошибка конфигурационного регистра ОУ"), tr("Invalid RT configuration register"));
                 if (cfg.rtavsk != rtaddr)
-                {
                     stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
-                    errorsBefore++;
-                    emit statsOutputReady("errCompare", 1);
-                    setErrorsBeforeCycle(++errorsBefore);
-                    return;
-                }
+                errorsBefore++;
+                emit statsOutputReady("errCompare", 1);
+                setErrorsBeforeCycle(++errorsBefore);
+                return;
+            }
+            if (cfg.rtavsk != rtaddr)
+            {
+                stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
+                errorsBefore++;
+                emit statsOutputReady("errCompare", 1);
+                setErrorsBeforeCycle(++errorsBefore);
+                return;
             }
         }
+    }
 
-        if (initEnable)
+    if (initEnable)
+    {
+        // Начальная конфигурация КШ
+        qDebug() << "start BC configuration";
+        devBC->configuration.setChecked(config_NUMREG_cfg, false);
+        QByteArray regBC = devBC->configuration.getRegistersToWrite();
+        if (regBC.size() > 0)
         {
-            // Начальная конфигурация КШ
-            qDebug() << "start BC configuration";
-            devBC->configuration.setChecked(config_NUMREG_cfg, false);
-            QByteArray regBC = devBC->configuration.getRegistersToWrite();
-            if (regBC.size() > 0)
-            {
-                QByteArray regs;
-                regs.append(regBC);
-                devBC->write_F1(regs.data(), regs.size());
-                devBC->configuration.doneWriteReg(regBC);
-            }
+            QByteArray regs;
+            regs.append(regBC);
+            devBC->write_F1(regs.data(), regs.size());
+            devBC->configuration.doneWriteReg(regBC);
         }
+    }
 
-        devBC->writeReg(&devBC->reg_hsc_cfg);
-        //setRegWritten(devBC, devBC->reg_hsc_cfg);
-        devBC->configuration.setWritten(devBC->reg_hsc_cfg.address, devBC->reg_hsc_cfg.getData());
-        if (checkLoadCfg && devBC->reg_hsc_cfg.getData() != readRegVal(devBC, &devBC->reg_hsc_cfg))
+    devBC->writeReg(&devBC->reg_hsc_cfg);
+    setRegWritten(devBC, devBC->reg_hsc_cfg);
+    //devBC->configuration.setWritten(devBC->reg_hsc_cfg.address, devBC->reg_hsc_cfg.getData());
+    if (checkLoadCfg && devBC->reg_hsc_cfg.getData() != readRegVal(devBC, &devBC->reg_hsc_cfg))
+    {
+        stdOutput(tr("Ошибка сравнения конфигурационного регистра КШ"), tr("Comparison BC cfg register wrong"));
+        emit statsOutputReady("errCompare", 1);
+        setErrorsBeforeCycle(++errorsBefore);
+        return;
+    }
+
+    if (pause_stop() == -1)
+        return;
+
+    initStartBC();
+
+    CTestBC test;
+    test.setConfigFlds(devBC->reg_hsc_cfg.type_man, devBC->reg_hsc_cfg.ena_codec!=0);
+    int n_wrd = test.numWordInSymbol();
+
+    int statusRT = getStatusReg(devRT);
+    int statusBC = getStatusReg(devBC);
+
+    int it = 0;
+    int errCounter = 0;
+    int pos = 0;
+    char *pData = (char*)testData;
+
+    for (int iter = 0; iter < iterCycle; iter++)
+    {
+        for (int code = 0; code < 64; code++)
         {
-            stdOutput(tr("Ошибка сравнения конфигурационного регистра КШ"), tr("Comparison BC cfg register wrong"));
-            emit statsOutputReady("errCompare", 1);
-            setErrorsBeforeCycle(++errorsBefore);
-            return;
-        }
-
-        if (pause_stop() == -1)
-            return;
-
-        quint32 zero = 0;
-        devBC->reg_hsc_creg.setData(zero);
-        devBC->reg_hsc_creg.start_bc = 1;
-
-        CTestBC test;
-        test.setConfigFlds(devBC->reg_hsc_cfg.type_man, devBC->reg_hsc_cfg.ena_codec!=0);
-        int n_wrd = test.numWordInSymbol();
-
-        int statusRT = getStatusReg(devRT);
-        int statusBC = getStatusReg(devBC);
-
-        int it = 0;
-        int errCounter = 0;
-        int pos = 0;
-        char * pData = (char*)testData;
-
-        for (int iter = 0; iter < iterCycle; iter++)
-        {
-            for (int code = 0; code < 64; code++)
+            for (int num=1; num<=MAXNUMSYM; num++)
             {
-                for (int num=1; num<=MAXNUMSYM; num++)
+                int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
+                int trbit = tgca_tr_REC;   // КШ -> ОУ
                 {
-                    int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
-                    int trbit = tgca_tr_REC;   // КШ -> ОУ
+                    char trmBuf[MAXPACKAGESIZE];
+                    bool errorOccured = false;
+                    int addr_rx = getBufRec(statusRT);
+
+                    if (pos > dataSize)
+                        pos -= dataSize;
+
+                    emit statsOutputReady("totalIter", 1);
+
+                    // создание командного пакета и данных для передачи по МКПД
+                    if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, rtaddr, trbit, code))
                     {
-                        char trmBuf[MAXPACKAGESIZE];
-                        bool errorOccured = false;
-                        int addr_rx = getBufRec(statusRT);
-
-                        if (pos > dataSize)
-                            pos -= dataSize;
-
-                        emit statsOutputReadySimple("totalIter", 1);
-
-                        // создание командного пакета и данных для передачи по МКПД
-                        if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, rtaddr, trbit, code))
-                        {
-                            emit statsOutputReady("otherErr", 1);
-                            setErrorsWithinCycle(false);
-                            stdOutput(QString(tr("Ошибка создания командного пакета")), QString(tr("Command pack creation error")));
-                            return;
-                        }
-                        // Запись командного пакета в буфер передачи КШ
-                        devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
-
-                        // Оконный режим
-                        switchWindow(1);
-                        thread()->msleep(delayTime);
-                        // Старт обмена
-                        devBC->writeReg(&devBC->reg_hsc_creg);
-
-                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
-                        // Оконный режим
-                        switchWindow(0);
-
-                        statusRT = getStatusReg(devRT);
-                        bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                        bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
-
-                        if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
-                        {
-                            setErrorsWithinCycle(true);
-                            return;
-                        }
-
-                        if (compEnableMemRT)
-                        {
-                            // Чтение данных из буфера приёма ОУ для сравнения
-                            QByteArray readArrayC;
-                            readArrayC.resize(num*NUMBYTEINOFDMSYM);
-                            devRT->read_F2(addr_rx, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                            if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
-                            {
-                                if (it <= 1)
-                                    stdOutput(tr("Сравнение буфера приёма ОУ успешно"), tr("Comparison RT rec buffer OK"));
-                            }
-                            else
-                            {
-                                stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
-                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                                emit statsOutputReady("errCompare", 1);
-                                errorOccured = true;
-                            }
-                        }
-                        if (errorOccured)
-                        {
-                            emit statsOutputReady("totalErr", 1);
-                            errCounter ++;
-                        }
-                    }
-
-                    it++;
-                    pos += num_b;
-                    if (pauseTime > 0)
-                        thread()->msleep(pauseTime);
-                    if (pause_stop() == -1)
+                        stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                        emit statsOutputReady("otherErr", 1);
+                        setErrorsWithinCycle(false);
                         return;
-
-                    trbit = tgca_tr_TRM;   // ОУ -> КШ
-                    {
-                        char trmBuf[MAXPACKAGESIZE];
-                        char recBuf[NUMBYTEINOFDMSYM];
-
-                        bool errorOccured = false;
-                        int addr_tr_rt = getBufTrm(statusRT);
-                        int addr_rx_bc = getBufRec(statusBC);
-
-                        if (pos > dataSize)
-                            pos -= dataSize;
-
-                        emit statsOutputReadySimple("totalIter", 1);
-
-                        // создание командного пакета и данных для передачи по МКПД
-                        if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, 0, rtaddr, trbit, code))
-                        {
-                            stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
-                            emit statsOutputReady("otherErr", 1);
-                            setErrorsWithinCycle(false);
-                            return;
-                        }
-                        if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b))
-                        {
-                            stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
-                            emit statsOutputReady("otherErr", 1);
-                            setErrorsWithinCycle(false);
-                            return;
-                        }
-                        // Запись командного пакета в буфер передачи КШ
-                        devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
-                        // Запись данных в буфер передачи ОУ
-                        devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
-
-                        // Оконный режим
-                        switchWindow(1);
-                        thread()->msleep(delayTime);
-
-                        // Старт обмена
-                        devBC->writeReg(&devBC->reg_hsc_creg);
-
-                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
-                        // Оконный режим
-                        switchWindow(0);
-
-                        statusRT = getStatusReg(devRT);
-                        bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                        bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
-
-                        if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
-                        {
-                            setErrorsWithinCycle(true);
-                            return;
-                        }
-
-                        if (compEnableMemBC)
-                        {
-                            // Чтение данных из буфера приёма ОУ для сравнения
-                            QByteArray readArrayC;
-                            readArrayC.resize(num*NUMBYTEINOFDMSYM);
-                            devBC->read_F2(addr_rx_bc, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                            if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
-                            {
-                                if (it <= 1)
-                                    stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
-                            }
-                            else
-                            {
-                                stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                                emit statsOutputReady("errCompare", 1);
-                                errorOccured = true;
-                            }
-                        }
-                        if (errorOccured)
-                        {
-                            emit statsOutputReady("totalErr", 1);
-                            errCounter ++;
-                        }
                     }
-                    it++;
-                    pos += num_b;
-                    if (pauseTime > 0)
-                        thread()->msleep(pauseTime);
-                    if (pause_stop() == -1)
-                        return;
-
-                } //length cycle
-            } // code cycle
-        } // iter cycle
-
-        if (errCounter)
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-        else
-            emit resultReady((int)AbstractTest::Completed);
-#if 0
-                    devBC->write_F2(getBufTrm(statusBC), (char*)recData, rec_pk_size);
-                    int addr_rx = getBufRec(statusBC);
-
-                    if (BCtoRT)
-                        stdOutput(QString(tr("Передача")), QString(tr("Transmition command")));
+                    // Запись командного пакета в буфер передачи КШ
+                    devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
 
                     // Оконный режим
                     switchWindow(1);
+                    thread()->msleep(delayTime);
 
                     // Старт обмена
                     devBC->writeReg(&devBC->reg_hsc_creg);
-                    if (!BCtoRT)
-                        emit statsOutputReadySimple("totalIter", 1);
-
                     int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+
+                    // Оконный режим
                     switchWindow(0);
 
-                    if (devRT)
-                        statusRT = getStatusReg(devRT);
-
+                    statusRT = getStatusReg(devRT);
                     bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                    bool bNoIntRT = false;
-
-                    if (devRT)
-                        bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
+                    bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
 
                     if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
                     {
@@ -735,49 +580,136 @@ void varCommandObjToThread::perform()
                         return;
                     }
 
-                    checkCounters(devBC);
-
-                    if (devRT)
+                    if (compEnableMemRT)
                     {
-                        checkCounters(devRT);
-
-                        if ((compEnableMemBC > 0) || (compEnableData > 0 /*&& BCtoRT*/) /* || проверка ответного слова */)
+                        // Чтение данных из буфера приёма ОУ для сравнения
+                        QByteArray readArrayC;
+                        readArrayC.resize(num*NUMBYTEINOFDMSYM);
+                        if (postponeTime > 0)
+                            thread()->msleep(postponeTime);
+                        devRT->read_F2(addr_rx, num*NUMBYTEINOFDMSYM, readArrayC.data());
+                        if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
                         {
-                            // Чтение данных из буфера приёма КШ для сравнения
-                            QByteArray readArrayC;
-                            readArrayC.resize(trm_size);
-                            devBC->read_F2(addr_rx, trm_size, readArrayC.data());
-                            if (cmpPack(readArrayC.data(), (char*)trmData, trm_size, nwrd*sizeof(word32_t), true))
-                            {
-                                if (it <= 1)
-                                    stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
-                            }
-                            else
-                            {
-                                stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                                stdOutput(tr("Первое прочитанное слово = %1").arg(*(int*)(readArrayC.data()), 8, 16, QLatin1Char('0')),
-                                          tr("First read word = %1").arg(*(int*)(readArrayC.data()), 8, 16, QLatin1Char('0')));
-                                emit statsOutputReady("errCompare", 1);
-                                if (compEnableMemRT == 2)
-                                {
-                                    setErrorsWithinCycle(false);
-                                    return;
-                                }
-                            }
-                        } //сравнение данных
+                            if (it <= 1)
+                                stdOutput(tr("Сравнение буфера приёма ОУ успешно"), tr("Comparison RT rec buffer OK"));
+                        }
+                        else
+                        {
+                            stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
+                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                            emit statsOutputReady("errCompare", 1);
+                            errorOccured = true;
+                        }
                     }
-                } // передача ОУ->КШ или циркулярный возврат
+                    if (errorOccured)
+                    {
+                        emit statsOutputReady("totalErr", 1);
+                        errCounter ++;
+                    }
+                }
 
-                if (errorOccured)
-                    emit statsOutputReady("totalErr", 1);
-
+                it++;
+                pos += num_b;
                 if (pauseTime > 0)
                     thread()->msleep(pauseTime);
-            } // цикл
+                if (pause_stop() == -1)
+                    return;
 
-        } // devBC
-#endif
+                trbit = tgca_tr_TRM;   // ОУ -> КШ
+                {
+                    char trmBuf[MAXPACKAGESIZE];
+                    char recBuf[NUMBYTEINOFDMSYM];
+
+                    bool errorOccured = false;
+                    int addr_tr_rt = getBufTrm(statusRT);
+                    int addr_rx_bc = getBufRec(statusBC);
+
+                    if (pos > dataSize)
+                        pos -= dataSize;
+
+                    emit statsOutputReady("totalIter", 1);
+
+                    // создание командного пакета и данных для передачи по МКПД
+                    if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, num_b, rtaddr, trbit, code))
+                    {
+                        stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                        emit statsOutputReady("otherErr", 1);
+                        setErrorsWithinCycle(false);
+                        return;
+                    }
+                    if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b))
+                    {
+                        stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
+                        emit statsOutputReady("otherErr", 1);
+                        setErrorsWithinCycle(false);
+                        return;
+                    }
+                    // Запись командного пакета в буфер передачи КШ
+                    devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
+                    // Запись данных в буфер передачи ОУ
+                    devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
+
+                    // Оконный режим
+                    switchWindow(1);
+                    thread()->msleep(delayTime);
+
+                    // Старт обмена
+                    devBC->writeReg(&devBC->reg_hsc_creg);
+                    int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+
+                    // Оконный режим
+                    switchWindow(0);
+
+                    statusRT = getStatusReg(devRT);
+                    bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
+                    bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
+
+                    if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
+                    {
+                        setErrorsWithinCycle(true);
+                        return;
+                    }
+
+                    if (compEnableMemBC)
+                    {
+                        // Чтение данных из буфера приёма КШ для сравнения
+                        QByteArray readArrayC;
+                        readArrayC.resize(num*NUMBYTEINOFDMSYM);
+                        devBC->read_F2(addr_rx_bc, num*NUMBYTEINOFDMSYM, readArrayC.data());
+                        if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                        {
+                            if (it <= 1)
+                                stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                        }
+                        else
+                        {
+                            stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
+                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                            emit statsOutputReady("errCompare", 1);
+                            errorOccured = true;
+                        }
+                    }
+                    if (errorOccured)
+                    {
+                        emit statsOutputReady("totalErr", 1);
+                        errCounter ++;
+                    }
+                }
+                it++;
+                pos += num_b;
+                if (pauseTime > 0)
+                    thread()->msleep(pauseTime);
+                if (pause_stop() == -1)
+                    return;
+
+            } //length cycle
+        } // code cycle
+    } // iter cycle
+
+    if (errCounter)
+        emit resultReady((int)AbstractTest::ErrorIsOccured);
+    else
+        emit resultReady((int)AbstractTest::Completed);
 }
 
 void varCommandObjToThread::terminate(int )
@@ -816,14 +748,6 @@ void varCommandObjToThread::destroyData()
     testData = 0;
 }
 
-// Оконный режим
-void varCommandObjToThread::switchWindow(int n)
-{
-    devRT->reg_aux_winmode.mode = n;
-    devBC->reg_aux_winmode.mode = n;
-    devRT->writeReg(&devRT->reg_aux_winmode);
-    devBC->writeReg(&devBC->reg_aux_winmode);
-}
 /*
 void createTrm()
 {

@@ -19,7 +19,11 @@ void TrmSingleTest::setStatSettings()
     statsMap.insert("errStatusRT", stats->findChild<QLabel*>("errStatusRT"));
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
-                   statsMap.insert("totalReset", stats->findChild<QLabel*>("totalReset"));    //////////
+    stats->findChild<QLabel*>("errFatal")->setVisible(false);
+    stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
+                //statsMap.insert("totalReset", stats->findChild<QLabel*>("totalReset"));    // сброс не реализован
+                 stats->findChild<QLabel*>("totalReset")->setVisible(false);
+                 stats->findChild<QLabel*>("labelTotalReset")->setVisible(false);
     statsMap.insert("errOther", stats->findChild<QLabel*>("errOther"));
 }
 
@@ -38,7 +42,7 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     recalcMax();
     onRadioCycle();
     onTypeChanged();
-    disableUnused();    // отключить нереализованные настройки
+    disableUnimplemented();    // отключить нереализованные настройки
 
     addDevicesTolist();
 
@@ -46,7 +50,7 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     connectThread();
 
     setStatSettings();
-    connectStats();
+    connectStatisticSlots();
 
     testThread.start();
 }
@@ -106,7 +110,7 @@ void TrmSingleTest::defineFields()
     lineEditRTOut = settings->findChild<QLineEdit*>("lineEditRTOut");
 
     checkBoxWinMode = settings->findChild<QCheckBox*>("checkBoxWinMode");
-    lineEditWinModePause = settings->findChild<QLineEdit*>("lineEditWinModePause");
+    lineEditReservePause = settings->findChild<QLineEdit*>("lineEditReservePause");
 
     comboBoxErrStatusBC = settings->findChild<QComboBox*>("comboBoxErrStatusBC");
     comboBoxErrStatusRT = settings->findChild<QComboBox*>("comboBoxErrStatusRT");
@@ -210,7 +214,7 @@ top_1
     comboBoxCompSPI->setCurrentIndex(out.readLine().toInt());
     comboBoxCompData->setCurrentIndex(out.readLine().toInt());
     comboBoxTestType->setCurrentIndex(out.readLine().toInt());
-    lineEditWinModePause->setText(out.readLine());
+    lineEditReservePause->setText(out.readLine());
     comboBoxSpeed->setCurrentIndex(out.readLine().toInt());
     lineEditOver->setText(out.readLine());
 
@@ -286,7 +290,7 @@ top_2(saveFileNameStr)
     in << comboBoxCompSPI->currentIndex() << endl;
     in << comboBoxCompData->currentIndex() << endl;
     in << comboBoxTestType->currentIndex() << endl;
-    in << lineEditWinModePause->text() << endl;
+    in << lineEditReservePause->text() << endl;
     in << comboBoxSpeed->currentIndex() << endl;
     in << lineEditOver->text() << endl;
 
@@ -315,7 +319,7 @@ void TrmSingleTest::onTypeChanged()
 
 void TrmSingleTest::onRadioCycle()
 {
-    if (su)
+    if (!userMode())
         spinBoxCycle->setEnabled(radioButtonEnter->isChecked());
 }
 
@@ -337,7 +341,7 @@ void TrmSingleTest::onCheckInit()
     spinBoxCycle->setMinimum(checkBoxInit->isChecked() ? 0 : 1);
 }
 
-void TrmSingleTest::disableUnused()
+void TrmSingleTest::disableUnimplemented()
 {
     // ПОКА НЕ РЕАЛИЗОВАНЫ
     comboBoxCheckRW->setDisabled(true);                             // проверка ответного пакета
@@ -361,7 +365,7 @@ void TrmSingleTest::setEnabledSpecial(bool b)
         onTypeChanged();
         onRadioCycle();
 
-        disableUnused();    // отключить нереализованные настройки
+        disableUnimplemented();    // отключить нереализованные настройки
     }
     else
     {
@@ -470,7 +474,7 @@ void TrmSingleTest::startTest()
         curThread->iterCycle = 1;
     curThread->initEnable = checkBoxInit->isChecked();
     curThread->pauseTime = lineEditPause->text().toInt(0, 10);
-    curThread->delayTime = lineEditWinModePause->text().toInt(0, 10);
+    curThread->postponeTime = lineEditReservePause->text().toInt(0, 10);
     curThread->checkStatusErrBC = (comboBoxErrStatusBC->currentIndex() > 0);
     curThread->checkStatusErrRT = (comboBoxErrStatusRT->currentIndex() > 0);
     curThread->noIntFatalBC = (comboBoxBCIntErr->currentIndex() != 0);
@@ -485,6 +489,7 @@ void TrmSingleTest::startTest()
     curThread->checkLoadCfg = comboBoxWrongCfgReg->currentIndex() > 0;
 
     curThread->manipulation = comboBoxManType->currentText();
+    curThread->iManipulation = comboBoxManType->currentIndex();
     curThread->codec = checkBoxCodec->isChecked();
 
     ushort rta = curThread->broadcast ? BRD_RT_ADDR : curThread->rtaddr;
@@ -529,10 +534,8 @@ void TrmSingleTest::startTest()
         {
             curThread->devRT->reg_hsc_cfg.rtavsk = curThread->rtaddr;
             // если конфигурационный регистр будет загружен и адрес ОУ будет в нём,
-            // то во вспомогательный регистр адрес загружать не нужно, но мы этому не препятствуем,
-            // поэтому не проверяем:
-                //if (checkBoxInit->isChecked() || checkBoxConfRegLoad->isChecked())
-                curThread->rtaddr = MAX_RT_ADDR + 1;
+            // то во вспомогательный регистр адрес загружать не нужно, но мы этому не препятствуем
+            // curThread->rtaddr = MAX_RT_ADDR + 1;
         }
         curThread->amplRT = comboBoxAmplRT->currentIndex();
         if (comboBoxSPILoad->currentText() == "ОУ")
@@ -561,13 +564,13 @@ void TrmSingleTest::startTest()
     if (test.maxNumByte() != mnb)
     {
         qDebug() << "Error max num byte: " << mnb << " " << test.maxNumByte();
-        throw QString("error_max_num_byte");
+        throw QString("Unexpected configuration parameters");
     }
     curThread->nwrd = test.numWordInSymbol();
 
     if (num_b != 0 || (curThread->devBC != 0 && curThread->iterCycle != 0))
     {
-        void *rawData = dataGen.createData(num_b);
+        void *rawData = dataGen.createData(num_b, 1);
 
         curThread->trm_size = (test.NumSymOFDM(num_b) + 1) * NUMBYTEINOFDMSYM;
         //int ns = test.NumSymOFDM(num_b) + 1;
@@ -619,11 +622,6 @@ void TrmSingleTest::startTest()
     }
 
     emit startTestTh();
-}
-
-static void setRegWritten(Device *dev, BaseReg &reg)
-{
-    dev->configuration.setWritten(reg.address, reg.getData());
 }
 
 void writeSPI(Device* dev, quint32 dataSPI)
@@ -800,7 +798,8 @@ bool trmSingleObjToThread::checkStatusRegRT(int status, int it, bool *error)
 {
     bool bNoInt = false;
 
-    if (useInt && noIntFatalRT)
+    /*
+    if (useInt && noIntFatalRT)  // Нет! Прерывание ОУ не проверяем. Только бит завершения обмена.
     {
         devRT->readReg(&devRT->reg_aux_interruption);
         if (devRT->reg_aux_interruption.inter == 0)
@@ -811,6 +810,7 @@ bool trmSingleObjToThread::checkStatusRegRT(int status, int it, bool *error)
             bNoInt = true;
         }
     }
+    */
     if ( ((status & fl_REG_STATUS_rt_bc_int) == 0 && (noIntFatalRT || checkStatusErrRT)) ||
          (checkStatusErrRT && ((codec && ((status & fl_REG_STATUS_rs_err) != 0)) || ((status & (fl_REG_STATUS_no_aw_err | fl_REG_STATUS_yes_aw_gr_err)) != 0))) )
     {
@@ -878,24 +878,6 @@ void trmSingleObjToThread::checkCounters(Device *dev)
     }
 }
 
-static bool split(const QByteArray all, QByteArray& even, QByteArray& odd)
-{
-    int sz = all.size();
-    if (sz%8 != 0)
-        return false;
-    for (int i=0; i<sz; i+=8)
-    {
-        int addr = *(int*)(all.data()+i);
-        int val = *(int*)(all.data()+i+4);
-        if (addr != REG_VSK_creg)
-        {
-            even.append((char*)&addr, 4);
-            odd.append((char*)&val, 4);
-        }
-    }
-    return (even.size() > 0);
-}
-
 trmSingleObjToThread::trmSingleObjToThread():
     commonObjToThread(),
     //cfgBC(0), cfgRT(0),
@@ -915,8 +897,15 @@ void trmSingleObjToThread::perform()
     if (trmData)
     {
         if (trm_size > 0)
+        {
             stdOutput(QString(tr("Командное слово: %1")).arg(*(int*)trmData, 8, 16, QLatin1Char('0')),
                       QString(tr("Command word: %1")).arg(*(int*)trmData, 8, 16, QLatin1Char('0')));
+
+            addr_t rta;
+            short num_s, tr, code;
+            parseCommandWord(trmData, &rta, &num_s, &tr, &code);
+            qDebug() << "Command word: addr num_s tr code " << rta << " " << num_s << " " << tr << " " << code;
+        }
         else
             stdOutput(QString(tr("Размер данных для передачи - 0 байт!")), QString(tr("Data size = 0 !")));
     }
@@ -962,12 +951,12 @@ void trmSingleObjToThread::perform()
                 devRT->configuration.doneWriteReg(regRT);
             }
             ///   Сравнение конфигурации
-            if (compEnableReg && (regRT.size() > 0))
+            if (compEnableReg > 0 && regRT.size() > 0)
             {
                 QByteArray addrArray, valArray;
-                if (split(regRT, addrArray, valArray))
+                if (splitOddEven(regRT, addrArray, valArray))
                 {
-                    // Чтение регистров КШ для сравнения
+                    // Чтение регистров ОУ для сравнения
                     QByteArray readArrayC;
                     readArrayC.resize(addrArray.size());
                     devRT->read_F1(addrArray.data(), readArrayC.data(), addrArray.size());
@@ -1013,8 +1002,8 @@ void trmSingleObjToThread::perform()
             devRT->readReg(&cfg);
             qDebug() << "RT cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
                      << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
-            if (cfg.rt_bc != CFG_MODE_RT || cfg.ena_codec != devRT->reg_hsc_cfg.ena_codec ||
-                cfg.type_man != devRT->reg_hsc_cfg.type_man || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
+            if (cfg.rt_bc != CFG_MODE_RT || cfg.ena_codec != codec ||
+                cfg.type_man != iManipulation || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
                 cfg_err = true;
             else
             {
@@ -1026,6 +1015,8 @@ void trmSingleObjToThread::perform()
                                         // потому что это регулируется записью и проверкой регистра reg_aux_rtaddr
                     {
                         if (cfg.rtavsk != devRT->reg_hsc_cfg.rtavsk)
+                            cfg_err = true;
+                        if (rtaddr <= MAX_RT_ADDR && cfg.rtavsk != rtaddr)
                             cfg_err = true;
                     }
                 }
@@ -1143,10 +1134,10 @@ void trmSingleObjToThread::perform()
                 devBC->write_F1(regs.data(), regs.size());
                 devBC->configuration.doneWriteReg(regBC);
             }
-            if (compEnableReg && (regBC.size() > 0))
+            if (compEnableReg > 0 && regBC.size() > 0)
             {
                 QByteArray addrArray, valArray;
-                if (split(regBC, addrArray, valArray))
+                if (splitOddEven(regBC, addrArray, valArray))
                 {
                     // Чтение регистров КШ для сравнения
                     QByteArray readArrayC;
@@ -1190,8 +1181,8 @@ void trmSingleObjToThread::perform()
             devBC->readReg(&cfg);
             qDebug() << "BC cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
                      << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
-            if (cfg.rt_bc != CFG_MODE_BC || cfg.ena_codec != devBC->reg_hsc_cfg.ena_codec ||
-                cfg.type_man != devBC->reg_hsc_cfg.type_man || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
+            if (cfg.rt_bc != CFG_MODE_BC || cfg.ena_codec != codec ||
+                cfg.type_man != iManipulation || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
             {
                 stdOutput(tr("Ошибка сравнения конфигурационного регистра КШ"), tr("Comparison BC cfg register wrong"));
                 emit statsOutputReady("errCompare", 1);
@@ -1249,9 +1240,7 @@ void trmSingleObjToThread::perform()
         {
             statusBC = getStatusReg(devBC);
 
-            quint32 zero = 0;
-            devBC->reg_hsc_creg.setData(zero);
-            devBC->reg_hsc_creg.start_bc = 1;
+            initStartBC();
 
             long totalTime = 0;
             int timeCounter = 0;
@@ -1275,7 +1264,7 @@ void trmSingleObjToThread::perform()
 
                 if (BCtoRT)
                 {
-                    emit statsOutputReadySimple("totalIter", 1);
+                    emit statsOutputReady("totalIter", 1);
                     // Запись данных в буфер передачи
                     devBC->write_F2(getBufTrm(statusBC), (char*)trmData, trm_size);
                     if (compEnableMemBCRT > 0 && it <= 1)
@@ -1306,17 +1295,21 @@ void trmSingleObjToThread::perform()
                         }
                     }
                     if (RTtoBC)
-                        stdOutput(QString(tr("Приём")), QString(tr("Receive command")));
+                        stdOutput(tr("Приём"), tr("Receive"));
 
                     // Оконный режим
-                    switchWindow(1);
+                    if(windowMode && devRT)
+                    {
+                        switchWindow(1);
+                        thread()->msleep(delayTime);
+                    }
 
                     // Старт обмена
                     QTime curTime;
                     if (timeMeasure)
                     {
-                        curTime.start(); // = QTime::currentTime();
-                    qDebug() << "Time before: " << curTime;
+                        curTime = QTime::currentTime();
+                        qDebug() << "Time before: " << curTime;
                     }
                     //int time1 =  curTime.msecsSinceStartOfDay();
 
@@ -1327,8 +1320,9 @@ void trmSingleObjToThread::perform()
                     {
                       QTime newTime = QTime::currentTime();
                       qDebug() << "Time after: " << newTime;
-                      //  int t = curTime.msecsTo(newTime); //(QTime::currentTime());
-                        int t = curTime.elapsed();
+                        int t = curTime.msecsTo(newTime); //(QTime::currentTime());
+                      qDebug() << "msecsToCurrentTime: " << t;
+                        // int t = curTime.elapsed();
                         if (timeOverhead == 99)
                         {
                             if (t>0)
@@ -1353,7 +1347,8 @@ void trmSingleObjToThread::perform()
                                       tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit").arg(t).arg(totalTime).arg(wholePackBits));
                     }
 
-                    switchWindow(0);
+                    if(windowMode && devRT)
+                        switchWindow(0);
 
                     if (devRT)
                         statusRT = getStatusReg(devRT);
@@ -1382,6 +1377,8 @@ void trmSingleObjToThread::perform()
                             // Чтение данных из буфера приёма ОУ для сравнения
                             QByteArray readArrayC;
                             readArrayC.resize(trm_size);
+                            if (postponeTime > 0)
+                                thread()->msleep(postponeTime);
                             devRT->read_F2(getBufRec(statusRTBefore), trm_size, readArrayC.data());
                             if (test.cmpPack((void*)(readArrayC.data()), trmData, trm_size/NUMBYTEINOFDMSYM -1, true))
                             {
@@ -1466,16 +1463,23 @@ void trmSingleObjToThread::perform()
                     int addr_rx = getBufRec(statusBC);
 
                     if (BCtoRT)
-                        stdOutput(QString(tr("Передача")), QString(tr("Transmition command")));
+                        stdOutput(tr("Передача"), tr("Transmit"));
 
                     // Оконный режим
-                    switchWindow(1);
+                    if(windowMode && devRT)
+                    {
+                        switchWindow(1);
+                        thread()->msleep(delayTime);
+                    }
 
                     if (!BCtoRT)
-                        emit statsOutputReadySimple("totalIter", 1);
+                        emit statsOutputReady("totalIter", 1);
                     QTime curTime;
                     if (timeMeasure)
+                    {
                         curTime = QTime::currentTime();
+                        qDebug() << "Time before: " << curTime;
+                    }
 
                     // Старт обмена
                     devBC->writeReg(&devBC->reg_hsc_creg);
@@ -1484,7 +1488,10 @@ void trmSingleObjToThread::perform()
 
                     if (timeMeasure)
                     {
-                        int t = curTime.msecsTo(QTime::currentTime());
+                        QTime newTime = QTime::currentTime();
+                        qDebug() << "Time after: " << newTime;
+                          int t = curTime.msecsTo(newTime); //(QTime::currentTime());
+                        qDebug() << "msecsToCurrentTime: " << t;
                         if (timeOverhead == 99)
                         {
                             if (t>0)
@@ -1505,7 +1512,8 @@ void trmSingleObjToThread::perform()
                                       tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit").arg(t).arg(totalTime).arg(wholePackBits));
                     }
 
-                    switchWindow(0);
+                    if(windowMode && devRT)
+                        switchWindow(0);
 
                     if (devRT)
                         statusRT = getStatusReg(devRT);
@@ -1615,21 +1623,6 @@ void trmSingleObjToThread::destroyData()
     trmData = 0;
     recData = 0;
     //testData = 0;
-}
-
-// Оконный режим
-void trmSingleObjToThread::switchWindow(int n)
-{
-    if(windowMode && devRT)
-    {
-        devRT->reg_aux_winmode.mode = n;
-        devBC->reg_aux_winmode.mode = n;
-        devRT->writeReg(&devRT->reg_aux_winmode);
-        devBC->writeReg(&devBC->reg_aux_winmode);
-
-        if (n)
-            thread()->msleep(delayTime);
-    }
 }
 
 // Вывод средней скорости передачи данных

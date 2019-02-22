@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
+    <width>497</width>
     <height>799</height>
    </rect>
   </property>
@@ -33,8 +33,8 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-333</y>
-        <width>466</width>
+        <y>0</y>
+        <width>459</width>
         <height>1136</height>
        </rect>
       </property>
@@ -48,13 +48,6 @@
        <property name="horizontalSpacing">
         <number>0</number>
        </property>
-       <item row="27" column="0" colspan="3">
-        <widget class="QLabel" name="labelSpeed">
-         <property name="text">
-          <string>Измерять скорость передачи данных</string>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="0" colspan="2">
         <widget class="QLabel" name="labelDevRT">
          <property name="text">
@@ -106,6 +99,12 @@
        </item>
        <item row="41" column="3">
         <widget class="QComboBox" name="comboBoxBCIntErr">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="currentIndex">
           <number>1</number>
          </property>
@@ -124,7 +123,7 @@
        <item row="44" column="0" colspan="3">
         <widget class="QLabel" name="labelErrRegComp">
          <property name="text">
-          <string>Проверка начальной загрузки регистров</string>
+          <string>Проверка загрузки регистров</string>
          </property>
         </widget>
        </item>
@@ -151,6 +150,12 @@
        </item>
        <item row="52" column="3">
         <widget class="QLineEdit" name="lineEditBegin">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="inputMethodHints">
           <set>Qt::ImhUppercaseOnly</set>
          </property>
@@ -164,6 +169,12 @@
        </item>
        <item row="42" column="3">
         <widget class="QComboBox" name="comboBoxErrStatusBC">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <item>
           <property name="text">
            <string>Не проверять</string>
@@ -183,6 +194,12 @@
        </item>
        <item row="43" column="3">
         <widget class="QComboBox" name="comboBoxErrStatusRT">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <item>
           <property name="text">
            <string>Не проверять</string>
@@ -197,6 +214,12 @@
        </item>
        <item row="45" column="3">
         <widget class="QComboBox" name="comboBoxWrongCfgReg">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="currentIndex">
           <number>0</number>
          </property>
@@ -259,7 +282,7 @@
        <item row="24" column="0" colspan="3">
         <widget class="QLabel" name="labelWinModePause">
          <property name="text">
-          <string>Задержка для оконного режима (мc)</string>
+          <string>Задержка сравнения данных (мс)</string>
          </property>
         </widget>
        </item>
@@ -341,6 +364,12 @@
        </item>
        <item row="44" column="3">
         <widget class="QComboBox" name="comboBoxErrRegComp">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <item>
           <property name="text">
            <string>Не проверять</string>
@@ -355,6 +384,12 @@
        </item>
        <item row="15" column="3">
         <widget class="QComboBox" name="comboBoxManType">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <item>
           <property name="text">
            <string>QPSK</string>
@@ -407,6 +442,15 @@
        </item>
        <item row="2" column="3">
         <widget class="QLineEdit" name="lineEditNumS">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>009</string>
+         </property>
          <property name="text">
           <string>255</string>
          </property>
@@ -414,31 +458,18 @@
        </item>
        <item row="28" column="3">
         <widget class="QLineEdit" name="lineEditOver">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="inputMask">
           <string>09</string>
          </property>
          <property name="text">
           <string>3</string>
          </property>
-        </widget>
-       </item>
-       <item row="27" column="3">
-        <widget class="QComboBox" name="comboBoxSpeed">
-         <item>
-          <property name="text">
-           <string>Нет</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Вывод на каждом шаге</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Вывод при завершении</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="35" column="3">
@@ -458,21 +489,31 @@
         </widget>
        </item>
        <item row="54" column="3">
-        <widget class="QLineEdit" name="lineEditNumStep"/>
+        <widget class="QLineEdit" name="lineEditNumStep">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item row="32" column="3">
         <widget class="QSpinBox" name="spinBoxCycle">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="suffix">
           <string> h</string>
          </property>
          <property name="minimum">
-          <number>0</number>
+          <number>2</number>
          </property>
          <property name="maximum">
-          <number>99</number>
-         </property>
-         <property name="displayIntegerBase">
-          <number>16</number>
+          <number>32</number>
          </property>
         </widget>
        </item>
@@ -504,7 +545,7 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>000009</string>
+          <string>0000009</string>
          </property>
          <property name="text">
           <string>500056</string>
@@ -529,9 +570,12 @@
         <widget class="QComboBox" name="comboBoxShow">
          <property name="maximumSize">
           <size>
-           <width>220</width>
+           <width>204</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="currentIndex">
+          <number>6</number>
          </property>
          <item>
           <property name="text">
@@ -598,8 +642,17 @@
        </item>
        <item row="22" column="3">
         <widget class="QLineEdit" name="lineEditTime">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>009</string>
+         </property>
          <property name="text">
-          <string>60</string>
+          <string>6</string>
          </property>
         </widget>
        </item>
@@ -660,8 +713,14 @@
        </item>
        <item row="23" column="3">
         <widget class="QLineEdit" name="lineEditPause">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>150</string>
+          <string>009</string>
          </property>
         </widget>
        </item>
@@ -686,6 +745,12 @@
        </item>
        <item row="3" column="3">
         <widget class="QComboBox" name="comboBoxRTA">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="currentIndex">
           <number>1</number>
          </property>
@@ -886,6 +951,12 @@
            <height>20</height>
           </size>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="layoutDirection">
           <enum>Qt::RightToLeft</enum>
          </property>
@@ -925,9 +996,18 @@
         </widget>
        </item>
        <item row="24" column="3">
-        <widget class="QLineEdit" name="lineEditWinModePause">
+        <widget class="QLineEdit" name="lineEditReservePause">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>009</string>
+         </property>
          <property name="text">
-          <string>5</string>
+          <string>100</string>
          </property>
         </widget>
        </item>
@@ -1006,6 +1086,12 @@
        </item>
        <item row="53" column="3">
         <widget class="QLineEdit" name="lineEditStep">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="inputMask">
           <string>####</string>
          </property>
@@ -1161,23 +1247,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2" colspan="2">
-        <widget class="QComboBox" name="comboBoxTestType">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>Команда передачи (ОУ-&gt;КШ)</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Команда приёма  (КШ-&gt;ОУ)</string>
-          </property>
-         </item>
-        </widget>
-       </item>
        <item row="10" column="0" colspan="2">
         <widget class="QLabel" name="labelInitLoad">
          <property name="text">
@@ -1256,6 +1325,12 @@
        </item>
        <item row="46" column="3">
         <widget class="QComboBox" name="comboBoxCheckRTA">
+         <property name="maximumSize">
+          <size>
+           <width>140</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <item>
           <property name="text">
            <string>Не проверять</string>
@@ -1264,6 +1339,60 @@
          <item>
           <property name="text">
            <string>Выход по ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="2" colspan="2">
+        <widget class="QComboBox" name="comboBoxTestType">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Передача  (ОУ-&gt;КШ)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Приём    (КШ-&gt;ОУ)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="27" column="0" colspan="2">
+        <widget class="QLabel" name="labelSpeed">
+         <property name="text">
+          <string>Измерять скорость передачи данных</string>
+         </property>
+        </widget>
+       </item>
+       <item row="27" column="2" colspan="2">
+        <widget class="QComboBox" name="comboBoxSpeed">
+         <property name="maximumSize">
+          <size>
+           <width>204</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>Нет</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Вывод на каждом шаге</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Вывод через 20 000 000 бит</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Вывод при завершении</string>
           </property>
          </item>
         </widget>

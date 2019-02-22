@@ -173,7 +173,8 @@ void AbstractTest::mousePressEvent(QMouseEvent *event)
             if (yellowTest != NULL)
                 yellowTest->setValidState(yellowTest->validState);
             yellowTest = this;
-            QBrush br(qRgb(255,255,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+            QBrush br(qRgb(99,229,138)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // 255,255,100  100,255,100  yellow
+            setFrameShadow(QFrame::Sunken);
         }
     } else if (event->buttons() == Qt::LeftButton && event->modifiers() == Qt::NoModifier) {
         QDrag *drag = new QDrag(this);
@@ -228,7 +229,7 @@ void AbstractTest::statsTestOutput(QString str, long n)
     if (it != statsMap.end())
     {
         QLabel* l = it.value();
-        l->setText(QString::number(l->text().toLongLong()+n));
+        l->setText(QString::number(l->text().toULongLong()+n));
     }
 }
 
@@ -280,17 +281,24 @@ void AbstractTest::setValidState(AbstractTest::ValidState vs)
 {
     QPalette palette;
     if (vs == AbstractTest::DeviceIsNotAvailable) {
-        //setStyleSheet("QFrame { border: 3px solid red; background-color: lightGray ;}");  //qRgb(200,0,200)
-        QBrush br(qRgb(255,75,75)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // red
+        //setStyleSheet("QFrame { border: 3px solid red; background-color: lightGray ;}");  // qRgb(200,0,200)
+        QBrush br(qRgb(255,75,75)); palette.setBrush(QPalette::Window, br);                 // red
     } else if (vs == AbstractTest::ConnectionIsNotAvailable) {
         //setStyleSheet("QFrame { border: 3px solid yellow; background-color: lightGray;}");
-        QBrush br(qRgb(255,255,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // yellow
+        QBrush br(qRgb(255,255,100)); palette.setBrush(QPalette::Window, br);               // yellow
     } else if (vs == AbstractTest::ItIsOk) {
         //setStyleSheet("QFrame { border: 3px solid green; background-color: lightGray;}");
-        QBrush br(qRgb(85, 255, 127)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // green  // 170,255,130  100,230,100
+        QBrush br(qRgb(110, 255, 160)); palette.setBrush(QPalette::Window, br);             // green  // 170,255,130  100,230,100
+    }
+    else
+    {
+        validState = vs;
+        return;
     }
     //status->setStyleSheet("QLabel { border: 3px solid lightGray; background-color: lightGray;}");
     //fileName->setStyleSheet("QLabel { border: 3px solid lightGray; background-color: lightGray;}");
+    setPalette(palette);
+    setFrameShadow(QFrame::Raised);
     validState = vs;
 }
 
@@ -629,26 +637,34 @@ void AbstractTest::deleteObject()
 
 void AbstractTest::firstStartTest()
 {
-    if (getValidState() != ItIsOk) {
-        message(tr("Ошибка: проблема с устройствами теста (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
-        emit unsetEmit(startButton, pauseButton, stopButton);
-        return;
+    try
+    {
+        if (getValidState() != ItIsOk) {
+            message(tr("Ошибка: проблема с устройствами теста (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+            emit unsetEmit(startButton, pauseButton, stopButton);
+            return;
+        }
+        if (getRunningState() == Running) {
+            message(tr("Предупреждение: в данный момент запущен тест (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+            return;
+        }
+        if (getRunningState() == Paused) {
+            objToThread->threadState = AbstractTest::Running;
+            return;
+        }
+        if (getGlobalState() == FREE) {
+            objToThread->threadState = AbstractTest::Running; //???
+            startTest();
+            return;
+        } else {
+            message(tr("Предупреждение: в данный момент запущен некоторый тест"));
+            return;
+        }
     }
-    if (getRunningState() == Running) {
-        message(tr("Предупреждение: в данный момент запущен тест (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
-        return;
-    }
-    if (getRunningState() == Paused) {
-        objToThread->threadState = AbstractTest::Running;
-        return;
-    }
-    if (getGlobalState() == FREE) {
-        objToThread->threadState = AbstractTest::Running; //???
-        startTest();
-        return;
-    } else {
-        message(tr("Предупреждение: в данный момент запущен некоторый тест"));
-        return;
+    catch(const QString& exception)
+    {
+        message(tr("Ошибка запуска теста: ") + exception);
+        objToThread->threadState = runningState = AbstractTest::ErrorIsOccured;
     }
 }
 

@@ -55,3 +55,21 @@ int getStatusReg(Device * dev)
     REG_HSC_status reg_status;
     return readRegVal(dev, &reg_status);
 }
+
+bool splitOddEven(const QByteArray all, QByteArray& even, QByteArray& odd)
+{
+    int sz = all.size();
+    if (sz%8 != 0)
+        return false;
+    for (int i=0; i<sz; i+=8)
+    {
+        int addr = *(int*)(all.data()+i);
+        int val = *(int*)(all.data()+i+4);
+        if (addr != REG_VSK_creg)
+        {
+            even.append((char*)&addr, 4);
+            odd.append((char*)&val, 4);
+        }
+    }
+    return (even.size() > 0);
+}

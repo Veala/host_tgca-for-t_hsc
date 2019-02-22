@@ -353,7 +353,7 @@ background-color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QLabel" name="label_15">
+    <widget class="QLabel" name="labelErrFatal">
      <property name="text">
       <string>Фатальные ошибки</string>
      </property>
@@ -614,7 +614,7 @@ background-color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item row="5" column="0">
-    <widget class="QLabel" name="label_16">
+    <widget class="QLabel" name="labelTotalReset">
      <property name="text">
       <string>Автоматические сбросы</string>
      </property>

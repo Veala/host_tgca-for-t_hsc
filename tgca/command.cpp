@@ -27,7 +27,6 @@ bool createCommandWord(word32_t* command_word, addr_t addr, unsigned int num_s, 
         tr = 1;
 
     *command_word = (addr << 16) | (num_s << 8) | (tgca_fl_CW_tr_bit * tr) | code;
-    qDebug() << "Command word: addr num_s tr code " << addr << " " << num_s << " " << tr << " " << code;
     return bRet;
 }
 

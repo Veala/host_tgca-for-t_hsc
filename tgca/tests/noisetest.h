@@ -20,7 +20,8 @@ protected:
 private:
     void defineFields();
     void load(QString fName);
-    void disableUnused();
+    void disableUnimplemented();
+    void setFieldConnections();
 
     // основные
     QComboBox *comboBoxTestType;  // тип команды
@@ -57,12 +58,16 @@ private:
     QComboBox *comboBoxBCIntErr;
     QComboBox *comboBoxCheckRTA;
     // паузы
-    QLineEdit *lineEditWinModePause;
+    QLineEdit *lineEditReservePause;
     QLineEdit *lineEditTime;
     QLineEdit *lineEditPause;
     // прерывание
     QCheckBox *checkBoxUseInt;
     QLabel *labelUseInt;
+
+private slots:
+    void statsLongLongOutput(QString, quint64);
+    void onRadioCycle();
 };
 
 
@@ -76,29 +81,42 @@ public:
     int trbit;
     void *testData;
     long dataSize;
-    quint32 waitTime, pauseTime, delayTime;
-    int num_s;
+    quint32 waitTime, pauseTime, postponeTime;
+    quint16 numOFDM;
     int rtaddr;
     bool useInt, initEnable, writeCfg;
     int iterCycle;
-    bool checkLoadCfg;
     int timeMeasure;
     int timeOverhead;
-    bool checkStatusErrBC, checkStatusErrRT;
-    bool checkRTA;
-    /*
-    int nwrd;
-    bool statusBCOut, statusRTOut, windowMode;
-    bool noIntFatalBC;
-    int noIntFatalRT;
-    int compEnableReg, compEnableData;
-    int perOutBC, modeOutBC, perOutRT, modeOutRT;
+    int checkStatusErrBC;
+    bool checkStatusErrRT, checkLoadCfg, checkRTA, noIntFatalBC, compEnableReg;
+    bool loadRTA;
+    int outMode;
+
+    int typeMan;
     QString manipulation;
     bool codec;
-*/
+
+public slots:
+    void doWork();
+
 protected:
     void perform();
     void terminate(int);
+
+signals:
+    void statsOutputReadyLongLong(QString,quint64);
+
+private:
+    int errCounter;
+    quint32 wrongBit;
+
+    bool checkStatusRegBC(int status, int interr, int iter, bool *error);
+    void checkStatusRT(REG_HSC_status &status, int iter, bool *error);
+    void printCurrInfo(int iter, quint64 curbit, quint64 prevbit, bool err);
+    bool outInfoEnable(quint64 curbit, quint64 prevbit, bool err) const;
+    bool outTimeEnable(quint64 curbit, quint64 prevbit) const;
+    void averageSpeed(long time_ms, long wholePackBits, int iter);
 };
 
 #endif // NOISETEST_H

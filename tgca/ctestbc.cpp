@@ -215,7 +215,7 @@ bool CTestBC::cmpPack(void* vsk_buf1, void* vsk_buf2, int n_sym, bool without_cw
     return true;
 }
 
-/// Сравнение данных в буфере в формате ВСК с исходными данными неформатированными.
+/// Сравнение данных в буфере в формате ВСК с исходными неформатированными данными.
 /// num_b - размер данных для сравнения в байтах
 /// если !without_cw, то командное слово участвует в сравнении наравне с данными и размер num_b включает и командное слово тоже.
 bool CTestBC::cmpPackData(void* vsk_buf, void* raw_data, int num_b, bool without_cw)
@@ -449,4 +449,90 @@ void CTestBC::array2PackQAM64(char* ptr_dst, char* ptr_src, unsigned int size_sr
             memcpy((void*)ptr_dst, (void*)ptr_src, nc);
         };
     }
+}
+
+/// Подсчет количества несовпадающих битов
+static bool cmpBytes(char char1, char char2, int *num_wrong_bit, int max_wrong_bit)
+{
+    if (char1 != char2)
+    {
+        if ((*num_wrong_bit) >= max_wrong_bit)
+            ++(*num_wrong_bit);
+        else
+        {
+            char diff = char1 ^ char2;
+            do
+            {
+                ++(*num_wrong_bit);
+                diff &= (diff-1);  // Забираем младшую единичку.
+            }
+            while (diff);
+        }
+    }
+    return ((*num_wrong_bit) <= max_wrong_bit);
+}
+
+
+
+
+/// Рекурсивная функция сравнения двух сассивов длины num_b.
+/// Число несовпавших бит добавляется к значению переменной num_wrong_bit.
+/// Если число несовпавших бит не превышает max_wrong_bit, функция возвращает true.
+/// Иначе функция возвращает false и значение *num_wrong_bit при этом может быть меньше
+/// действительного количества различий (но больше max_wrong_bit).
+bool cmpArrays(void* data_1, void* data_2, int num_b, int *num_wrong_bit, int max_wrong_bit)
+{
+    if (num_b == 1)
+        return cmpBytes(0xFF & *((char*)data_1), 0xFF & *((char*)data_2), num_wrong_bit, max_wrong_bit);
+
+    if (memcmp(data_1, data_2, num_b) == 0)
+        return ((*num_wrong_bit) <= max_wrong_bit);
+
+    if ((*num_wrong_bit) >= max_wrong_bit)
+    {
+        ++(*num_wrong_bit);
+        return false;
+    }
+
+    int num_h = num_b/2;
+    int old_err = *num_wrong_bit;
+
+    if (!cmpArrays(data_1, data_2, num_h, num_wrong_bit, max_wrong_bit))
+        return false;
+
+    char* ptr1 = ((char*)data_1) + num_h;
+    char* ptr2 = ((char*)data_2) + num_h;
+    int new_max = max_wrong_bit - *num_wrong_bit + old_err;
+
+    return cmpArrays((void*)ptr1, (void*)ptr2, num_b-num_h, num_wrong_bit, new_max);
+}
+
+/// Сравнение данных в буфере в формате ВСК с исходными неформатированными данными.
+/// Командное слово не участвует в сравнении.
+/// Параметры:
+/// vsk_buf, raw_data - указатели на начало данных,
+/// num_b - размер данных для сравнения в байтах,
+/// wrong_bit - число несовпавших бит,
+/// max_wrong_bit - максимальное разрешенное число несовпавших бит.
+/// Функция прекращает дальнейшее сравнение при превышении max_wrong_bit.
+/// Если число несовпавших бит меньше или равно разрешенному, то в переменную wrong_bit
+/// записывается точное значение и функция возвращает true. Иначе - wrong_bit содержит
+/// уже найденное количество и функция возвращает false.
+bool CTestBC::cmpPackDataBit(void* vsk_buf, void* raw_data, int num_b, int *wrong_bit, int max_wrong_bit)
+{
+    char cmp_data[MAXPACKAGESIZE];
+
+    *wrong_bit = 0;
+
+    if (!loaded)
+        return false;
+
+    int n_sym = (num_b - 1 + sizeof(word32_t)) / NUMBYTEINOFDMSYM;
+    if (n_sym < 0 || n_sym >= MAXNUMSYM)
+        return false;
+
+    if (!pack2Array(cmp_data, MAXPACKAGESIZE, (char*)vsk_buf, n_sym, true))
+        return false;
+
+    return cmpArrays(cmp_data, raw_data, num_b, wrong_bit, max_wrong_bit);
 }

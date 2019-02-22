@@ -57,6 +57,8 @@ top_2(saveFileNameStr)
 void SpiPart::startTest()
 {
     spiObjToThread* curThread = (spiObjToThread*)objToThread;
+    curThread->addr.clear();
+    curThread->data.clear();
     for (int i=0; i<32; i++)
     {
 //        curThread->addr.append(table->item(i,0)->data(Qt::DisplayRole).toString().toUInt(nullptr, 16));

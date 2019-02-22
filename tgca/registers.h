@@ -202,4 +202,7 @@ unsigned short calcNumWordInSymbol(int mt, bool codec);
 inline unsigned int getBufTrm(int status) { return (status & fl_REG_STATUS_tx_num_buf) ? 0x80000 : 0x40000; }
 inline unsigned int getBufRec(int status) { return (status & fl_REG_STATUS_rx_num_buf) ? 0xA0000 : 0x60000; }
 
+inline unsigned int getBufAddrTrm(int num) { return num ? 0x80000 : 0x40000; }
+inline unsigned int getBufAddrRec(int num) { return num ? 0xA0000 : 0x60000; }
+
 #endif  // REGISTERS_H

@@ -56,7 +56,7 @@ private:
     // паузы
     QLineEdit *lineEditTime;            // максимальное время ожидания прерывания (завершения цикла обмена, в т.ч. обмена по SPI)
     QLineEdit *lineEditPause;           // пауза между итерациями
-    QLineEdit *lineEditWinModePause;    // задержка для оконного режима
+    QLineEdit *lineEditReservePause;    // задержка для оконного режима
 
     // настройки командного слова
     QLineEdit *lineEditLen;             // длина передаваемых данных в байтах
@@ -111,7 +111,7 @@ private:
     void load(QString fName);
     void defineFields();
     void setFieldConnections();
-    void disableUnused();
+    void disableUnimplemented();
 
 private slots:
     void onRadioCycle();
@@ -131,13 +131,12 @@ class trmSingleObjToThread : public commonObjToThread
     void setErrorsWithinCycle(bool fatal);
     bool checkSPI(Device* dev);
     //int  waitForInterruption(int *status);
-    void switchWindow(int n);
     void averageSpeed(long time_ms, long total_bite, int iter);
 
 public:
     trmSingleObjToThread();
 
-    quint32 /*cfgBC, cfgRT,*/ amplBC, amplRT, waitTime, pauseTime, delayTime, trm_size;
+    quint32 amplBC, amplRT, waitTime, pauseTime, trm_size, postponeTime;
     int iterCycle;
     int nwrd;
     bool BCtoRT, RTtoBC;
@@ -157,6 +156,7 @@ public:
     void *trmData;
     void *recData;
     QString manipulation;
+    int iManipulation;
     bool codec, broadcast;
     void destroyData();
     //QTcpSocket tcpSocketBC, tcpSocketRT;

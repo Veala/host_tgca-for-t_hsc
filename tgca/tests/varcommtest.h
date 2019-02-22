@@ -47,7 +47,7 @@ private:
     // паузы
     QLineEdit *lineEditTime;            // максимальное время ожидания прерывания (завершения цикла обмена, в т.ч. обмена по SPI)
     QLineEdit *lineEditPause;           // пауза между итерациями
-    QLineEdit *lineEditWinModePause;    // задержка для оконного режима
+    QLineEdit *lineEditReservePause;    // задержка для оконного режима
 
     // устройства
     QLineEdit *lineEditDevBC;           // имя устройства, назначенного КШ
@@ -68,7 +68,7 @@ private:
     void load(QString fName);
     void defineFields();
     void setFieldConnections();
-    void disableUnused();
+    void disableUnimplemented();
 
 private slots:
 };
@@ -81,12 +81,11 @@ class varCommandObjToThread : public commonObjToThread
     bool checkStatusRegRT(int status, int iter, bool *error);
     void setErrorsBeforeCycle(int numerr);
     void setErrorsWithinCycle(bool fatal);
-    void switchWindow(int n);
 
 public:
     varCommandObjToThread();
 
-    quint32  waitTime, pauseTime, delayTime;
+    quint32  waitTime, pauseTime, postponeTime;
     int iterCycle;
 //    int nwrd;
 //    bool trm_mode;
@@ -98,7 +97,7 @@ public:
     int perOutBC, modeOutBC, perOutRT, modeOutRT;
     void *testData;
     long dataSize;
-    QString manipulation;
+    //QString manipulation;
     bool codec;
     bool checkRTA;
     void destroyData();

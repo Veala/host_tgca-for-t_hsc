@@ -94,6 +94,7 @@ private:
     ValidState getValidState() const;
     RunningState getRunningState() const;
     CAnimatedSpinnerIcon* spinner;
+    bool su;
 
 signals:
     void globalStart();
@@ -125,7 +126,7 @@ protected:
     QLineEdit* mark;
     static AbstractTest* yellowTest, *beginTest, *endTest;
 
-    bool su;
+    bool userMode() const { return !su; }
     void message(QString);
     void setConnections(Device*);
     void setDisconnections(Device*);

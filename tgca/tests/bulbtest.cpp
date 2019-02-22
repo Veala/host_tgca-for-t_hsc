@@ -86,7 +86,7 @@ void bulbObjToThread::doWork()
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             if (outEnable)
             {
-                QString ms = QString(tr("Нет соединения: ip = ")) + ip;
+                QString ms = tr("Нет соединения: ip = ") + ip;
                 emit outputReady(ms);
             }
             tcpSocket.abort();
@@ -96,7 +96,7 @@ void bulbObjToThread::doWork()
 
         if (outEnable)
         {
-            QString ms = QString(tr("Соединение установлено: ip = ")) + ip;
+            QString ms = tr("Соединение установлено: ip = ") + ip;
             emit outputReady(ms);
         }
 
@@ -126,7 +126,7 @@ void bulbObjToThread::doWork()
     catch(const QString& exception)
     {
         if (outEnable)
-            emit outputReady(QString(tr("Ошибка: ")) + exception);
+            emit outputReady(tr("Ошибка: ") + exception);
 /*        if (tcpSocket.state() == QAbstractSocket::ConnectedState)
             tcpSocket.abort(); */
         emit resultReady((int)AbstractTest::ErrorIsOccured);

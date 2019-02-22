@@ -28,7 +28,7 @@ void NullTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, Q
     statsMap.insert("errData", stats->findChild<QLabel*>("errData"));
     statsMap.insert("errConnect", stats->findChild<QLabel*>("errConnect"));
     statsMap.insert("errOther", stats->findChild<QLabel*>("errOther"));
-    connectStats();
+    connectStatisticSlots();
 
     testThread.start();
 }
@@ -123,7 +123,7 @@ void NullTest::startTest()
     curThread->bDebugOut = (outMode == 3);
     curThread->setOutEnabled(outMode%2);
 
-    curThread->testData = dataGen.createData(dataGen.getDataLen() * 2);
+    curThread->testData = dataGen.createData(dataGen.getDataLen(), 2);
 
     int index = 0;
     if (checkBoxDevBC->isChecked())
@@ -160,12 +160,12 @@ void nullObjToThread::stdOutput(QString message_rus, QString message_eng)
 
 void nullObjToThread::perform()
 {
-    emit statsOutputReadySimple("totalIter", 1);
-    int errCount = 0;
+    emit statsOutputReady("totalIter", 1);
+    int errCounter = 0;
 
     if (testData == 0)
     {
-        errCount++;
+        errCounter++;
         emit statsOutputReady("errData", 1);
     }
     else
@@ -232,7 +232,7 @@ void nullObjToThread::perform()
             thread()->msleep(iterTime);
 
         if (bDebugOut && (iter%20 == 0))
-            stdOutput(QString(tr("Итерация %1")).arg(iter), QString(tr("Iter = %1").arg(iter)));
+            stdOutput(tr("Итерация %1").arg(iter), tr("Iter = %1").arg(iter));
 
    /*     QTime curTime;
         curTime.start(); // = QTime::currentTime();
@@ -260,7 +260,7 @@ void nullObjToThread::perform()
         if (pause_stop() == -1)
             return;
     }
-    emit resultReady(errCount ? (int)AbstractTest::Completed : (int)AbstractTest::ErrorIsOccured);
+    emit resultReady(errCounter == 0 ? (int)(AbstractTest::Completed) : (int)(AbstractTest::ErrorIsOccured));
 }
 
 void nullObjToThread::terminate(int )

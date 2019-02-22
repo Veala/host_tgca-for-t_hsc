@@ -55,7 +55,7 @@ top_1
 
     statsMap.insert("totalIter", stats->findChild<QLabel*>("totalIter"));
     statsMap.insert("errComp", stats->findChild<QLabel*>("errComp"));
-    connectStats();
+    connectStatisticSlots();
 
     testThread.start();
 }
@@ -218,7 +218,7 @@ void ramObjToThread::perform()
             emit resultReady(AbstractTest::ErrorIsOccured);
             return;
         }
-        emit statsOutputReadySimple("totalIter", sz/4);
+        emit statsOutputReady("totalIter", sz/4);
         for (uint addr1=addrBC, addr2=addrRT, i=0; i<sz; i+=addrinc, addr1+=addrinc, addr2+=addrinc)
         {
     //        stdOutput(QString("Read: (%1)  %2").arg(addr+i1, 8, 16, QLatin1Char('0')).arg((uint)*(uint*)(answer.data()+i), 8, 16, QLatin1Char('0')), "");

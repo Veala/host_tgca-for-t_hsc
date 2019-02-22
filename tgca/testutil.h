@@ -9,4 +9,6 @@ int waitForInterruption(Device* dev, bool useInt, int waitTime, int *status);
 int readRegVal(Device* dev, BaseReg *reg);
 int getStatusReg(Device * dev);
 
+bool splitOddEven(const QByteArray all, QByteArray& even, QByteArray& odd);
+
 #endif // TESTUTIL_H

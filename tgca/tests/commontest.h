@@ -14,7 +14,7 @@ public:
     void init(QString genDataType, QString genDataBegin, QString genDataStep,
               QString genDataNumStep, QString genDataUnit, QString genDataLen);
     void enable(bool b);
-    void *createData(long numbyte);
+    void *createData(long numbyte, int numcopy);
     long getDataLen() const;
 
     QString genType() const;
@@ -52,13 +52,13 @@ public:
 protected slots:
     void updateSettings();
     void statsToZero();
-    void statsErrOutput(QString, long);
+    void statsTestOutput(QString, long);
 protected:
     void addDevicesTolist();
     virtual int updateDeviceList();
     void changeConnections();
     void assignDevices();
-    void connectStats();
+    void connectStatisticSlots();
     void connectThread();
     void statsAddlabel(QString str);
 
@@ -84,21 +84,27 @@ protected slots:
     virtual void terminate(int) = 0;
 public:
     explicit commonObjToThread() : absObjToThread(), devBC(0), devRT(0) {}
-    void setIter(int num) { iterCount = num; }
     void setOutEnabled(bool b) { outEnable = b; }
     QTcpSocket tcpSocketBC, tcpSocketRT;
     Device *devBC, *devRT;
 protected:
-    uint iterCount;
     bool outEnable;
+    static const quint32 delayTime = 5;
     virtual void stdOutput(QString message_rus, QString message_eng);
     virtual void perform() = 0;
+    virtual void switchWindow(int n);
     AbstractTest::RunningState connectBC();
     AbstractTest::RunningState connectRT();
 //    virtual void terminate(int) = 0;
     bool isRunning();
+    void initStartBC();
 signals:
-    void statsOutputReadySimple(QString,long);
+    void statsOutputReady(QString,long);
 };
+
+inline void setRegWritten(Device *dev, BaseReg &reg)
+{
+    dev->configuration.setWritten(reg.address, reg.getData());
+}
 
 #endif // COMMONTEST_H

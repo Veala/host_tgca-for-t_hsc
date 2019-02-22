@@ -2,6 +2,10 @@
 #include "../registers.h"
 #include "../gendata.h"
 
+////////////////////////////////////////////////.////////////////////////////
+///   CommonTest - базовый класс для группы тестов с двумя устройствами   ///
+/////////////////////////////////////////////////////////////////////////////
+
 int CommonTest::updateDeviceList()
 {
     if (checkBoxDevBC->isChecked())
@@ -12,12 +16,11 @@ int CommonTest::updateDeviceList()
 
 }
 
-void CommonTest::connectStats()
+void CommonTest::connectStatisticSlots()
 {
     connect(stats->findChild<QPushButton*>("save"),SIGNAL(clicked(bool)),this,SLOT(statsSave()));
     connect(stats->findChild<QPushButton*>("toZero"),SIGNAL(clicked(bool)),this,SLOT(statsToZero()));
-    connect(objToThread,SIGNAL(statsOutputReadySimple(QString,long)), this, SLOT(statsTestOutput(QString,long)));
-    connect(objToThread,SIGNAL(statsOutputReady(QString,long)), this, SLOT(statsErrOutput(QString,long)));
+    connect(objToThread,SIGNAL(statsOutputReady(QString,long)), this, SLOT(statsTestOutput(QString,long)));
     statsToZero();
 }
 
@@ -26,28 +29,31 @@ void CommonTest::statsAddlabel(QString str)
     statsMap.insert(str, stats->findChild<QLabel*>(str));
 }
 
-void CommonTest::statsErrOutput(QString str, long n)
+void CommonTest::statsTestOutput(QString str, long n)
 {
     QMap<QString, QLabel*>::iterator it = statsMap.find(str);
     if (it != statsMap.end())
     {
         QLabel* l = it.value();
-        qulonglong val = l->text().toLongLong() + n;
+        qulonglong val = l->text().toULongLong() + n;
         l->setText(QString::number(val));
-        QFont f = l->font();
-        if (val == 0)
+        if (str != "totalIter")
         {
-            f.setBold(false);
-            l->setStyleSheet(QLatin1String("color: rgb(0, 170, 0);\n"
-                                           "background-color: rgb(255, 255, 255);"));
+            QFont f = l->font();
+            if (val == 0)
+            {
+                f.setBold(false);
+                l->setStyleSheet(QLatin1String("color: rgb(0, 170, 0);\n"
+                                               "background-color: rgb(255, 255, 255);"));
+            }
+            else
+            {
+                f.setBold(true);
+                l->setStyleSheet(QLatin1String("color: rgb(255, 0, 0);\n"
+                                               "background-color: rgb(255, 255, 255);"));
+            }
+            l->setFont(f);
         }
-        else
-        {
-            f.setBold(true);
-            l->setStyleSheet(QLatin1String("color: rgb(255, 0, 0);\n"
-                                           "background-color: rgb(255, 255, 255);"));
-        }
-        l->setFont(f);
     }
 }
 
@@ -105,12 +111,15 @@ void CommonTest::updateSettings()
     // Проверка устройств. Можно проверять только с признаком необходимости.
     deviceLineEditList.clear();
     int done = updateDeviceList();
-    qDebug() << "deviceLineEditList: " << deviceLineEditList.size() << " devices";
+    // qDebug() << "deviceLineEditList: " << deviceLineEditList.size() << " devices";
     emit settingsClosed(done);
     // Здесь можно проверить и другие настройки.
 }
 
-/////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////
+///   commonObjToThread - базовый класс потока группы тестов с двумя устройствами   ///
+///////////////////////////////////////////////////////////////////////////////////////
 
 void commonObjToThread::doWork()
 {
@@ -122,11 +131,11 @@ void commonObjToThread::doWork()
     catch(const QString& exception)
     {
      /*   if (exception == "socket")
-            stdOutput(QString(tr("Ошибка сокета")), QString(tr("Socket error")));
+            stdOutput(tr("Ошибка сокета"), tr("Socket error"));
         else
-            stdOutput(QString(tr("Неизвестная ошибка")), QString(tr("Unknown error")));
+            stdOutput(tr("Неизвестная ошибка"), tr("Unknown error"));
      */
-        stdOutput(QString(tr("Ошибка: ")) + exception, QString(tr("Error: ")) + exception);
+        stdOutput(tr("Ошибка: ") + exception, tr("Error: ") + exception);
 
         emit resultReady((int)AbstractTest::ErrorIsOccured);
     }
@@ -178,10 +187,32 @@ void commonObjToThread::testTerminate(int code)
     terminate(code);
 }
 */
+
+// Оконный режим
+void commonObjToThread::switchWindow(int n)
+{
+    devRT->reg_aux_winmode.mode = n;
+    devBC->reg_aux_winmode.mode = n;
+    devRT->writeReg(&devRT->reg_aux_winmode);
+    devBC->writeReg(&devBC->reg_aux_winmode);
+}
+
 bool commonObjToThread::isRunning()
 {
     return threadState == AbstractTest::Running || threadState == AbstractTest::Paused;
 }
+
+void commonObjToThread::initStartBC()
+{
+    quint32 zero = 0;
+    devBC->reg_hsc_creg.setData(zero);
+    devBC->reg_hsc_creg.start_bc = 1;
+}
+
+
+///////////////////////////////////////////////////
+///   dataGeneration - класс генерации данных   ///
+///////////////////////////////////////////////////
 
 void dataGeneration::settings()
 {
@@ -249,7 +280,7 @@ void dataGeneration::enable(bool b)
     labelBegin->setEnabled(b);
     labelStep->setEnabled(b);
     labelNumStep->setEnabled(b);
-    comboBoxUnit->setEnabled(b);
+    //comboBoxUnit->setEnabled(b);
     if (lineEditBufLen)
     {
         lineEditBufLen->setEnabled(b);
@@ -259,18 +290,23 @@ void dataGeneration::enable(bool b)
 
 long dataGeneration::getDataLen() const
 {
+    long len = 0;
     if (lineEditBufLen)
-        return lineEditBufLen->text().toLong(0, 10);
-    return 0;
+    {
+        len = lineEditBufLen->text().toLong(0, 10);
+        if (len < 0)
+            len = 0;
+    }
+    return len;
 }
 
-void *dataGeneration::createData(long numb)
+void *dataGeneration::createData(long numb, int numcopy)
 {
     if (radioButtonLin->isChecked())
         return createRegularData(numb, lineEditBegin->text().toInt(0, 16), lineEditStep->text().toInt(0, 10),
                                     lineEditNumStep->text().isEmpty() ? 0 : lineEditNumStep->text().toInt(0, 10),
-                                    comboBoxUnit->currentText().toInt(0,10));
+                                    comboBoxUnit->currentText().toInt(0,10), numcopy);
     else
         return createRandomData(numb, lineEditBegin->text().toInt(0, 16), lineEditStep->text().toInt(0, 16),
-                                    lineEditNumStep->text().toInt(0, 16), comboBoxUnit->currentText().toInt(0,10));
+                                    lineEditNumStep->text().toInt(0, 16), comboBoxUnit->currentText().toInt(0,10), numcopy);
 }

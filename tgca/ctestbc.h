@@ -23,6 +23,7 @@ public:
     bool pack2Array(char* mem_dst, unsigned int size_dst, char* buf_rec, unsigned int num_sym, bool without_cw = true);
     bool cmpPack(void* vsk_buf1, void* vsk_buf2, int num_sym, bool without_cw);
     bool cmpPackData(void* vsk_buf, void* raw_data, int num_b, bool without_cw);
+    bool cmpPackDataBit(void* vsk_buf, void* raw_data, int num_b, int *wrong_bit, int max_wrong_bit);
 
 private:
     void array2PackQPSK(char* ptr_dst, char* ptr_src, unsigned int size_src);
