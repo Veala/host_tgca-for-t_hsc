@@ -4,12 +4,36 @@
 #include "echotest.h"
 #include "bulbtest.h"
 #include "trmsingletest.h"
+#include "varcommtest.h"
 #include "monitortest.h"
 #include "spipart.h"
+#include "nulltest.h"
+#include "ramtest.h"
+#include "trashtest.h"
+#include "noisetest.h"
 
-int GlobalState::globalState = FREELY;
+#include "../picts.h"
 
-AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
+int GlobalState::globalState = FREE;
+AbstractTest* AbstractTest::yellowTest = NULL;
+AbstractTest* AbstractTest::beginTest = NULL;
+AbstractTest* AbstractTest::endTest = NULL;
+
+static void setStatusText(QLabel *wid, QString str, bool bold, QString color) //Qt::GlobalColor color
+{
+    QFont f = wid->font();
+    f.setBold(bold);
+    f.setPixelSize(12); //(bold ? 12 : 7);
+    wid->setFont(f);
+    wid->setStyleSheet(color);
+    wid->setText(str);
+}
+
+AbstractTest::AbstractTest(QWidget *parent):
+    QFrame(parent),
+    su(false),
+    runningState(Stopped),
+    spinner(0)
 {
 #ifdef debug_AT
     int nint = sizeof(int);
@@ -25,10 +49,9 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
     connect(act, SIGNAL(triggered(bool)), this, SLOT(save()));
     act = menu.addAction(tr("Сохранить как...")); act->setObjectName(tr("saveAsObj"));
     connect(act, SIGNAL(triggered(bool)), this, SLOT(save()));
-    act = menu.addAction(tr("Убрать"));
-    connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteLater()));
+    act = menu.addAction(tr("Убрать")); act->setObjectName(tr("delete"));
+    connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteObject()));
     layout = new QHBoxLayout(this);
-
 
     QHBoxLayout *fileLayout = new QHBoxLayout();
 
@@ -49,9 +72,10 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
 
     QHBoxLayout *markingLayout = new QHBoxLayout();
     //QSplitter *markingLayout = new QSplitter();
-    markingLayout->addWidget(new QLabel("Метка: "));
+    markingLayout->addWidget(new QLabel("Test: "));
     mark = new QLineEdit("");
-    mark->setFixedWidth(200);
+    //mark->setFixedWidth(200);
+    mark->setMinimumWidth(450);
     markingLayout->addWidget(mark);
     //markingLayout->addWidget(new QSpacerItem(0,0));
     markingLayout->addStretch();
@@ -69,35 +93,48 @@ AbstractTest::AbstractTest(QWidget *parent) : QFrame(parent)
 
     layout->addSpacerItem(new QSpacerItem(10,10,QSizePolicy::Expanding));
 
-    startButton = new QPushButton(QIcon(":/pictogram/gtk-media-play-ltr_8717.png"), tr(""));
+    begin_end_Icon = new QLabel(tr(""));
+    begin_end_Icon->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+
+    layout->addWidget(begin_end_Icon);
+
+    startButton = new QPushButton(QIcon(strPictTestButtonStart.c_str()), tr(""));
     layout->addWidget(startButton, 0, Qt::AlignHCenter | Qt::AlignVCenter);
     //startButton->setFixedHeight(2*this->height()/3);
-    forIcons.setHeight(startButton->height()/25);
-    forIcons.setWidth(startButton->height()/25);
+    forIconSize = startButton->height()/25;
+    forIcons.setHeight(forIconSize);
+    forIcons.setWidth(forIconSize);
+    forIconSize = forIconSize * 3 / 2;
     startButton->setIconSize(forIcons);
     connect(startButton, SIGNAL(clicked(bool)), this, SLOT(firstStartTest()));
-    pauseButton = new QPushButton(QIcon(":/pictogram/gtk-media-pause_2289.png"), tr(""));
+    pauseButton = new QPushButton(QIcon(strPictTestButtonPause.c_str()), tr(""));
     layout->addWidget(pauseButton, 0, Qt::AlignHCenter | Qt::AlignVCenter);
     //pauseButton->setFixedHeight(2*this->height()/3);
     pauseButton->setIconSize(forIcons);
     connect(pauseButton, SIGNAL(clicked(bool)), this, SLOT(pauseTest()));
-    stopButton = new QPushButton(QIcon(":/pictogram/gtk-media-stop_9402.png"), tr(""));
+    stopButton = new QPushButton(QIcon(strPictTestButtonStop.c_str()), tr(""));
     layout->addWidget(stopButton, 0, Qt::AlignHCenter | Qt::AlignVCenter);
     //stopButton->setFixedHeight(2*this->height()/3);
     stopButton->setIconSize(forIcons);
     connect(stopButton, SIGNAL(clicked(bool)), this, SLOT(stopTest()));
 
-    status = new QLabel(tr(""));
-    status->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    layout->addWidget(status);
+    begin_end_Icon->setMinimumWidth(forIconSize * 2);
+    statusIcon = new QLabel(tr(""));
+    statusIcon->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    statusIcon->setMinimumWidth(forIconSize * 2);
+
+    statusIcon->setPixmap((QPixmap(tr(strPictTestStatusNotStarted.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+
+    layout->addWidget(statusIcon);
+
+    statusTxt = new QLabel(tr(""));
+    //statusTxt->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    statusTxt->setMinimumWidth(90);
+    layout->addWidget(statusTxt);
+    setStatusText(statusTxt, tr("Загружен"), false, "color: rgb(127, 127, 127)"); // grey
 
     setAutoFillBackground(true);
-    //setRunningState(AbstractTest::Stopped);
     setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
-
-
-    status->setPixmap((QPixmap(tr(":/pictogram/gtk-media-stop_9402.png"))).scaled(forIcons,Qt::KeepAspectRatio));
-    runningState = Stopped;
 
     connect(this, SIGNAL(globalStart()), this, SLOT(firstStartTest()));
 
@@ -108,6 +145,12 @@ AbstractTest::~AbstractTest()
 {
     testThread.quit();
     testThread.wait();
+
+    deleteSpinner(spinner);
+
+    if (yellowTest == this) yellowTest = NULL;
+    if (beginTest == this) beginTest = NULL;
+    if (endTest == this) endTest = NULL;
     delete settings;
     delete stats;
 }
@@ -115,14 +158,36 @@ AbstractTest::~AbstractTest()
 void AbstractTest::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() == Qt::RightButton) {
-        menu.exec(QCursor::pos());
-    } else if (event->buttons() == Qt::LeftButton) {
+//        if (yellowTest != NULL && yellowTest != this)
+//            yellowTest->setValidState(yellowTest->validState);
+        QAction* tempAct = menu.exec(QCursor::pos());
+        if (tempAct == 0) return;
+        else if (tempAct->objectName() == "delete") {
+            if (yellowTest == this) yellowTest = NULL;
+            if (beginTest == this) beginTest = NULL;
+            if (endTest == this) endTest = NULL;
+            return;
+        }
+        QPalette palette;
+        if (getValidState() == ItIsOk) {
+            if (yellowTest != NULL)
+                yellowTest->setValidState(yellowTest->validState);
+            yellowTest = this;
+            QBrush br(qRgb(255,255,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);
+        }
+    } else if (event->buttons() == Qt::LeftButton && event->modifiers() == Qt::NoModifier) {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
         mimeData->setText(tr("mimeDataForTamiasTests"));
         drag->setMimeData(mimeData);
         emit dragged();
         Qt::DropAction dropAction = drag->exec();
+    } else if (event->buttons() == Qt::LeftButton && event->modifiers() == Qt::ShiftModifier) {
+        setBeginTest();
+    } else if (event->buttons() == Qt::LeftButton && event->modifiers() == Qt::ControlModifier) {
+        setEndTest();
+    } else if (event->buttons() == Qt::LeftButton && event->modifiers() == (Qt::ShiftModifier + Qt::ControlModifier)) {
+        resetBeginEnd();
     }
 }
 
@@ -163,7 +228,7 @@ void AbstractTest::statsTestOutput(QString str, long n)
     if (it != statsMap.end())
     {
         QLabel* l = it.value();
-        l->setText(QString::number(l->text().toLong()+n));
+        l->setText(QString::number(l->text().toLongLong()+n));
     }
 }
 
@@ -222,7 +287,7 @@ void AbstractTest::setValidState(AbstractTest::ValidState vs)
         QBrush br(qRgb(255,255,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // yellow
     } else if (vs == AbstractTest::ItIsOk) {
         //setStyleSheet("QFrame { border: 3px solid green; background-color: lightGray;}");
-        QBrush br(qRgb(100,230,100)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // green  // 170,255,130
+        QBrush br(qRgb(85, 255, 127)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // green  // 170,255,130  100,230,100
     }
     //status->setStyleSheet("QLabel { border: 3px solid lightGray; background-color: lightGray;}");
     //fileName->setStyleSheet("QLabel { border: 3px solid lightGray; background-color: lightGray;}");
@@ -251,6 +316,7 @@ void AbstractTest::checkDeviceAvailability(int x)
             }
         }
         if (counter == deviceLineEditList.count()) {
+            setValidState(AbstractTest::ItIsOk);                            //Для галочек, в дальнейшем убрать!!!
             return;
         } else {
             deletingDevice_part();
@@ -270,7 +336,7 @@ void AbstractTest::checkDeviceAvailability(int x)
             }
         }
         if (j == devices->count()) {
-            message(tr("Ошибка: устройство %1 не доступно (файл: %2, метка: %3)").arg(deviceLineEditList[i]->text()).arg(fileName->text()).arg(mark->text()));
+            message(tr("Ошибка: устройство %1 не доступно (файл: %2, тест: %3)").arg(deviceLineEditList[i]->text()).arg(fileName->text()).arg(mark->text()));
             setValidState(AbstractTest::DeviceIsNotAvailable);
             return;
         }
@@ -342,7 +408,8 @@ void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tT
     devices=b;  settings=d; projectBrowser = pB; testsBrowser = tB; stats = d2;
 
     name_enabled->setChecked(ched);
-    name_enabled->setMinimumWidth(150);
+    name_enabled->setMinimumWidth(15);  // 150
+    name_enabled->setMaximumWidth(15);
     name_enabled->setText(tType);
     QFileInfo info(fName);
     if (info.path() != "../default")
@@ -375,6 +442,81 @@ bool AbstractTest::isReady() const
     return name_enabled->isChecked();
 }
 
+void AbstractTest::setUserLevel(bool b)
+{
+   su = b;
+   if (!b)
+       setEnabledSpecial(false);
+}
+
+void AbstractTest::setBeginTest()
+{
+    resetBeginEnd();
+    if (beginTest != NULL)
+        beginTest->begin_end_Icon->setPixmap(QPixmap());
+    beginTest = this;
+    beginTest->begin_end_Icon->setPixmap((QPixmap(strPictTestMarkerStart.c_str())).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+}
+
+AbstractTest *AbstractTest::getBeginTest()
+{
+    return beginTest;
+}
+
+void AbstractTest::setEndTest()
+{
+    resetBeginEnd();
+    if (endTest != NULL)
+        endTest->begin_end_Icon->setPixmap(QPixmap());
+    endTest = this;
+    endTest->begin_end_Icon->setPixmap((QPixmap(strPictTestMarkerEnd.c_str())).scaled(forIconSize*2, forIconSize*2, Qt::KeepAspectRatio));
+}
+
+AbstractTest *AbstractTest::getEndTest()
+{
+    return endTest;
+}
+
+void AbstractTest::resetBeginEnd()
+{
+    if (this == beginTest) {
+        beginTest = NULL;
+        begin_end_Icon->setPixmap(QPixmap());
+    } else if (this == endTest) {
+        endTest = NULL;
+        begin_end_Icon->setPixmap(QPixmap());
+    }
+}
+
+void AbstractTest::actDevMode()
+{
+    if (!su)
+    {
+        su = true;
+        setEnabledSpecial(true);
+    }
+}
+
+void AbstractTest::setEnabledSpecial(bool b)
+{
+    QList<QWidget*> list = settings->findChildren<QWidget*>(QRegExp());
+    int sz = list.size();
+    for (int i=0; i<sz; i++)
+    {
+        QWidget* wid = list.at(i);
+        QString type_name = wid->metaObject()->className();
+        if (type_name != "QLabel" && type_name != "QCheckBox" && type_name != "QLineEdit" && type_name != "QComboBox" && type_name != "QSpinBox" && type_name != "QRadioButton"
+                && type_name != "QTableWidget")
+            continue;
+        wid->setEnabled(b);
+    }
+}
+
+void AbstractTest::disableStat()
+{
+    ((QAction*)menu.findChild<QAction*>("stats"))->setEnabled(false);
+}
+
 void AbstractTest::save()
 {
     QString saveSndrName = sender()->objectName();
@@ -403,58 +545,104 @@ void AbstractTest::markChanged(QString newStr)
 
 void AbstractTest::setRunningState(int rs)
 {
-    if (rs == AbstractTest::Running) {
-        status->setPixmap((QPixmap(tr(":/pictogram/control_play_blue_7261.png"))).scaled(forIcons, Qt::KeepAspectRatio));
+    deleteSpinner(spinner);
+    spinner = 0;
+
+    switch (rs)
+    {
+    case AbstractTest::Running:
+        spinner = insertSpinner(statusIcon);
+        //statusIcon->setPixmap((QPixmap(tr(strPictTestStatusRunning.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+        statusIcon->setPixmap(QPixmap(""));
+        setStatusText(statusTxt, tr("Выполняется"), false, "color: rgb(0, 0, 0)"); // Qt::black)
         if (getRunningState() == Paused) {
-            message(tr("Пауза снята (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+            message(tr("Пауза снята (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         } else {
-            message(tr("Тест запущен (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+            message(tr("Тест запущен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
             setGlobalState(BUSY);
             emit setEmit(startButton, pauseButton, stopButton);
         }
-    } else if (rs == AbstractTest::Paused) {
-        status->setPixmap((QPixmap(tr(":/pictogram/control_pause_blue_1763.png"))).scaled(forIcons, Qt::KeepAspectRatio));
-        message(tr("Тест поставлен на паузу (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
-    } else if (rs == AbstractTest::Stopped) {
-        status->setPixmap((QPixmap(tr(":/pictogram/gtk-media-stop_9402.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
+        break;
+    case  AbstractTest::Paused:
+        statusIcon->setPixmap((QPixmap(tr(strPictTestStatusInPause.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+        setStatusText(statusTxt, tr("П а у з а"), false, "color: rgb(0, 0, 0)"); // Qt::black)
+        message(tr("Тест поставлен на паузу (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        break;
+    case AbstractTest::Stopped:
         if (sender()->metaObject()->className() != tr("MainWindow")) {
-            message(tr("Тест остановлен пользователем (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
-            setGlobalState(FREELY);
+            statusIcon->setPixmap((QPixmap(tr(strPictTestStatusInterrupted.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+            setStatusText(statusTxt, tr("Остановлен"), false, "color: rgb(0, 0, 0)"); // Qt::black)
+            message(tr("Тест остановлен пользователем (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+            setGlobalState(FREE);
             emit unsetEmit(startButton, pauseButton, stopButton);
+            if (runningState == AbstractTest::Deleting)
+                deleteLater();
         }
-    } else if (rs == AbstractTest::Completed) {
-        status->setPixmap((QPixmap(tr(":/pictogram/confirm_3843.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
-        message(tr("Тест закончен (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
-        setGlobalState(FREELY);
+        else
+        {
+           // statusIcon->setPixmap((QPixmap(tr(strPictTestStatusInterrupted.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+           // setStatusText(statusTxt, tr("Пропущен"), false, "color: rgb(0, 0, 0)"); // Qt::black)
+        }
+        break;
+    case AbstractTest::Completed:
+        statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedOk.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+        setStatusText(statusTxt, tr("Успех"), true, "color: rgb(0, 0, 255)"); // Qt::blue)
+        message(tr("Тест закончен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        setGlobalState(FREE);
         emit unsetEmit(startButton, pauseButton, stopButton);
-    } else if (rs == AbstractTest::ErrorIsOccured) {
-        status->setPixmap((QPixmap(tr(":/pictogram/cancel_8315.png"))).scaled(forIcons ,Qt::KeepAspectRatio));
-        message(tr("Тест остановлен из-за ошибки (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
-        setGlobalState(FREELY);
+        break;
+    case AbstractTest::ErrorIsOccured:
+        statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedErr.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+        setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
+        message(tr("Тест остановлен из-за ошибки (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        setGlobalState(FREE);
 //        Device* dev;
 //        foreach (dev, deviceList)
 //            dev->rw_socket.abort();
         emit unsetEmit(startButton, pauseButton, stopButton);
+        break;
+//    case AbstractTest::Deleting:
+//        break;
+    default:
+        statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedErr.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+        setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
+        message(tr("Внутренняя ошибка: неизвестное состояние теста"));
+        message(tr("Тест остановлен из-за ошибки (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        setGlobalState(FREE);
+//        Device* dev;
+//        foreach (dev, deviceList)
+//            dev->rw_socket.abort();
+        emit unsetEmit(startButton, pauseButton, stopButton);
+        break;
     }
     runningState = (AbstractTest::RunningState)rs;
+}
+
+void AbstractTest::deleteObject()
+{
+    if (isRunning())
+        stopTest();
+    else
+        deleteLater();
+    runningState = AbstractTest::Deleting;
 }
 
 void AbstractTest::firstStartTest()
 {
     if (getValidState() != ItIsOk) {
-        message(tr("Ошибка: проблема с устройствами теста (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+        message(tr("Ошибка: проблема с устройствами теста (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         emit unsetEmit(startButton, pauseButton, stopButton);
         return;
     }
     if (getRunningState() == Running) {
-        message(tr("Предупреждение: в данный момент запущен тест (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+        message(tr("Предупреждение: в данный момент запущен тест (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         return;
     }
     if (getRunningState() == Paused) {
         objToThread->threadState = AbstractTest::Running;
         return;
     }
-    if (getGlobalState() == FREELY) {
+    if (getGlobalState() == FREE) {
         objToThread->threadState = AbstractTest::Running; //???
         startTest();
         return;
@@ -464,14 +652,22 @@ void AbstractTest::firstStartTest()
     }
 }
 
+bool AbstractTest::isRunning()
+{
+    return objToThread->threadState == AbstractTest::Running || objToThread->threadState == AbstractTest::Paused;
+}
+
 void AbstractTest::pauseTest()
 {
     if (getValidState() != ItIsOk) {
-        message(tr("Ошибка: проблема с устройствами теста (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+        message(tr("Ошибка: проблема с устройствами теста (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         return;
     }
-    if (getRunningState() != Running) {
-        message(tr("Предупреждение: тест не запущен (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+    if (getRunningState() == Paused) {
+        message(tr("Предупреждение: тест на паузе (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        return;
+    } else if (getRunningState() != Running) {
+        message(tr("Предупреждение: тест не запущен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         return;
     }
     objToThread->threadState = AbstractTest::Paused;
@@ -480,22 +676,26 @@ void AbstractTest::pauseTest()
 void AbstractTest::stopTest()
 {
     if (getValidState() != ItIsOk) {
-        message(tr("Ошибка: проблема с устройствами теста (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+        message(tr("Ошибка: проблема с устройствами теста (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         return;
     }
-    if ((getRunningState() == Stopped) || (getRunningState() == Completed) || (getRunningState() == ErrorIsOccured)) {
-        message(tr("Предупреждение: тест не запущен (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+    if ((getRunningState() == Stopped) || (getRunningState() == Completed) || (getRunningState() == ErrorIsOccured)) {   ///  || (getRunningState() == Deleting)  ???
+    //if (!isRunning()) {
+        message(tr("Предупреждение: тест не запущен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         return;
     }
     objToThread->threadState = AbstractTest::Stopped;
 }
 
-AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextBrowser *tB)
+AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextBrowser *tB, bool su)
 {
     QStringList allTests;
     allTests << QObject::tr("Тест \"Эхо\"") << QObject::tr("Тест памяти") << QObject::tr("Тест регистров")
              << QObject::tr("Тест \"лампочек\"") << QObject::tr("Тест \"монитор\"") << QObject::tr("Передача одного пакета")
-             << QObject::tr("Загрузка по SPI");
+             << QObject::tr("Загрузка по SPI") << QObject::tr("Перебор параметров команды") << QObject::tr("Проверка буферов")
+             << QObject::tr("Тест trash")<< QObject::tr("Помехоустойчивость");
+    if (su)
+        allTests << QObject::tr("Тест отладочный");
 
     bool ok;
     QString testType = QInputDialog::getItem(0, QObject::tr("Создать тест"), QObject::tr("Тесты:"), allTests, 0, false, &ok);
@@ -519,8 +719,18 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
         defFileStr = QObject::tr("../default/monitor_test");
     } else if (testType == QObject::tr("Передача одного пакета")) {
         defFileStr = QObject::tr("../default/trm_single_test");
+    } else if (testType == QObject::tr("Перебор параметров команды")) {
+        defFileStr = QObject::tr("../default/var_comm_test");
     } else if (testType == QObject::tr("Загрузка по SPI")) {
         defFileStr = QObject::tr("../default/spi_part");
+    } else if (testType == QObject::tr("Проверка буферов")) {
+        defFileStr = QObject::tr("../default/ram_test");
+    } else if (testType == QObject::tr("Тест отладочный")) {
+        defFileStr = QObject::tr("../default/null_test");
+    } else if (testType == QObject::tr("Тест trash")) {
+        defFileStr = QObject::tr("../default/trash_test");
+    } else if (testType == QObject::tr("Помехоустойчивость")) {
+        defFileStr = QObject::tr("../default/noise_test");
     }
 
 //    if(!QFile::copy(defFileStr,newFileStr)) {
@@ -549,6 +759,10 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, Q
         uiFileStr = QObject::tr("../default/settings_mem_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_mem_test.ui");
         test = new MemTest(0);
+    }else if (testType == QObject::tr("Проверка буферов")) {
+        uiFileStr = QObject::tr("../default/settings_ram_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_ram_test.ui");
+        test = new RamTest(0);
     } else if (testType == QObject::tr("Тест регистров")) {
         uiFileStr = QObject::tr("../default/settings_reg_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_reg_test.ui");
@@ -569,10 +783,26 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, Q
         uiFileStr = QObject::tr("../default/settings_trm_single_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_trm_single_test.ui");
         test = new TrmSingleTest(0);
+    } else if (testType == QObject::tr("Перебор параметров команды")) {
+        uiFileStr = QObject::tr("../default/settings_var_comm_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_var_comm_test.ui");
+        test = new VarCommandTest(0);
     } else if (testType == QObject::tr("Загрузка по SPI")) {
         uiFileStr = QObject::tr("../default/settings_spi_part.ui");
         uiFileStr_stats = QObject::tr("../default/stats_spi_part.ui");
         test = new SpiPart(0);
+    } else if (testType == QObject::tr("Тест отладочный")) {
+        uiFileStr = QObject::tr("../default/settings_null_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_null_test.ui");
+        test = new NullTest(0);
+    } else if (testType == QObject::tr("Тест trash")) {
+        uiFileStr = QObject::tr("../default/settings_trash_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_trash_test.ui");
+        test = new TrashTest(0);
+    } else if (testType == QObject::tr("Помехоустойчивость")) {
+        uiFileStr = QObject::tr("../default/settings_noise_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_noise_test.ui");
+        test = new NoiseTest(0);
     } else {
         qDebug() << "unknown test";
         return NULL;
@@ -591,7 +821,19 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, Q
     uiFile.close();
 
     test->setSettings(devices, settingsForm, checked, testType, settingsFileStr, markStr, pB, tB, statsForm);
+
     return test;
+}
+
+absObjToThread::absObjToThread(QObject *parent) : QObject(parent)
+{
+    threadState = AbstractTest::Stopped;
+    connect(this, SIGNAL(resultReady(int)), SLOT(setState(int)));
+}
+
+void absObjToThread::template_doWork()
+{
+
 }
 
 void absObjToThread::setState(int rs)
@@ -603,14 +845,15 @@ int absObjToThread::pause_stop()
 {
     if (threadState == AbstractTest::Paused) {
         emit resultReady((int)AbstractTest::Paused);
-        while (threadState == AbstractTest::Paused) { this->thread()->msleep(10);/*qDebug() << "while paused";*/  }
-        if (threadState == AbstractTest::Stopped) {
-            emit resultReady((int)AbstractTest::Stopped);
-            return -1;
-        }
+        while (threadState == AbstractTest::Paused) { this->thread()->msleep(50);/*qDebug() << "while paused";*/  }
         if (threadState == AbstractTest::Running) {
             emit resultReady((int)AbstractTest::Running);
             return 0;
+        }
+        else {
+        //if (threadState == AbstractTest::Stopped) {
+            emit resultReady((int)AbstractTest::Stopped);
+            return -1;
         }
     } else if (threadState == AbstractTest::Stopped) {
         emit resultReady((int)AbstractTest::Stopped);

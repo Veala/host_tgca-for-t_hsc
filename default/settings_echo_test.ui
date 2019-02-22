@@ -11,11 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Настройки</string>
+   <string>Настройки теста &quot;Эхо&quot;</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../tgca/tgca.qrc">
-    <normaloff>:/pictogram/kmixdocked_mute_9009.png</normaloff>:/pictogram/kmixdocked_mute_9009.png</iconset>
+    <normaloff>:/pictogram/icon_link-rss.png</normaloff>:/pictogram/icon_link-rss.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0">

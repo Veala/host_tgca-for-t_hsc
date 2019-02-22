@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogRamTest</class>
+ <widget class="QDialog" name="DialogRamTest">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>297</width>
+    <height>355</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Настройки просмотра буферов ОЗУ</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../tgca/tgca.qrc">
+    <normaloff>:/pictogram/tile.png</normaloff>:/pictogram/tile.png</iconset>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="3,3,1,1">
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="bottomMargin">
+    <number>15</number>
+   </property>
+   <item row="3" column="0" colspan="4">
+    <widget class="QLabel" name="labelSpace1">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QLabel" name="labelShift">
+     <property name="text">
+      <string>Отступ от начала буфера (слов, hex)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="2">
+    <widget class="QLabel" name="labelSpace3">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" colspan="2">
+    <widget class="QLineEdit" name="lineEditShift">
+     <property name="inputMask">
+      <string>HHHHH;_</string>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLabel" name="labelNBufBC">
+     <property name="text">
+      <string>N</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="labelBufBC">
+     <property name="text">
+      <string>Буфер КШ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QComboBox" name="comboBoxNBufBC">
+     <property name="maximumSize">
+      <size>
+       <width>45</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <item>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="9" column="2" colspan="2">
+    <widget class="QLabel" name="labelEndAddrRT">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(221, 221, 221);</string>
+     </property>
+     <property name="text">
+      <string>60200h </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0" colspan="4">
+    <widget class="QLabel" name="labelHeaderDevice">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Устройства</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelDev">
+     <property name="text">
+      <string>Выбор режима</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="4">
+    <widget class="QLabel" name="labelSpace2">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="2">
+    <widget class="QLabel" name="labelNum">
+     <property name="text">
+      <string>Число 32-разрядных слов (hex)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="labelEnd">
+     <property name="text">
+      <string>Конечный адрес</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2" colspan="2">
+    <widget class="QLabel" name="labelBegAddrRT">
+     <property name="maximumSize">
+      <size>
+       <width>87</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(221, 221, 221);</string>
+     </property>
+     <property name="text">
+      <string>60000h </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0">
+    <widget class="QLabel" name="labelDevRT">
+     <property name="text">
+      <string>ОУ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2" colspan="2">
+    <widget class="QLineEdit" name="lineEditNum">
+     <property name="inputMask">
+      <string>HHHHH;_</string>
+     </property>
+     <property name="text">
+      <string>200</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="labelDevBC">
+     <property name="text">
+      <string>КШ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="comboBoxBufDirBC">
+     <item>
+      <property name="text">
+       <string>передачи</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>приёма</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="0" column="1" colspan="3">
+    <widget class="QComboBox" name="comboBoxDev">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Просмотр памяти КШ</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Просмотр памяти ОУ</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Сравнение буферов КШ и ОУ</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="labelBegin">
+     <property name="text">
+      <string>Начальный адрес</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1" colspan="3">
+    <widget class="QLineEdit" name="lineEditDevBC">
+     <property name="text">
+      <string>BC</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1" colspan="3">
+    <widget class="QLineEdit" name="lineEditDevRT">
+     <property name="text">
+      <string>RT</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QLabel" name="labelBegAddrBC">
+     <property name="maximumSize">
+      <size>
+       <width>87</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(221, 221, 221);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QLabel" name="labelEndAddrBC">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(221, 221, 221);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelBufRT">
+     <property name="text">
+      <string>Буфер ОУ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QLabel" name="labelHeadBC">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>КШ</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2" colspan="2">
+    <widget class="QLabel" name="labelHeadRT">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ОУ</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QLabel" name="labelNBufRT">
+     <property name="text">
+      <string>N</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="comboBoxBufDirRT">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>передачи</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>приёма</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QComboBox" name="comboBoxNBufRT">
+     <property name="maximumSize">
+      <size>
+       <width>45</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <item>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../tgca/tgca.qrc"/>
+ </resources>
+ <connections/>
+</ui>

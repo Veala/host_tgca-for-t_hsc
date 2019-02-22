@@ -1,45 +1,44 @@
 <RCC>
     <qresource prefix="/">
-        <file>../pictogram/1downarrow_4076.png</file>
-        <file>../pictogram/accessories-text-editor_7233.png</file>
-        <file>../pictogram/application_form_add_2955.png</file>
         <file>../pictogram/application_form_edit_2379.png</file>
-        <file>../pictogram/bullet_delete_3633.png</file>
-        <file>../pictogram/bullet_go_1755.png</file>
         <file>../pictogram/calculator_8158.png</file>
-        <file>../pictogram/close_5496_grey.png</file>
         <file>../pictogram/disconnect_9550.png</file>
         <file>../pictogram/disk_1286.png</file>
         <file>../pictogram/drive_add_7644.png</file>
-        <file>../pictogram/filenew_5201.png</file>
         <file>../pictogram/folder_explore_2684.png</file>
         <file>../pictogram/gtk-media-pause_2289.png</file>
         <file>../pictogram/gtk-media-play-ltr_8717.png</file>
         <file>../pictogram/gtk-media-stop_9402.png</file>
-        <file>../pictogram/gwget_1245.png</file>
         <file>../pictogram/hardware_8356.png</file>
-        <file>../pictogram/help_1739.png</file>
         <file>../pictogram/kde-document-open_9221.png</file>
-        <file>../pictogram/newspaper_5855.png</file>
         <file>../pictogram/printer_5065.png</file>
-        <file>../pictogram/report_9058.png</file>
-        <file>../pictogram/shield_red_2348.png</file>
         <file>../pictogram/close_5496.png</file>
         <file>../pictogram/package-installed-updated_5020.png</file>
-        <file>../pictogram/connect_3497.png</file>
-        <file>../pictogram/cancel_8315.png</file>
-        <file>../pictogram/confirm_3843.png</file>
         <file>../pictogram/clock__2382.png</file>
-        <file>../pictogram/control_play_blue_7261.png</file>
-        <file>../pictogram/kmixdocked_mute_9009.png</file>
         <file>../pictogram/lightbulb_6765.png</file>
         <file>../pictogram/script_save_8920.png</file>
-        <file>../pictogram/agt_login_1836.png</file>
         <file>../pictogram/application-exit_3908.png</file>
         <file>../pictogram/streamtuner_3252.png</file>
         <file>../pictogram/arrow_rotate_clockwise_7614.png</file>
         <file>../pictogram/drive_back_5555.png</file>
         <file>../pictogram/drive_go_5555.png</file>
         <file>../pictogram/control_pause_blue_1763.png</file>
+        <file>../pictogram/button_cancel_6086.png</file>
+        <file>../pictogram/ok.png</file>
+        <file>../pictogram/searchCancel.png</file>
+        <file>../pictogram/dragdroprobot-example.png</file>
+        <file>../pictogram/spinner.png</file>
+        <file>../pictogram/tile.png</file>
+        <file>../pictogram/control_equalizer_blue_4492.png</file>
+        <file>../pictogram/editvlayout.png</file>
+        <file>../pictogram/play-to.png</file>
+        <file>../pictogram/runtonewscript.png</file>
+        <file>../pictogram/flag_yellow_8318.png</file>
+        <file>../pictogram/icon_link-rss.png</file>
+        <file>../pictogram/icon-O-30.png</file>
+        <file>../pictogram/bullet_delete_3633.png</file>
+        <file>../pictogram/down.png</file>
+        <file>../pictogram/images[10].png</file>
+        <file>../pictogram/memory.png</file>
     </qresource>
 </RCC>

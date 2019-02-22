@@ -27,7 +27,7 @@ bool createCommandWord(word32_t* command_word, addr_t addr, unsigned int num_s, 
         tr = 1;
 
     *command_word = (addr << 16) | (num_s << 8) | (tgca_fl_CW_tr_bit * tr) | code;
-    qDebug() << "Command word: addr num_s tr code " << (*command_word) << " " << addr << " " << num_s << " " << tr << " " << code;
+    qDebug() << "Command word: addr num_s tr code " << addr << " " << num_s << " " << tr << " " << code;
     return bRet;
 }
 
@@ -38,3 +38,34 @@ int startVSK()
     return 0;
 }
 
+bool parseCommandWord(void* pComm, addr_t *rta, short* num_s, short* tr, short* code)
+{
+    word32_t* ptr = (word32_t*)pComm;
+    word32_t command = *ptr;
+    *rta = (command >> 16) & MAX_RT_ADDR;
+    *num_s = (command >> 8) & 0xFF;
+    *tr = (command & tgca_fl_CW_tr_bit) ? 1 : 0;
+    *code = command & MAX_COMMAND_CODE;
+    return true;
+}
+
+int getRtaFromCommand(void* pComm)
+{
+    word32_t* ptr = (word32_t*)pComm;
+    word32_t command = *ptr;
+    return (command >> 16) & MAX_RT_ADDR;
+}
+
+int getTrbitFromCommand(void* pComm)
+{
+    word32_t* ptr = (word32_t*)pComm;
+    word32_t command = *ptr;
+    return (command & tgca_fl_CW_tr_bit) ? 1 : 0;;
+}
+
+int getPackLenFromCommand(void* pComm)
+{
+    word32_t* ptr = (word32_t*)pComm;
+    word32_t command = *ptr;
+    return (command >> 8) & 0xFF;
+}

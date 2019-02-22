@@ -13,6 +13,7 @@ protected slots:
     virtual void save();
 protected:
     virtual void startTest();
+    void setEnabledSpecial(bool) {}
 private:
     QLineEdit *echo, *deviceEdit;
 };

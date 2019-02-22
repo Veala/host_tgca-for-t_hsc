@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>122</width>
-    <height>37</height>
+    <width>189</width>
+    <height>52</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="4,1" columnstretch="1,1">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -37,6 +37,18 @@
    </property>
    <item row="0" column="0">
     <widget class="QLabel" name="name">
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="styleSheet">
       <string notr="true">color: rgb(255, 255, 255);</string>
      </property>
@@ -44,14 +56,20 @@
       <string/>
      </property>
      <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>
    <item row="0" column="1">
     <widget class="QLabel" name="picture">
      <property name="text">
-      <string>Pic</string>
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="tgca.qrc">:/pictogram/hardware_8356.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -88,6 +106,8 @@ background-color: rgb(208, 68, 68);</string>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="tgca.qrc"/>
+ </resources>
  <connections/>
 </ui>

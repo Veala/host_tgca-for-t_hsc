@@ -38,7 +38,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabNSK">
       <property name="font">
@@ -2031,10 +2031,6 @@
           </property>
           <property name="text">
            <string>старт работы КШ         Внимание! Не включайте эту настройку при начальной конфигурации!</string>
-          </property>
-          <property name="icon">
-           <iconset resource="tgca.qrc">
-            <normaloff>:/pictogram/bullet_go_1755.png</normaloff>:/pictogram/bullet_go_1755.png</iconset>
           </property>
          </widget>
         </item>

@@ -1,12 +1,10 @@
+
 #include "monitortest.h"
-//#include "../monitor.h"
 
 void MonitorTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
     AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
-    disconnect(settings,SIGNAL(finished(int)),this,SLOT(checkDeviceAvailability(int)));
-    connect(settings,SIGNAL(finished(int)),this,SLOT(updateSettings()));
-    connect(this,SIGNAL(settingsClosed(int)),this,SLOT(checkDeviceAvailability(int)));
+    changeConnections();
 
     lineEditDevBC = settings->findChild<QLineEdit*>("lineEditDevBC");
     lineEditDevRT = settings->findChild<QLineEdit*>("lineEditDevRT");
@@ -20,26 +18,19 @@ top_1
     checkBoxDevRT->setChecked(!out.readLine().isEmpty());
     settingsFile.close();
 
-    if (checkBoxDevBC->isChecked())
-        deviceLineEditList.append(lineEditDevBC);
-    if (checkBoxDevRT->isChecked())
-        deviceLineEditList.append(lineEditDevRT);
-    checkDeviceAvailability((checkBoxDevBC->isChecked() ? 1 : 0) + (checkBoxDevRT->isChecked() ? 2 : 0));
+    addDevicesTolist();
 
     objToThread = new monitorObjToThread();
-    objToThread->moveToThread(&testThread);
-    connect(&testThread,SIGNAL(finished()), objToThread, SLOT(deleteLater()));
+    connectThread();
     connect(&testThread,SIGNAL(finished()), this, SLOT(printFin()));
-    connect(objToThread,SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
-    connect(objToThread,SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
-    connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
+    disableStat();
 
     testThread.start();
 }
 
 void MonitorTest::printFin()
 {
-    qDebug() << "testThread finished";
+    qDebug() << "testThread MonitorTest finished";
 }
 
 void MonitorTest::save()
@@ -97,62 +88,39 @@ void MonitorTest::startTest()
     monit.exec();
 }
 
-void MonitorTest::updateDeviceList()
-{
-    deviceLineEditList.clear();
-    if (checkBoxDevBC->isChecked())
-        deviceLineEditList.append(lineEditDevBC);
-    if (checkBoxDevRT->isChecked())
-        deviceLineEditList.append(lineEditDevRT);
-    qDebug() << deviceLineEditList.size() << " devices";
-}
-
-void MonitorTest::updateSettings()
-{
-    updateDeviceList();
-    int done = (checkBoxDevBC->isChecked() ? 1 : 0) + (checkBoxDevRT->isChecked() ? 2 : 0);
-    emit settingsClosed(done);
-}
-
 void monitorObjToThread::doWork()
 {
     signalFromMonitor = Monitor::wait,
     force_exit = false;
+    emit resultReady((int)AbstractTest::Running);
     if (devBC)
     {
-        QString ip = devBC->connection.getServerIP();
-        ushort port = devBC->connection.getServerPORT().toUShort();
-        tcpSocketBC.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocketBC.waitForConnected(5000))
+        AbstractTest::RunningState ans = connectBC();
+        if (ans == AbstractTest::Running)
         {
-            qDebug() << "BC not connected";
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-        }
-        else
-        {
-            devBC->setSocket(&tcpSocketBC);
             qDebug() << "BC connected";
             emit connected(0);
+        }
+        else if (ans == AbstractTest::Stopped)
+        {
+            prepTerminate();
+            return;
         }
     }
     if (devRT)
     {
-        QString ip = devRT->connection.getServerIP();
-        ushort port = devRT->connection.getServerPORT().toUShort();
-        tcpSocketRT.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocketRT.waitForConnected(5000))
+        AbstractTest::RunningState ans = connectRT();
+        if (ans == AbstractTest::Running)
         {
-            qDebug() << "RT not connected";
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-        }
-        else
-        {
-            devRT->setSocket(&tcpSocketRT);
             qDebug() << "RT connected";
             emit connected(1);
         }
+        else if (ans == AbstractTest::Stopped)
+        {
+            prepTerminate();
+            return;
+        }
     }
-    emit resultReady((int)AbstractTest::Running);
 
 //        //Monitor monit;
 //        monit.setDevices(devBC, devRT);
@@ -205,7 +173,7 @@ void monitorObjToThread::doWork()
             default:
                 qDebug() << "Wrong signal from monitor";
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
-                terminate();
+                prepTerminate();
                 return;
             }
         }
@@ -213,19 +181,20 @@ void monitorObjToThread::doWork()
         {
             qDebug() << "force_exit";
             emit resultReady((int)AbstractTest::Completed);
-            terminate();
+            prepTerminate();
             return;
         }
         if (threadState != AbstractTest::Running)
         {
             qDebug() << "threadState = " << threadState;
-            terminate();
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            prepTerminate();
             return;
         }
         if (pause_stop() == -1)
         {
             qDebug() << "pause_stop";
-            terminate();
+            prepTerminate();
             return;
         }
         thread()->msleep(50);
@@ -233,7 +202,7 @@ void monitorObjToThread::doWork()
     emit resultReady((int)AbstractTest::ErrorIsOccured);
 }
 
-void monitorObjToThread::terminate()
+void monitorObjToThread::prepTerminate()
 {
     qDebug() << "terminates";
     if (devBC && tcpSocketBC.state() == QAbstractSocket::ConnectedState)
@@ -241,21 +210,17 @@ void monitorObjToThread::terminate()
     if (devRT && tcpSocketRT.state() == QAbstractSocket::ConnectedState)
         tcpSocketRT.abort();
     emit terminated();
-    emit resultReady((int)AbstractTest::Completed);
+    //emit resultReady((int)AbstractTest::Completed);
 }
 /*
 void monitorObjToThread::forceExit()
 {
     qDebug() << "forceExit";
-    terminate();
+    prepTerminate();
     emit resultReady((int)AbstractTest::Completed);
 }
 */
-monitorObjToThread::monitorObjToThread() :
-    //devBC(0),
-    //devRT(0),
-    //signalFromMonitor(Monitor::wait),
-    //force_exit(false),
-    absObjToThread()
+monitorObjToThread::monitorObjToThread()
 {
+    outEnable = false;
 }

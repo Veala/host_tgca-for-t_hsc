@@ -10,6 +10,7 @@ QByteArray Configuration::getRegistersToWrite()
 {
     QByteArray array;
 
+    // регистры НСК
     for (int i=0; i<ui->tableWidgetNSK->rowCount(); i++)
     {
         ui->tableWidgetNSK->item(i, rcn_Val)->setTextColor(Qt::gray);
@@ -22,6 +23,7 @@ QByteArray Configuration::getRegistersToWrite()
             array.append((char*)&val, 4);
         }
     }
+    // сначала регистр creg - сброс
     if (ui->tableWidgetVSK->item(config_NUMREG_creg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->checkState() == Qt::Checked)
     {
         int addr = REG_VSK_creg;
@@ -30,6 +32,7 @@ QByteArray Configuration::getRegistersToWrite()
         array.append((char*)&addr, 4);
         array.append((char*)&val, 4);
     }
+    // все регистры ВСК кроме регистра команд (creg) и регистра управления обменом по SPI
     for (int i=0; i<ui->tableWidgetVSK->rowCount(); i++)
     {
         ui->tableWidgetVSK->item(i, rcn_Val)->setTextColor(Qt::gray);
@@ -44,6 +47,7 @@ QByteArray Configuration::getRegistersToWrite()
             array.append((char*)&val, 4);
         }
     }
+    // регистра управления обменом по SPI загружается последним
     if (ui->tableWidgetVSK->item(config_NUMREG_cr_spi-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->checkState() == Qt::Checked)
     {
         int addr = REG_VSK_creg;

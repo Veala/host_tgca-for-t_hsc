@@ -6,13 +6,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     prjLoaded(false),
-    tstLoaded(false),
+    //tstLoaded(false),
     su(false),
+    devConf(0),
     logFile("log.txt"),
-    logFileDefault("log.txt")
+    logFileDefault("log.txt"),
+    curIndex(0)
 {
     ui->setupUi(this);
 
+    //su = true; // LLL!!!
+
+    connect(ui->actRun, SIGNAL(triggered(bool)), this, SLOT(prepare()));
     connect(ui->actRun, SIGNAL(triggered(bool)), this, SLOT(onRunTst()));
     connect(ui->actPause, SIGNAL(triggered(bool)), this, SLOT(onPause()));
     connect(ui->actStop, SIGNAL(triggered(bool)), this, SLOT(onStop()));
@@ -26,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     act_devMode = new QAction(tr("Включить секретный режим"), this);
     act_devMode->setObjectName(QStringLiteral("act_devMode"));
     addAction(act_devMode);
-    act_devMode->setShortcut(QApplication::translate("MainWindow", "Ctrl+Alt+D", 0));
+    act_devMode->setShortcut(QApplication::translate("MainWindow", "Alt+Shift+D", 0));
     connect(act_devMode, SIGNAL(triggered()), this, SLOT(actDevMode()));
 
     ui->actConfiguration->setVisible(false);
@@ -39,14 +44,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (prjLoaded)
             ui->actSavePrj->setEnabled(true);
+    else
+        actDevMode();
 
     treeState = stopped;
 }
 
 MainWindow::~MainWindow()
 {
-    if (su)
+    if (su && devConf!=0)
         delete devConf;
+
+    clearProject();
+
     delete ui;
 }
 
@@ -58,7 +68,7 @@ void MainWindow::onAbout()
 bool MainWindow::clearProject()
 {
     bool bRet = true;
-    if (su)
+  /*  if (su)
     {
         su = false;
         ui->actConfiguration->setVisible(false);
@@ -66,7 +76,7 @@ bool MainWindow::clearProject()
         if (devConf)
             delete devConf;
         devConf = 0;
-    }
+    }*/    //LLL!!!
     logFile = logFileDefault;
 
     int sz = ui->tests->count();
@@ -132,17 +142,12 @@ bool MainWindow::loadProject(QSettings& settings)
             AbstractTest *at = testLib::loadTest(name, ui->devices, ui->projectBrowser, ui->testBrowser);
             if (at)
             {
-                ui->tests->addWidget(at);
-                at->setEnabled(settings.value("enabled").toString() != "0");
-                tstLoaded = true;
-                //at->setParent(this);
-                connect(this, SIGNAL(newDev(QString)), at, SLOT(newDev(QString)));
-                connect(this, SIGNAL(setTestStateIcon(int)), at, SLOT(setRunningState(int)));
-                connect(at, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
-                connect(at, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
-                connect(at, SIGNAL(dragged()), this, SLOT(onDragged()));
-                connect(at, SIGNAL(dropped()), this, SLOT(onDropped()));
-                ui->actRun->setEnabled(true);
+                loadTest(at);
+                QString ena = settings.value("enabled").toString();
+                if (!ena.isEmpty())
+                    at->setEnable(ena != "0");
+                //tstLoaded = true;
+                //ui->actRun->setEnabled(true);
             }
         }
     }
@@ -179,7 +184,7 @@ bool MainWindow::onSavePrj()
 
     ini.setValue("Common/output", logFile);
     ini.setValue("Common/autoload", "0");
-    ini.setValue("Common/output", su ? "su" : "");
+    ini.setValue("Common/user", su ? "su" : "");
 
     ini.beginWriteArray("Devices");
     for (int j=0; j<ui->devices->count(); j++)
@@ -203,7 +208,7 @@ bool MainWindow::onSavePrj()
         AbstractTest * test = (AbstractTest*)ui->tests->itemAt(i)->widget();
         ini.setArrayIndex(i);
         ini.setValue("test", test->getName());
-//        ini.setValue("enabled", "1");
+        ini.setValue("enabled", test->getEnable() ? "1" : "0");
     }
     ini.endArray();
     return true;
@@ -211,7 +216,20 @@ bool MainWindow::onSavePrj()
 
 void MainWindow::onPushConfig()
 {
-    devConf->show();
+    if (devConf)
+        devConf->show();
+}
+
+void MainWindow::prepare()
+{
+    if (getGlobalState() == BUSY) return;
+    if (getTreeState() == running) {
+        return;
+    } else {
+        if(AbstractTest::getBeginTest() != NULL)
+            curIndex = ui->tests->indexOf(AbstractTest::getBeginTest());
+        prepareFirstStart=1;
+    }
 }
 
 void MainWindow::addDevice()
@@ -235,38 +253,38 @@ void MainWindow::addDevice()
     ui->projectBrowser->append(tr("Устройство %1 добавлено").arg(name));
     emit newDev(name);
 
-    if (tstLoaded)
-        ui->actRun->setEnabled(true);
+    //if (tstLoaded)
+      //  ui->actRun->setEnabled(true);
 }
 
-void MainWindow::loadTest()
+void MainWindow::loadTest(AbstractTest* test)
+{
+    test->setParent(this);
+    test->setUserLevel(su);
+    connect(act_devMode, SIGNAL(triggered()), test, SLOT(actDevMode()));
+    connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
+    connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
+    connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
+    connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
+    ui->tests->addWidget(test);
+}
+
+void MainWindow::openTest()
 {
     QString txtFile = QFileDialog::getOpenFileName(0, tr("Открыть файл параметров теста"), tr(""));
     if (txtFile.isEmpty()) return;
     AbstractTest* test = testLib::loadTest(txtFile, ui->devices, ui->projectBrowser, ui->testBrowser);
-    if(test == NULL) return;
-    test->setParent(this);
-    connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
-    connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
-    connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
-    connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
-    connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
-    connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
-    ui->tests->addWidget(test);
+    if(test != NULL)
+        loadTest(test);
 }
 
 void MainWindow::createTest()
 {
-    AbstractTest* test = testLib::createTest(ui->devices, ui->projectBrowser, ui->testBrowser);
-    if(test == NULL) return;
-    test->setParent(this);
-    connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
-    connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
-    connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
-    connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
-    connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
-    connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
-    ui->tests->addWidget(test);
+    AbstractTest* test = testLib::createTest(ui->devices, ui->projectBrowser, ui->testBrowser, su);
+    if(test != NULL)
+        loadTest(test);
 }
 
 void MainWindow::actDevMode()
@@ -274,9 +292,9 @@ void MainWindow::actDevMode()
     if (!su)
     {
         su = true;
-        ui->actConfiguration->setVisible(true);
-        ui->actConfiguration->setEnabled(true);
-        devConf = new Configuration();
+        //ui->actConfiguration->setVisible(true);
+        //ui->actConfiguration->setEnabled(true);
+        //devConf = new Configuration();
     }
 }
 
@@ -308,7 +326,7 @@ void MainWindow::onMenuTests(QPoint point)
     QAction *act = menu.addAction(tr("Добавить новый тест"));
     connect(act, SIGNAL(triggered()), this, SLOT(createTest()));
     act = menu.addAction(tr("Добавить существующий тест"));
-    connect(act, SIGNAL(triggered()), this, SLOT(loadTest()));
+    connect(act, SIGNAL(triggered()), this, SLOT(openTest()));
 
     menu.exec(ui->labeDevicesTitle->mapToGlobal(point));
 }
@@ -345,7 +363,7 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 void MainWindow::setTreeState(MainWindow::TreeState s)
 {
     if (s == running) {
-        if (curIndex == 0) message(tr("Тесты запущены"));
+        if (prepareFirstStart == 1) message(tr("Тесты запущены"));
     } else if (s == stopped) {
         curIndex = 0;
         message(tr("Тесты остановлены"));
@@ -354,6 +372,7 @@ void MainWindow::setTreeState(MainWindow::TreeState s)
         message(tr("Тесты завершены"));
     } else if (s == next) {
         curIndex++;
+        prepareFirstStart++;
     } else if (s == bigStop) {
         if (treeState!=running) {
             setTreeState(smallStop);
@@ -378,10 +397,23 @@ void MainWindow::message(QString m)
 
 void MainWindow::run(int index)
 {
-    if (index == ui->tests->count()) {
+    if (AbstractTest::getEndTest() == NULL && index >= ui->tests->count()) {
         setTreeState(finished);
         return;
+    } else if (AbstractTest::getEndTest() != NULL
+               && index-1 == ui->tests->indexOf(AbstractTest::getEndTest())
+               && prepareFirstStart!=1) {
+        setTreeState(finished);
+        return;
+    } else if (AbstractTest::getEndTest() != NULL && index >= ui->tests->count()) {
+        curIndex=0; index=0;
     }
+
+//    if (index >= ui->tests->count()) {
+//        setTreeState(finished);
+//        return;
+//    }
+
     AbstractTest* test = (AbstractTest* )ui->tests->itemAt(index)->widget();
     if (test->isReady()) {
         emit test->globalStart();
@@ -397,7 +429,7 @@ void MainWindow::onRunTst()
     if (getTreeState() == running) {
         return;
     } else {
-        if (curIndex == 0)
+        if (prepareFirstStart == 1)
             emit setTestStateIcon((int)AbstractTest::Stopped);
         setTreeState(running);
         run(curIndex);
@@ -436,6 +468,8 @@ void MainWindow::unsetSlot(QPushButton *start, QPushButton *pause, QPushButton *
     disconnect(ui->actPause, SIGNAL(triggered(bool)), pause, SIGNAL(clicked(bool)));
     disconnect(ui->actStop, SIGNAL(triggered(bool)), stop, SIGNAL(clicked(bool)));
     if (getTreeState() == running) {
+        curIndex = ui->tests->indexOf((AbstractTest*)sender());
+        //qDebug() << "curIndex: " << curIndex;
         setTreeState(next);
         onRunTst();
     } else if (getTreeState() == bigStop) {
@@ -494,4 +528,3 @@ void MainWindow::onHelp()
 {
     qDebug() << QObject::tr("Slot onHelp() is not implemented !!!");
 }
-

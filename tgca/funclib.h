@@ -2,10 +2,43 @@
 #define FUNCLIB_H
 #include "QByteArray"
 
-struct CMDHead {
-    CMDHead(quint32 cmd = 0, quint32 dsz = 0) : cmd(cmd), dsz(dsz) { }
+enum ExchangeFormat {
+    zero,
+    write_f1,
+    write_f2,
+    read_f1,
+    read_f2,
+    write_echo,
+    cpy_on_hard = 7
+};
+
+struct Head {
+    Head(quint32 cmd = 0, quint32 dsz = 0) : cmd(cmd), dsz(dsz) { }
     quint32 cmd;
     quint32 dsz;
+};
+
+struct f1_Head : Head {
+
+};
+
+struct f2_Head : Head {
+    f2_Head(quint32 cmd = 0, quint32 dsz = 0, quint32 startAddr = 0) : Head(cmd, dsz),
+        startAddr(startAddr) { }
+    quint32 startAddr;
+};
+
+class FormatData
+{
+    explicit FormatData(ExchangeFormat f = write_f1, int size = 288);
+    ~FormatData();
+    void append(char*, int size);
+    void clear();
+    const char *getAllData();
+private:
+    ExchangeFormat exf;
+    char *protocolFrame, *payload;
+    unsigned int size, *frameSize, curPayloadPoint, offset;
 };
 
 struct CommandWord {

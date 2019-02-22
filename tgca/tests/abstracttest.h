@@ -21,10 +21,11 @@
 #include "../funclib.h"
 #include "../device.h"
 #include "../data_structs.h"
+#include "../animatedspinnericon.h"
 
 //#define debug_AT
 
-#define FREELY 0
+#define FREE 0
 #define BUSY 1
 
 class absObjToThread;
@@ -56,14 +57,24 @@ class AbstractTest : public QFrame, public GlobalState
                             in << name_enabled->text() << endl; \
                             in << name_enabled->isChecked() << endl; \
                             in << mark->text() << endl; \
-                            message(tr("Настройки теста сохранены (файл: %1, метка: %2)").arg(fileName->text()).arg(mark->text()));
+                            message(tr("Настройки теста сохранены (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
 
 public:
     explicit AbstractTest(QWidget *parent = 0);
     virtual ~AbstractTest();
+
     virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
     QString getName() const;
     bool isReady() const;
+    void setUserLevel(bool b);
+    void setEnable(bool b) { name_enabled->setChecked(b); }
+    bool getEnable() { return name_enabled->isChecked(); }
+
+    void setBeginTest();
+    static AbstractTest* getBeginTest();
+    void setEndTest();
+    static AbstractTest* getEndTest();
+    void resetBeginEnd();
 
     enum ValidState {
         DeviceIsNotAvailable,
@@ -75,12 +86,14 @@ public:
         Paused,
         Stopped,
         Completed,
-        ErrorIsOccured
+        ErrorIsOccured,
+        Deleting
     };
-
+private:
     void setValidState(ValidState);
     ValidState getValidState() const;
     RunningState getRunningState() const;
+    CAnimatedSpinnerIcon* spinner;
 
 signals:
     void globalStart();
@@ -103,16 +116,21 @@ protected:
     QMap<QString, QLabel*> statsMap;
     QString saveFileNameStr;
     QCheckBox *name_enabled;
-    QLabel *fileName, *status;
+    QLabel *fileName;
     QPushButton *startButton, *pauseButton, *stopButton;
     QDialog *settings;
     QWidget *stats;
     QVBoxLayout *devices;
     QTextBrowser *projectBrowser, *testsBrowser;
     QLineEdit* mark;
+    static AbstractTest* yellowTest, *beginTest, *endTest;
+
+    bool su;
     void message(QString);
     void setConnections(Device*);
     void setDisconnections(Device*);
+    virtual void setEnabledSpecial(bool b);
+    void disableStat();
 
 protected slots:
     virtual void save();
@@ -133,13 +151,20 @@ protected slots:
     virtual void statsSave();
     void setRunningState(int);
 
+    void deleteObject();
+private slots:
+    void actDevMode();
+
 private:
     QMenu menu;
     QHBoxLayout *layout;
     ValidState validState;
+    QLabel *statusIcon, *statusTxt, *begin_end_Icon;
     RunningState runningState;
     QSize forIcons;
+    int forIconSize;
 
+    bool isRunning();
 };
 
 class absObjToThread : public QObject//, public DeviceDriver
@@ -149,6 +174,7 @@ class absObjToThread : public QObject//, public DeviceDriver
 //    int readAll(QTcpSocket*, QByteArray&, int);
 //    int writeAll(QTcpSocket*, QByteArray&);
 public:
+    explicit absObjToThread(QObject* parent = 0);
     AbstractTest::RunningState threadState;
 //    int write_F1(QTcpSocket* tcpSocket, QByteArray& writeArray);
 //    int write_F2(QTcpSocket* tcpSocket, QByteArray& writeArray);
@@ -159,6 +185,7 @@ public:
 
 public slots:
     virtual void doWork() = 0;
+    void template_doWork();
     void setState(int);
 signals:
     void resultReady(int);
@@ -169,7 +196,7 @@ protected:
 };
 
 namespace testLib {
-AbstractTest *createTest(QVBoxLayout* devices, QTextBrowser *pB, QTextBrowser *tB);
+AbstractTest *createTest(QVBoxLayout* devices, QTextBrowser *pB, QTextBrowser *tB, bool su);
 AbstractTest *loadTest(QString file, QVBoxLayout* devices, QTextBrowser *pB, QTextBrowser *tB);
 }
 #endif // ABSTRACTTEST_H

@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="tgca.qrc">
-    <normaloff>:/pictogram/shield_red_2348.png</normaloff>:/pictogram/shield_red_2348.png</iconset>
+    <normaloff>:/pictogram/icon-O-30.png</normaloff>:/pictogram/icon-O-30.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -70,8 +70,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1188</width>
-         <height>538</height>
+         <width>1204</width>
+         <height>552</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -140,7 +140,7 @@
      <x>0</x>
      <y>0</y>
      <width>1294</width>
-     <height>22</height>
+     <height>18</height>
     </rect>
    </property>
    <property name="font">
@@ -162,6 +162,10 @@
     <widget class="QMenu" name="menuTests">
      <property name="title">
       <string>Добавить тест</string>
+     </property>
+     <property name="icon">
+      <iconset resource="tgca.qrc">
+       <normaloff>:/pictogram/runtonewscript.png</normaloff>:/pictogram/runtonewscript.png</iconset>
      </property>
      <addaction name="actCreateTest"/>
      <addaction name="actLoadTest"/>
@@ -247,7 +251,7 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>7</pointsize>
+         <pointsize>9</pointsize>
         </font>
        </property>
        <property name="contextMenuPolicy">
@@ -286,6 +290,11 @@
      </property>
      <item row="0" column="0">
       <widget class="QTextBrowser" name="testBrowser">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="contextMenuPolicy">
         <enum>Qt::CustomContextMenu</enum>
        </property>
@@ -293,8 +302,8 @@
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans'; font-size:10pt; font-weight:400; font-style:italic;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:10pt; font-weight:400; font-style:italic;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Sans';&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -396,6 +405,10 @@ p, li { white-space: pre-wrap; }
    </property>
   </action>
   <action name="actAddDevice">
+   <property name="icon">
+    <iconset resource="tgca.qrc">
+     <normaloff>:/pictogram/drive_add_7644.png</normaloff>:/pictogram/drive_add_7644.png</iconset>
+   </property>
    <property name="text">
     <string>Добавить устройство</string>
    </property>
@@ -406,7 +419,7 @@ p, li { white-space: pre-wrap; }
   <action name="actRun">
    <property name="icon">
     <iconset resource="tgca.qrc">
-     <normaloff>:/pictogram/gtk-media-play-ltr_8717.png</normaloff>:/pictogram/gtk-media-play-ltr_8717.png</iconset>
+     <normaloff>:/pictogram/play-to.png</normaloff>:/pictogram/play-to.png</iconset>
    </property>
    <property name="text">
     <string>Запуск</string>
@@ -637,7 +650,7 @@ p, li { white-space: pre-wrap; }
    <sender>actLoadTest</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>loadTest()</slot>
+   <slot>openTest()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -728,10 +741,10 @@ p, li { white-space: pre-wrap; }
   <slot>onHelp()</slot>
   <slot>onMenuDevices(QPoint)</slot>
   <slot>createTest()</slot>
-  <slot>loadTest()</slot>
   <slot>onStop()</slot>
   <slot>onPause()</slot>
   <slot>onMenuTests(QPoint)</slot>
   <slot>onMenuOutput(QPoint)</slot>
+  <slot>openTest()</slot>
  </slots>
 </ui>

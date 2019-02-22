@@ -28,12 +28,12 @@ typedef unsigned short  reg16_t;
 
 
 ///  АДРЕСА ВСПОМОГАТЕЛЬНЫХ РЕГИСТРОВ
-
+/*
 #define REG_AUX_T_rtaddr                 0x180   // вспомогательный регистр: адрес ОУ
 #define REG_AUX_T_interruption           0x184   // вспомогательный регистр: прерывание
 #define REG_AUX_T_win_mode               0x190   // вспомогательный регистр: оконный режим
 #define REG_AUX_T_bulb                   0x194   // регистр "лампочек"
-
+*/
 
 ///  АДРЕСА РЕГИСТРОВ ВСК
 
@@ -198,5 +198,8 @@ inline int chgManType(reg16_t cfg, int man_type)
 }
 
 unsigned short calcNumWordInSymbol(int mt, bool codec);
+
+inline unsigned int getBufTrm(int status) { return (status & fl_REG_STATUS_tx_num_buf) ? 0x80000 : 0x40000; }
+inline unsigned int getBufRec(int status) { return (status & fl_REG_STATUS_rx_num_buf) ? 0xA0000 : 0x60000; }
 
 #endif  // REGISTERS_H

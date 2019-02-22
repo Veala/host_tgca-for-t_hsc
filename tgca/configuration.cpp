@@ -31,8 +31,6 @@ Configuration::Configuration(QWidget *parent) :
     currentTab(-1),
     stopSign(false),
     path("")
-    //iconStartEna(":/../pictogram/bullet_go_1755.png"),
-    //iconStartDis(":/../pictogram/bullet_delete_3633.png")
 {
     ui->setupUi(this);
 
@@ -278,7 +276,6 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
         ui->checkBoxEnaInt->setText(QString("разрешение выработки прерывания в режиме ") + QString(rt ? "ОУ" : "КШ"));
         ui->label_14->setText(QString("флаг прерывания от ") + QString(rt ? "ОУ" : "КШ"));
         ui->checkBoxEnaInt->setChecked(val & fl_REG_CFG_en_rt_bc_int);
-        //ui->checkBoxStartBC->setIcon(rt ? iconStartEna : iconStartDis);
 
         bool b = val & fl_REG_CFG_rtavsk_ena;
         ui->checkBoxEnaRtaVSK->setChecked(b);
@@ -314,8 +311,7 @@ void Configuration::adaptRegVSK(int addr, word16_t val, QString strval)
         ui->checkBoxResetFLT->setChecked(val & fl_REG_CREG_tx_res);
         ui->checkBoxResetFLR->setChecked(val & fl_REG_CREG_rx_res);
         ui->checkBoxStartBC->setChecked(val & fl_REG_CREG_start_bc);
-        /// LLL Здесь, возможно, надо изменить иконку этого чекбокса
-        //ui->checkBoxStartBC->setIcon(val & fl_REG_CREG_start_bc ? iconStartEna : iconStartDis);
+        /// LLL Здесь надо попробовать изменить иконку этого чекбокса
         break;
 
     case REG_VSK_cr_spi:              //  0xA4 (0x29)
@@ -1575,7 +1571,17 @@ void Configuration::setChecked(int num, bool ch)
     if (num < config_NUMREG_BEGIN_VSK)
         ui->tableWidgetNSK->item(num, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
     else
-        ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
+    {
+        QTableWidgetItem *it = ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check);
+        Qt::CheckState chs = ch ? Qt::Checked : Qt::Unchecked;
+        qDebug() << "before chs =  " << chs;
+        qDebug() << "before setCheckState  ";
+        it->setCheckState(chs);
+        qDebug() << "after setCheckState(false)";
+
+//        ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
+
+    }
 }
 
 void Configuration::setWritten(int addr, int val)

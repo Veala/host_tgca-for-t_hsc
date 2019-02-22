@@ -51,13 +51,15 @@ private:
     Configuration *devConf;
 
     bool prjLoaded;
-    bool tstLoaded;
+    //bool tstLoaded;
     bool su;
+    int prepareFirstStart;
 
     QAction *act_devMode;  //"Секретный режим"
     //QSettings project;
 
     bool loadProject(QSettings& settings);
+    void loadTest(AbstractTest* test);
 
     QString logFile;
     QString logFileDefault;
@@ -71,6 +73,7 @@ private slots:
     void onAbout();
     void onPushConfig();
 
+    void prepare();
     void onRunTst();
     void onPause();
     void onStop();
@@ -81,7 +84,7 @@ private slots:
     void onDropped();
     void addDevice();
     void createTest();
-    void loadTest();
+    void openTest();
 
     bool onSavePrj();
     void onLoadPrj();

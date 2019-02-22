@@ -27,12 +27,60 @@ namespace Ui {
 class Device;
 }
 
+class SocketDriver : public QObject
+{
+    Q_OBJECT
+
+public:
+    explicit SocketDriver(QWidget *parent = 0);
+    ~SocketDriver() { }
+    QAbstractSocket::SocketState getSocketState() { return socket.state();  }
+    //state по read write придумать или переменные
+
+//    Q_ENUM(ExchangeFormat)
+    Head head;
+
+    struct AllData {
+        ExchangeFormat format;
+        char* writeArray = NULL;
+        char* readArray = NULL;
+        int size = 0;
+        int startAddr = 0;
+        int count = 0;
+        QString text;
+        int fromAddr = 0;
+        int toAddr = 0;
+    }allData;
+
+private:
+    QTcpSocket socket;
+    int sizeOfPayload;
+
+private slots:
+    void connectedSlot();
+    void disconnectedSlot();
+    void readyReadSlot();
+    void bytesWrittenSlot(qint64);
+    void errorSlot(QAbstractSocket::SocketError);
+
+public slots:
+    void tryToConnect(QString ip, ushort port);
+    void tryToDisconnect();
+    void tryToExchange();
+    void tryToAbort();
+};
+
 class Device : public QFrame
 {
     Q_OBJECT
 
 signals:
+    void tcpConnect(QString, ushort);
+    void tcpDisconnect();
+    void tcpExchange();
+
     void error(QAbstractSocket::SocketError err);
+    void hsc_message(QString);
 
     //signals to tests
     void sigDelete(QString);
@@ -51,11 +99,15 @@ public:
     QString getName() const;
     void setSocket(QTcpSocket*);
 
+    //-----------------Formats-----------------------------------
     void write_F1(char* writeArray, int size);
     void write_F2(int startAddr, char* writeArray, int size);
     void read_F1(char *writeArray, char *readArray, int wrsize);
     void read_F2(int startAddr, int count, char *readArray);
     void write_Echo(QString& text);
+    void cpyOnHard(int fromAddr, int count, int toAddr);
+    //-----------------Formats-----------------------------------
+
     void writeReg(BaseReg* reg);
     void readReg(BaseReg* reg);
     void writeRegs(QVector<BaseReg*>& regs);
@@ -84,6 +136,9 @@ private:
 
     //CMDHead head;
     QTcpSocket* sock;
+    SocketDriver socketDriver;
+    QThread toSocketDriver;
+    QTimer timer;
     void readAll(char* array, int size);
     void writeAll(char* array, int size);
     QByteArray littleAnswer;

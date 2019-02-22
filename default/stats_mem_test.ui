@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Тест памяти. Статистика ошибок.</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../tgca/tgca.qrc">
+    <normaloff>:/pictogram/memory.png</normaloff>:/pictogram/memory.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="3">
@@ -62,6 +66,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../tgca/tgca.qrc"/>
+ </resources>
  <connections/>
 </ui>

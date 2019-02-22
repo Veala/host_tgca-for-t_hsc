@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Настройки загруски по SPI</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../tgca/tgca.qrc">
+    <normaloff>:/pictogram/control_equalizer_blue_4492.png</normaloff>:/pictogram/control_equalizer_blue_4492.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="4" column="1" colspan="3">
@@ -70,6 +74,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../tgca/tgca.qrc"/>
+ </resources>
  <connections/>
 </ui>

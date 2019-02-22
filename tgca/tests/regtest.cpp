@@ -3,6 +3,7 @@
 void RegTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
     AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
+    disableStat();
 
     mode = settings->findChild<QComboBox*>("mode");
     startAddr = settings->findChild<QLineEdit *>("startAddress");
@@ -78,14 +79,17 @@ void regObjToThread::doWork()
         QString ip = dev->connection.getServerIP();
         ushort port = dev->connection.getServerPORT().toUShort();
 
+        emit resultReady((int)AbstractTest::Running);
         tcpSocket.connectToHost(QHostAddress(ip), port);
         if (!tcpSocket.waitForConnected(5000)) {
+            if (pause_stop() == -1) {
+                tcpSocket.abort();
+                return;
+            }
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             tcpSocket.abort();
             return;
         }
-
-        emit resultReady((int)AbstractTest::Running);
 
         long it = 0, decrement = 0;
         if (inCycle == 0) { it=-1;  decrement=-1;   }
@@ -124,7 +128,7 @@ void regObjToThread::doWork()
 
             for (; it<inCycle; it=it+1+decrement) {
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
-                for (uint i=0; i<answer.size(); i+=4) {
+                for (int i=0; i<answer.size(); i+=4) {
                     if (output) outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
                 }
                 if (pause_stop() == -1) {
@@ -148,7 +152,7 @@ void regObjToThread::doWork()
                 ulong same=0, diff=0;
                 uint w,r;
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
-                for (uint i=0, j=12; i<answer.size(); i+=4, j+=8) {
+                for (int i=0, j=12; i<answer.size(); i+=4, j+=8) {
                     w = *(int*)(writeArray.data()+j);
                     r = *(int*)(answer.data()+i);
                     if (output) emit outputReady(tr("Write: %1; Read: %2").arg(QString::number(w, 16)).arg(QString::number(r, 16)));

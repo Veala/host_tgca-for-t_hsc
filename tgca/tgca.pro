@@ -12,10 +12,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets network printsupport
 TARGET = tgca
 TEMPLATE = app
 
+RC_FILE = tgca.rc
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    command.cpp \
     configuration.cpp \
     confselect.cpp \
     connection.cpp \
@@ -37,9 +37,17 @@ SOURCES += main.cpp\
     tests/spipart.cpp \
     funclib.cpp \
     #data_structs.cpp
+    tests/varcommtest.cpp \
+    testutil.cpp \
+    command.cpp \
+    animatedspinnericon.cpp \
+    tests/commontest.cpp \
+    tests/nulltest.cpp \
+    tests/ramtest.cpp \
+    tests/trashtest.cpp \
+    tests/noisetest.cpp
 
 HEADERS  += mainwindow.h \
-    command.h \
     configuration.h \
     confselect.h \
     connection.h \
@@ -60,7 +68,17 @@ HEADERS  += mainwindow.h \
     #crutches.h \
     tests/spipart.h \
     funclib.h \
-    data_structs.h
+    data_structs.h \
+    tests/varcommtest.h \
+    testutil.h \
+    command.h \
+    picts.h \
+    animatedspinnericon.h \
+    tests/commontest.h \
+    tests/nulltest.h \
+    tests/ramtest.h \
+    tests/trashtest.h \
+    tests/noisetest.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
@@ -81,7 +99,17 @@ FORMS    += mainwindow.ui \
     ../default/stats_bulb_test.ui \
     ../default/stats_monitor_test.ui \
     ../default/stats_trm_single_test.ui \
-    ../default/stats_spi_part.ui
+    ../default/stats_spi_part.ui \
+    ../default/settings_var_comm_test.ui \
+    ../default/stats_var_comm_test.ui \
+    ../default/settings_null_test.ui \
+    ../default/stats_null_test.ui \
+    ../default/settings_noise_test.ui \
+    ../default/stats_noise_test.ui \
+    ../default/settings_ram_test.ui \
+    ../default/stats_ram_test.ui \
+    ../default/settings_trash_test.ui \
+    ../default/stats_trash_test.ui
 
 RESOURCES += \
     tgca.qrc

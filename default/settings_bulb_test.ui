@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>338</width>
-    <height>100</height>
+    <height>132</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,20 +52,43 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="labelDevice">
      <property name="text">
       <string>Устройство:</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="3" column="1">
     <widget class="QLineEdit" name="lineEditDevice">
      <property name="text">
       <string>Terasic</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="labelOut">
+     <property name="text">
+      <string>Вывод:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QCheckBox" name="checkBoxOut">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </item>

@@ -39,7 +39,7 @@ void fillRandomDataDefault(void *data, int length, int minval, int maxval)
 void *createRandomData(int length, int init, int minval, int maxval, int numchar)
 {
     if (length <=0)
-        return false;
+        return 0;
     if (numchar == 2)
         length += length % numchar;
     else if (numchar == 4 && length%numchar != 0)
@@ -69,7 +69,6 @@ void *createRandomData(int length, int init, int minval, int maxval, int numchar
     }
     return data;
 }
-
 
 void fillRegularDataByte(void *data, int length, int init, int step, int itermax)
 {

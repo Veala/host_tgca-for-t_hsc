@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>429</width>
-    <height>127</height>
+    <height>111</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Настройки теста монитора записи/чтения регистров</string>
+   <string>Настройки теста монитора</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../tgca/tgca.qrc">
@@ -99,7 +99,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2">
+   <item row="2" column="0" colspan="3">
     <widget class="QLabel" name="labelHeader">
      <property name="font">
       <font>

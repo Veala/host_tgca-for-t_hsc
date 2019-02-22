@@ -9,6 +9,8 @@
 #include "registers.h"
 #include "ctableeditcol.h"
 
+// #define SIZEOFWORD 4
+
 namespace Ui {
 class Configuration;
 }
@@ -139,7 +141,6 @@ private:
     void switchRegisterAsgmt(int num_reg, QLabel *labelHeader, QLabel *labelTextL, QLabel *labelTextH,
              QLineEdit *lineL, QLineEdit *lineH, QLabel *labelInd, QString* description, QString* name, int num);
 
-    //QIcon iconStartEna, iconStartDis;
 /*
     bool lineEditQ16_Edited;
     bool lineEditQ64l_Edited;

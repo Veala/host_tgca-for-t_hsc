@@ -10,18 +10,15 @@ typedef unsigned int*   p_mem_t;
 
 
 
-#define SIZEOFWORD 4
-
 /// Число слов, которое всегда отводится в пакете на 1 символ, независимо от реальной длины символа,
 //   которая определяется кодеком и типом манипуляции.
 #define NUMWORDINOFDMSYM   128
-/// Максимальное число символов в пакете.   !!! Сейчас под вопросом, остается ли 254 символа или 256
-#define MAXNUMSYMBINPACK   256
+/// Максимальное число символов в пакете.   !!! Сначала было можно только 254 символа, теперь стало 256
 #define MAXNUMSYM   256
-/// Размер памяти в байтах, достаточный для максимального пакета данных (256 символов по 128 32-разрядных слов).
-#define MAXPACKAGESIZE  (MAXNUMSYM * NUMWORDINOFDMSYM * sizeof(word32_t))   /// 0x8000
 /// Размер одного OFDM символа в байтах - 0x200 (128 32-разрядных слов)
 #define NUMBYTEINOFDMSYM (NUMWORDINOFDMSYM * sizeof(word32_t))
+/// Размер памяти в байтах, достаточный для максимального пакета данных (256 символов по 128 32-разрядных слов).
+#define MAXPACKAGESIZE  (MAXNUMSYM * NUMBYTEINOFDMSYM)   /// 0x8000
 
 //word16_t memToWord16(char *buf, int addr);
 //void word16ToMem(char *buf, int num_reg, word16_t val);
@@ -48,9 +45,5 @@ typedef unsigned int*   p_mem_t;
 #define  tgca_val_CW_tr_TRM  (hscl_fl_CW_tr_bit * hscl_tr_TRM) // ОУ передает
 //   извлечение признака tr из командного слова
 //#define  hscl_tr_bit_VAL(cw) (((cw) & hscl_CW_tr_bit) >> 7)
-
-inline unsigned int getBufTrm(int num) { return num ? 0x80000 : 0x40000; }
-inline unsigned int getBufRec(int num) { return num ? 0x60000 : 0xA0000; }
-
 
 #endif // EXTERN_H

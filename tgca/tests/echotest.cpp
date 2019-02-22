@@ -3,6 +3,7 @@
 void EchoTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
     AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
+    disableStat();
     echo = settings->findChild<QLineEdit *>("echo");
     deviceEdit = settings->findChild<QLineEdit*>("device");
     deviceLineEditList.append(deviceEdit);
@@ -46,15 +47,19 @@ void echoObjToThread::doWork()
         QString ip = dev->connection.getServerIP();
         ushort port = dev->connection.getServerPORT().toUShort();
 
+        emit resultReady((int)AbstractTest::Running);
         tcpSocket.connectToHost(QHostAddress(ip), port);
         if (!tcpSocket.waitForConnected(5000)) {
+            if (pause_stop() == -1) {
+                tcpSocket.abort();
+                return;
+            }
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             tcpSocket.abort();
             return;
         }
         dev->setSocket(&tcpSocket);
 
-        emit resultReady((int)AbstractTest::Running);
 
         dev->write_Echo(echoText);
         tcpSocket.abort();

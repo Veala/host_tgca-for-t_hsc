@@ -84,15 +84,18 @@ void memObjToThread::doWork()
         QString ip = dev->connection.getServerIP();
         ushort port = dev->connection.getServerPORT().toUShort();
 
+        emit resultReady((int)AbstractTest::Running);
         tcpSocket.connectToHost(QHostAddress(ip), port);
         if (!tcpSocket.waitForConnected(5000)) {
+            if (pause_stop() == -1) {
+                tcpSocket.abort();
+                return;
+            }
             emit resultReady((int)AbstractTest::ErrorIsOccured);
             tcpSocket.abort();
             return;
         }
         dev->setSocket(&tcpSocket);
-
-        emit resultReady((int)AbstractTest::Running);
 
         long it = 0, decrement = 0;
         if (inCycle == 0) { it=-1;  decrement=-1;   }
@@ -132,10 +135,11 @@ void memObjToThread::doWork()
                 readArray.append((char*)&i, 4);
             answer.resize(readArray.size());
 
-            for (; it<inCycle; it=it+1+decrement) {
+            for (uint i1=addr; it<inCycle; it=it+1+decrement) {
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
-                for (uint i=0; i<answer.size(); i+=4) {
-                    if (output) emit outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
+                for (int i=0; i<answer.size(); i+=4, i1+=addrinc) {
+                    if (output) emit
+                        outputReady(QString("Read: (%1)  %2").arg(i1, 8, 16, QLatin1Char('0')).arg((uint)*(int*)(answer.data()+i), 8, 16, QLatin1Char('0')));
                 }
                 if (pause_stop() == -1) {
                     tcpSocket.abort();
@@ -162,7 +166,7 @@ void memObjToThread::doWork()
                 ulong same=0, diff=0;
                 uint w,r;
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
-                for (uint i=0, j=4; i<answer.size(); i+=4, j+=8) {
+                for (int i=0, j=4; i<answer.size(); i+=4, j+=8) {
                     w = *(int*)(writeArray.data()+j);
                     r = *(int*)(answer.data()+i);
                     if (output) emit outputReady(tr("Write: %1; Read: %2").arg(QString::number(w, 16)).arg(QString::number(r, 16)));
