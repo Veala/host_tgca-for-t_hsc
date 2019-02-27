@@ -313,8 +313,20 @@ void TrmSingleTest::onTypeChanged()
 {
     labelBroad->setEnabled(comboBoxTestType->currentIndex() == 1);
     checkBoxBroad->setVisible(comboBoxTestType->currentIndex() == 1);
-    labelSpeed->setEnabled(comboBoxTestType->currentIndex() != 2);
-    comboBoxSpeed->setEnabled(comboBoxTestType->currentIndex() != 2);
+    if (comboBoxTestType->currentIndex() == 2) // циркулярный возврат
+    {
+        if (comboBoxSpeed->count() == 4)
+        {
+            if (comboBoxSpeed->currentIndex() == 3)
+                comboBoxSpeed->setCurrentIndex(0);
+            comboBoxSpeed->removeItem(3);
+        }
+    }
+    else
+    {
+        if (comboBoxSpeed->count() < 4)
+            comboBoxSpeed->addItem(tr("Альтернативный замер"));
+    }
 }
 
 void TrmSingleTest::onRadioCycle()
@@ -464,8 +476,12 @@ void TrmSingleTest::startTest()
     curThread->compEnableReg = comboBoxErrRegComp->currentIndex();
     curThread->checkFinSPI = comboBoxCompSPI->currentIndex();
     curThread->timeMeasure = comboBoxSpeed->currentIndex();
-    if (tr_mode == 2)
+    if (curThread->timeMeasure == 3 && tr_mode == 2)
+    {
         curThread->timeMeasure = 0;
+        message("Альтернативное измерение скорости в режиме циркулярного возврата не разрешено");
+    }
+    curThread->timeCompose = (curThread->timeMeasure == 1 || curThread->timeMeasure == 2);
     if (radioButtonEnter->isChecked())
         curThread->iterCycle = spinBoxCycle->value();
     else if (radioButtonUnlimited->isChecked())
@@ -1239,24 +1255,15 @@ void trmSingleObjToThread::perform()
         if (devBC)
         {
             statusBC = getStatusReg(devBC);
-
             initStartBC();
-
-            long totalTime = 0;
-            int timeCounter = 0;
-            long wholePackBits;
-            if (timeMeasure)
-            {
-                wholePackBits = trm_size * nwrd * 8 / NUMWORDINOFDMSYM  //  размер пакета с данными
-                        + nwrd * sizeof(word32_t) * 8;  // плюс ответное слово
-            }
+            initTimeMeasure();
 
             for (uint it = 0; it!=iterCycle; it++)
             {
                 bool errorOccured = false;
                 if (pause_stop() == -1)
                 {
-                    averageSpeed(totalTime, wholePackBits, timeCounter);
+                    averageSpeed();
                     return;
                 }
 
@@ -1288,7 +1295,7 @@ void trmSingleObjToThread::perform()
                             if (compEnableMemBCRT == 2)
                             {
                                 setErrorsWithinCycle(true);
-                                averageSpeed(totalTime, wholePackBits, timeCounter);
+                                averageSpeed();
                                 return;
                             }
                             errorOccured = true;
@@ -1306,45 +1313,26 @@ void trmSingleObjToThread::perform()
 
                     // Старт обмена
                     QTime curTime;
-                    if (timeMeasure)
-                    {
+                    if (timeCompose)
                         curTime = QTime::currentTime();
-                        qDebug() << "Time before: " << curTime;
-                    }
-                    //int time1 =  curTime.msecsSinceStartOfDay();
 
                     devBC->writeReg(&devBC->reg_hsc_creg);
                     int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
 
                     if (timeMeasure)
                     {
-                      QTime newTime = QTime::currentTime();
-                      qDebug() << "Time after: " << newTime;
-                        int t = curTime.msecsTo(newTime); //(QTime::currentTime());
-                      qDebug() << "msecsToCurrentTime: " << t;
-                        // int t = curTime.elapsed();
-                        if (timeOverhead == 99)
+                        timeCounter++;
+                        if (timeCompose)
                         {
-                            if (t>0)
-                            {
-                                totalTime += t;
-                                timeCounter++;
-                            }
-                        }
-                        else
-                        {
+                            int t = curTime.msecsTo(QTime::currentTime());
+                            // int t = curTime.elapsed();
                             if (t > timeOverhead)
                                 t -= timeOverhead;
                             totalTime += t;
-                            timeCounter++;
+                            if (timeMeasure == 1)
+                                stdOutput(tr("Время передачи %1 мс, полное время %2 мс, данных %3 бит.").arg(t).arg(totalTime).arg(wholePackBits),
+                                          tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit.").arg(t).arg(totalTime).arg(wholePackBits));
                         }
-                     /*   int time2 =  newTime.msecsSinceStartOfDay();
-                        int diff = time2 >= time1 ? time2-time1 : -1;
-                        stdOutput(tr("время до старта = %1, время после завершения = %2, интервал = %3 elapsed = %4").arg(time1).arg(time2).arg(diff).arg(t),
-                                  tr("time before = %1, time after = %2, time interval = %3 elapsed = %4").arg(time1).arg(time2).arg(diff).arg(t));*/
-                        if (timeMeasure == 1)
-                            stdOutput(tr("Время передачи %1 мс, полное время %2 мс, данных %3 бит").arg(t).arg(totalTime).arg(wholePackBits),
-                                      tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit").arg(t).arg(totalTime).arg(wholePackBits));
                     }
 
                     if(windowMode && devRT)
@@ -1362,7 +1350,7 @@ void trmSingleObjToThread::perform()
                     if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
                     {
                         setErrorsWithinCycle(true);
-                        averageSpeed(totalTime, wholePackBits, timeCounter);  // it+1
+                        averageSpeed();
                         return;
                     }
 
@@ -1475,11 +1463,8 @@ void trmSingleObjToThread::perform()
                     if (!BCtoRT)
                         emit statsOutputReady("totalIter", 1);
                     QTime curTime;
-                    if (timeMeasure)
-                    {
+                    if (timeCompose)
                         curTime = QTime::currentTime();
-                        qDebug() << "Time before: " << curTime;
-                    }
 
                     // Старт обмена
                     devBC->writeReg(&devBC->reg_hsc_creg);
@@ -1488,28 +1473,17 @@ void trmSingleObjToThread::perform()
 
                     if (timeMeasure)
                     {
-                        QTime newTime = QTime::currentTime();
-                        qDebug() << "Time after: " << newTime;
-                          int t = curTime.msecsTo(newTime); //(QTime::currentTime());
-                        qDebug() << "msecsToCurrentTime: " << t;
-                        if (timeOverhead == 99)
+                        timeCounter++;
+                        if (timeCompose)
                         {
-                            if (t>0)
-                            {
-                                totalTime += t;
-                                timeCounter++;
-                            }
-                        }
-                        else
-                        {
+                            int t = curTime.msecsTo(QTime::currentTime());
                             if (t > timeOverhead)
                                 t -= timeOverhead;
                             totalTime += t;
-                            timeCounter++;
+                            if (timeMeasure == 1)
+                                stdOutput(tr("Время передачи %1 мс, полное время %2 мс, данных %3 бит.").arg(t).arg(totalTime).arg(wholePackBits),
+                                          tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit.").arg(t).arg(totalTime).arg(wholePackBits));
                         }
-                        if (timeMeasure == 1)
-                            stdOutput(tr("Время передачи %1 мс, полное время %2 мс, данных %3 бит").arg(t).arg(totalTime).arg(wholePackBits),
-                                      tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit").arg(t).arg(totalTime).arg(wholePackBits));
                     }
 
                     if(windowMode && devRT)
@@ -1571,7 +1545,7 @@ void trmSingleObjToThread::perform()
                 if (pauseTime > 0)
                     thread()->msleep(pauseTime);
             } // цикл
-            averageSpeed(totalTime, wholePackBits, timeCounter); // iterCycle
+            averageSpeed();
 
         } // devBC
     } // iterCycle != 0
@@ -1626,36 +1600,66 @@ void trmSingleObjToThread::destroyData()
 }
 
 // Вывод средней скорости передачи данных
-void trmSingleObjToThread::averageSpeed(long time_ms, long wholePackBits, int iter)
+void trmSingleObjToThread::averageSpeed()
 {
-    if (timeMeasure>0 && iter>0)
+    if (timeMeasure == 0 || timeCounter == 0)
+        return;
+
+    if (timeMeasure == 3)
     {
-        double time_sec = ((double)time_ms) * 0.001 / iter;
-        stdOutput(tr("Среднее время передачи %1 бит равно %2 секунд").arg(wholePackBits).arg(time_sec),
-                  tr("Average transmission time for %1 bit is %2 seconds").arg(wholePackBits).arg(time_sec));
+        QTime endTime = QTime::currentTime();
+        qDebug() << "Begin time: " << beginTime;
+        qDebug() << "End time: " << endTime;
+        long total = beginTime.msecsTo(endTime);
+        stdOutput(tr("Полное время тестирования: %1 мсек., %2 итераций.").arg(total).arg(timeCounter), tr("Total test time: %1 ms, %2 iterations.").arg(total).arg(timeCounter));
+        total /= timeCounter;
+        stdOutput(tr("Среднее время итерации: %1 мсек.").arg(total), tr("Average iteration time: %1 ms.").arg(total));
+        if (total > timeOverhead)
+        {
+            total -= timeOverhead;
+            stdOutput(tr("Оценка времени передачи одного пакета: %1 мсек.").arg(total), tr("Estimated packege transmission time is %1 ms.").arg(total));
+            stdOutput(tr("Всего данных в пакете %1 бит, полезных данных %4 бит, %2 %3.").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(wholePackBits),
+                      tr("Total bits in package - %1, useful data - %4 bit, %2 %3.").arg(trm_size*8).arg(manipulation).arg(codec ? "with codec" : "w/o codec").arg(wholePackBits));
+            long abps = wholePackBits * 1000 / totalTime;
+            QString word = formattedLongInteger(abps);
+            QString rus = tr("Оценка скорости передачи данных - ") + word + tr(" бит/с.");
+            QString eng = tr("Estimated transmission speed = ") + word + tr(" bps.");
+            stdOutput(rus, eng);
+        }
+        else
+        {
+            stdOutput(tr("Неверная поправка времени передачи."), tr("Wrong time correction in settings."));
+            stdOutput(tr("Оценка скорости невозможна."), tr("Speed estimation is impossible."));
+        }
+    }
+    else // timeMeasure равно 1 или 2 и здесь timeCounter > 0
+    {
+        double time_sec = ((double)totalTime) * 0.001 / timeCounter;
+        stdOutput(tr("Среднее время передачи %1 бит равно %2 секунд.").arg(wholePackBits).arg(time_sec),
+                  tr("Average transmission time for %1 bit is %2 seconds.").arg(wholePackBits).arg(time_sec));
         if (wholePackBits > 0 && time_sec > 0)
         {
-            int mb = wholePackBits / time_sec;
-            QString word = QString::number(mb, 10);
-            int w_size = word.size();
-            if (w_size > 3)
-            {
-                word.insert(word.size() - 3, " ");
-                if (w_size > 6)
-                {
-                    word.insert(word.size() - 7, " ");
-                    if (w_size > 9)
-                        word.insert(word.size() - 11, " ");
-                }
-            }
-
-            QString rus = tr("Оценка скорости передачи данных - ") + word + tr(" бит/с");
-            QString eng = tr("Estimated transmission speed = ") + word + tr(" bps");
-            stdOutput(rus, eng);//tr("Оценка скорости передачи данных - %1 бит/с").arg(mb),
+            long abps = long(((long long)wholePackBits) * timeCounter * 1000 / totalTime);
+            QString word = formattedLongInteger(abps);
+            QString rus = tr("Оценка скорости передачи данных - ") + word + tr(" бит/с.");
+            QString eng = tr("Estimated transmission speed = ") + word + tr(" bps.");
+            stdOutput(rus, eng);
         }
-        else if (timeMeasure == 2)
-            stdOutput(tr("Оценка скорости невозможна"), tr("Speed estimation is impossible"));
-        stdOutput(tr("Всего данных в пакете %1 бит, %2 %3, %4 итераций").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(iter),
-                  tr("Total bits in package - %1, %2 %3, %4 iterations").arg(trm_size*8).arg(manipulation).arg(codec ? "with codec" : "w/o codec").arg(iter));
+        else if (timeMeasure > 1)
+            stdOutput(tr("Оценка скорости невозможна."), tr("Speed estimation is impossible."));
+        stdOutput(tr("Всего данных в пакете %1 бит, %2 %3, %4 итераций.").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(timeCounter),
+                  tr("Total bits in package - %1, %2 %3, %4 iterations.").arg(trm_size*8).arg(manipulation).arg(codec ? "with codec" : "w/o codec").arg(timeCounter));
+    }
+}
+
+void trmSingleObjToThread::initTimeMeasure()
+{
+    if (timeMeasure)
+    {
+        totalTime = 0;
+        timeCounter = 0;
+        beginTime = QTime::currentTime();
+        wholePackBits = trm_size * nwrd * 8 / NUMWORDINOFDMSYM - 32; //  размер пакета с данными минус командное слово
+    //  wholePackBits += (nwrd * sizeof(word32_t) * 8);  // плюс ответное слово - сейчас считаем это накладными расходами и не включаем в подсчёт данных
     }
 }

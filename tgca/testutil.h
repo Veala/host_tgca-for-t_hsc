@@ -11,4 +11,6 @@ int getStatusReg(Device * dev);
 
 bool splitOddEven(const QByteArray all, QByteArray& even, QByteArray& odd);
 
+QString formattedLongInteger(long num);
+
 #endif // TESTUTIL_H

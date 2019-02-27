@@ -451,7 +451,7 @@ void CTestBC::array2PackQAM64(char* ptr_dst, char* ptr_src, unsigned int size_sr
     }
 }
 
-/// Подсчет количества несовпадающих битов
+/// Подсчет количества несовпадающих битов в байтах
 static bool cmpBytes(char char1, char char2, int *num_wrong_bit, int max_wrong_bit)
 {
     if (char1 != char2)
@@ -471,9 +471,6 @@ static bool cmpBytes(char char1, char char2, int *num_wrong_bit, int max_wrong_b
     }
     return ((*num_wrong_bit) <= max_wrong_bit);
 }
-
-
-
 
 /// Рекурсивная функция сравнения двух сассивов длины num_b.
 /// Число несовпавших бит добавляется к значению переменной num_wrong_bit.
@@ -495,16 +492,14 @@ bool cmpArrays(void* data_1, void* data_2, int num_b, int *num_wrong_bit, int ma
     }
 
     int num_h = num_b/2;
-    int old_err = *num_wrong_bit;
 
     if (!cmpArrays(data_1, data_2, num_h, num_wrong_bit, max_wrong_bit))
         return false;
 
     char* ptr1 = ((char*)data_1) + num_h;
     char* ptr2 = ((char*)data_2) + num_h;
-    int new_max = max_wrong_bit - *num_wrong_bit + old_err;
 
-    return cmpArrays((void*)ptr1, (void*)ptr2, num_b-num_h, num_wrong_bit, new_max);
+    return cmpArrays((void*)ptr1, (void*)ptr2, num_b-num_h, num_wrong_bit, max_wrong_bit);
 }
 
 /// Сравнение данных в буфере в формате ВСК с исходными неформатированными данными.

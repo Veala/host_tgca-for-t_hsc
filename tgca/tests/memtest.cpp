@@ -81,21 +81,8 @@ void MemTest::startTest()
 void memObjToThread::doWork()
 {
     try {
-        QString ip = dev->connection.getServerIP();
-        ushort port = dev->connection.getServerPORT().toUShort();
-
         emit resultReady((int)AbstractTest::Running);
-        tcpSocket.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocket.waitForConnected(5000)) {
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            tcpSocket.abort();
-            return;
-        }
-        dev->setSocket(&tcpSocket);
+        dev->tryToConnect();
 
         long it = 0, decrement = 0;
         if (inCycle == 0) { it=-1;  decrement=-1;   }
@@ -111,26 +98,20 @@ void memObjToThread::doWork()
         QByteArray readArray;
 
         if (mode == "w") {
-            //writeArray = cmdHead(1, dsz*2);
             uint final;
             for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
                 if (inverse) final = ~j;    else    final = j;
                 writeArray.append((char*)&i, 4);
                 writeArray.append((char*)&final, 4);
             }
-            qDebug() << "tcpSocket.readBufferSize(): " << tcpSocket.readBufferSize();
 
             for (; it<inCycle; it=it+1+decrement) {
                 qDebug() << "writeArray size: " << writeArray.size();
                 dev->write_F1(writeArray.data(), dsz*2);
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
             }
             emit statsOutputReady("counter_iter", 1);
         } else if (mode == "r") {
-            //readArray = cmdHead(3, dsz);
             for (uint i=addr; i+3<=range; i+=addrinc)
                 readArray.append((char*)&i, 4);
             answer.resize(readArray.size());
@@ -138,19 +119,13 @@ void memObjToThread::doWork()
             for (uint i1=addr; it<inCycle; it=it+1+decrement) {
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
                 for (int i=0; i<answer.size(); i+=4, i1+=addrinc) {
-                    if (output) emit
-                        outputReady(QString("Read: (%1)  %2").arg(i1, 8, 16, QLatin1Char('0')).arg((uint)*(int*)(answer.data()+i), 8, 16, QLatin1Char('0')));
+                    if (output)
+                        emit outputReady(QString("Read: (%1)  %2").arg(i1, 8, 16, QLatin1Char('0')).arg((uint)*(int*)(answer.data()+i), 8, 16, QLatin1Char('0')));
                 }
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
                 emit statsOutputReady("counter_iter", 1);
             }
         } else if (mode == "wr") {
-//            writeArray = cmdHead(1, dsz*2);
-//            readArray = cmdHead(3, dsz);
-
             uint final;
             for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
                 if (inverse) final = ~j;    else    final = j;
@@ -175,16 +150,22 @@ void memObjToThread::doWork()
                 emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
                 emit statsOutputReady("counter_iter", 1);
                 emit statsOutputReady("counter_err", diff);
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
             }
         }
-        tcpSocket.abort();
-        emit resultReady(AbstractTest::Completed);
+        throw QString("finish");
     } catch (const QString& exception) {
-        if (exception == "socket")
+        if (exception == "connection") {
+            if (pause_stop() == -1) return;
             emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "socket") {
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "stopped") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Stopped);
+        } else if (exception == "finish") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Completed);
+        }
     }
 }

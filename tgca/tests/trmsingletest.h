@@ -131,7 +131,12 @@ class trmSingleObjToThread : public commonObjToThread
     void setErrorsWithinCycle(bool fatal);
     bool checkSPI(Device* dev);
     //int  waitForInterruption(int *status);
-    void averageSpeed(long time_ms, long total_bite, int iter);
+    void averageSpeed();
+    long wholePackBits;
+    long totalTime;
+    int timeCounter;
+    QTime beginTime;
+    void initTimeMeasure();
 
 public:
     trmSingleObjToThread();
@@ -149,6 +154,7 @@ public:
     int checkFinSPI;
     int compEnableReg, compEnableMemBCRT, compEnableRTA, compEnableData;
     int timeMeasure;
+    bool timeCompose;
     int dataSPI;
     int timeOverhead;
     int perOutBC, modeOutBC, perOutRT, modeOutRT;

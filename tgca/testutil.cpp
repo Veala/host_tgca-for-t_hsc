@@ -73,3 +73,20 @@ bool splitOddEven(const QByteArray all, QByteArray& even, QByteArray& odd)
     }
     return (even.size() > 0);
 }
+
+QString formattedLongInteger(long num)
+{
+    QString word = QString::number(num, 10);
+    int w_size = word.size();
+    if (w_size > 3)
+    {
+        word.insert(word.size() - 3, " ");
+        if (w_size > 6)
+        {
+            word.insert(word.size() - 7, " ");
+            if (w_size > 9)
+                word.insert(word.size() - 11, " ");
+        }
+    }
+    return word;
+}

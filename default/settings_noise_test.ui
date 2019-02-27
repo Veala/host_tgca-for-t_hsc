@@ -33,7 +33,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-359</y>
         <width>459</width>
         <height>1136</height>
        </rect>
@@ -85,9 +85,6 @@
          <property name="text">
           <string/>
          </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
         </widget>
        </item>
        <item row="12" column="0" colspan="3">
@@ -97,7 +94,7 @@
          </property>
         </widget>
        </item>
-       <item row="41" column="3">
+       <item row="41" column="3" alignment="Qt::AlignRight">
         <widget class="QComboBox" name="comboBoxBCIntErr">
          <property name="maximumSize">
           <size>
@@ -148,11 +145,11 @@
          </property>
         </widget>
        </item>
-       <item row="52" column="3">
+       <item row="52" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditBegin">
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -167,7 +164,7 @@
          </property>
         </widget>
        </item>
-       <item row="42" column="3">
+       <item row="42" column="3" alignment="Qt::AlignRight">
         <widget class="QComboBox" name="comboBoxErrStatusBC">
          <property name="maximumSize">
           <size>
@@ -192,7 +189,7 @@
          </item>
         </widget>
        </item>
-       <item row="43" column="3">
+       <item row="43" column="3" alignment="Qt::AlignRight">
         <widget class="QComboBox" name="comboBoxErrStatusRT">
          <property name="maximumSize">
           <size>
@@ -382,11 +379,17 @@
          </item>
         </widget>
        </item>
-       <item row="15" column="3">
+       <item row="15" column="3" alignment="Qt::AlignRight">
         <widget class="QComboBox" name="comboBoxManType">
+         <property name="minimumSize">
+          <size>
+           <width>90</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -440,11 +443,11 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
+       <item row="2" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditNumS">
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -456,16 +459,22 @@
          </property>
         </widget>
        </item>
-       <item row="28" column="3">
+       <item row="28" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditOver">
+         <property name="minimumSize">
+          <size>
+           <width>90</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
          <property name="inputMask">
-          <string>09</string>
+          <string>009</string>
          </property>
          <property name="text">
           <string>3</string>
@@ -486,23 +495,32 @@
          <property name="text">
           <string/>
          </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
-       <item row="54" column="3">
+       <item row="54" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditNumStep">
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
         </widget>
        </item>
-       <item row="32" column="3">
+       <item row="32" column="3" alignment="Qt::AlignRight">
         <widget class="QSpinBox" name="spinBoxCycle">
+         <property name="minimumSize">
+          <size>
+           <width>90</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -566,7 +584,7 @@
          </property>
         </widget>
        </item>
-       <item row="37" column="2" colspan="2">
+       <item row="37" column="2" colspan="2" alignment="Qt::AlignRight">
         <widget class="QComboBox" name="comboBoxShow">
          <property name="maximumSize">
           <size>
@@ -640,11 +658,11 @@
          </property>
         </widget>
        </item>
-       <item row="22" column="3">
+       <item row="22" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditTime">
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -711,11 +729,17 @@
          </attribute>
         </widget>
        </item>
-       <item row="23" column="3">
+       <item row="23" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditPause">
+         <property name="minimumSize">
+          <size>
+           <width>90</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -743,11 +767,17 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="3">
+       <item row="3" column="3" alignment="Qt::AlignRight">
         <widget class="QComboBox" name="comboBoxRTA">
+         <property name="minimumSize">
+          <size>
+           <width>90</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -995,11 +1025,17 @@
          </property>
         </widget>
        </item>
-       <item row="24" column="3">
+       <item row="24" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditReservePause">
+         <property name="minimumSize">
+          <size>
+           <width>90</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -1084,11 +1120,11 @@
          </property>
         </widget>
        </item>
-       <item row="53" column="3">
+       <item row="53" column="3" alignment="Qt::AlignRight">
         <widget class="QLineEdit" name="lineEditStep">
          <property name="maximumSize">
           <size>
-           <width>140</width>
+           <width>90</width>
            <height>16777215</height>
           </size>
          </property>
@@ -1393,6 +1429,11 @@
          <item>
           <property name="text">
            <string>Вывод при завершении</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Альтернативный замер</string>
           </property>
          </item>
         </widget>

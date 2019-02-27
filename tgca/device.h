@@ -18,6 +18,7 @@
 #include <QTextBrowser>
 #include <QVector>
 #include <QByteArray>
+#include <QMutex>
 #include "connection.h"
 #include "configuration.h"
 #include "funclib.h"
@@ -32,36 +33,45 @@ class SocketDriver : public QObject
     Q_OBJECT
 
 public:
-    explicit SocketDriver(QWidget *parent = 0);
-    ~SocketDriver() { }
-    QAbstractSocket::SocketState getSocketState() { return socket.state();  }
+    explicit SocketDriver(QWidget *parent = 0) : QObject(parent), timer(NULL), socket(NULL) { }
+    ~SocketDriver();
+    QAbstractSocket::SocketState getSocketState() {
+        return socket->state();
+    }
     //state по read write придумать или переменные
+    //QMutex mutex;
 
-//    Q_ENUM(ExchangeFormat)
-    Head head;
+    QByteArray head_and_Data;
 
     struct AllData {
         ExchangeFormat format;
         char* writeArray = NULL;
         char* readArray = NULL;
+        int littleAnswer = 0;
+        qint64 curPointer = 0;
+        char* tempArray = NULL;
         int size = 0;
         int startAddr = 0;
         int count = 0;
         QString text;
         int fromAddr = 0;
         int toAddr = 0;
-    }allData;
+        int allDataToWrite = 0;
+        int allDataToRead = 0;
+    } allData;
 
 private:
-    QTcpSocket socket;
-    int sizeOfPayload;
+    QTcpSocket* socket;
+    QTimer* timer;
 
 private slots:
+    void init();
     void connectedSlot();
     void disconnectedSlot();
     void readyReadSlot();
     void bytesWrittenSlot(qint64);
     void errorSlot(QAbstractSocket::SocketError);
+    void timerTOSlot();
 
 public slots:
     void tryToConnect(QString ip, ushort port);
@@ -75,6 +85,7 @@ class Device : public QFrame
     Q_OBJECT
 
 signals:
+    void tcpInit();
     void tcpConnect(QString, ushort);
     void tcpDisconnect();
     void tcpExchange();
@@ -97,7 +108,14 @@ public:
     bool isMonitor();
     void setName(QString);
     QString getName() const;
-    void setSocket(QTcpSocket*);
+
+    void tryToConnect();
+    void tryToDisconnect();
+
+    //------------temp--------
+    void setSocket(QTcpSocket *);
+
+    //------------temp--------
 
     //-----------------Formats-----------------------------------
     void write_F1(char* writeArray, int size);
@@ -134,15 +152,8 @@ private:
     QTextBrowser* projectBrowser;
     void message(QString);
 
-    //CMDHead head;
-    QTcpSocket* sock;
     SocketDriver socketDriver;
     QThread toSocketDriver;
-    QTimer timer;
-    void readAll(char* array, int size);
-    void writeAll(char* array, int size);
-    QByteArray littleAnswer;
-    void getLittleAnswer(int cmdCode);
 
     int BaseRegLen = sizeof(BaseReg);
     int RegLen = 2*sizeof(BaseReg);

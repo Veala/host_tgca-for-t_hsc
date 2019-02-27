@@ -807,6 +807,7 @@ void noiseObjToThread::perform()
     //int timeCounter = 0;
     quint64 totalBit = 0;
 
+    QTime beginTime = QTime::currentTime();
     while (nByteIterated != 0)
     {
         char trmBuf[MAXPACKAGESIZE];

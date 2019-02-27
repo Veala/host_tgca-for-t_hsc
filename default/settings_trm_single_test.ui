@@ -999,6 +999,12 @@
        </item>
        <item row="5" column="0" colspan="4">
         <widget class="QLabel" name="labelBroad">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
          <property name="text">
           <string>Групповая команда</string>
          </property>
@@ -2343,6 +2349,11 @@
            <string>Вывод при завершении</string>
           </property>
          </item>
+         <item>
+          <property name="text">
+           <string>Альтернативный замер</string>
+          </property>
+         </item>
         </widget>
        </item>
        <item row="33" column="4">
@@ -2354,7 +2365,7 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>09</string>
+          <string>009</string>
          </property>
          <property name="text">
           <string>3</string>

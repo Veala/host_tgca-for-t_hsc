@@ -173,7 +173,7 @@ void AbstractTest::mousePressEvent(QMouseEvent *event)
             if (yellowTest != NULL)
                 yellowTest->setValidState(yellowTest->validState);
             yellowTest = this;
-            QBrush br(qRgb(99,229,138)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // 255,255,100  100,255,100  yellow
+            QBrush br(qRgb(90,210,120)); palette.setBrush(QPalette::Window, br); this->setPalette(palette);  // yellow   99,229,138
             setFrameShadow(QFrame::Sunken);
         }
     } else if (event->buttons() == Qt::LeftButton && event->modifiers() == Qt::NoModifier) {
