@@ -75,6 +75,180 @@
        <property name="horizontalSpacing">
         <number>10</number>
        </property>
+       <item row="50" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxCompSPI">
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Сообщать об ошибке spif</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Сообщать о несовпадении</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Выход по ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="18" column="4">
+        <widget class="QLineEdit" name="lineEditSPIData">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>HHHH;_</string>
+         </property>
+         <property name="text">
+          <string>020</string>
+         </property>
+        </widget>
+       </item>
+       <item row="24" column="0" colspan="4">
+        <widget class="QLabel" name="labelEnaAddr">
+         <property name="text">
+          <string>Разрешение использования адреса ОУ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="35" column="4">
+        <widget class="QCheckBox" name="checkBoxOut">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="32" column="0" colspan="3">
+        <widget class="QLabel" name="labelSpeed">
+         <property name="text">
+          <string>Измерять скорость передачи данных</string>
+         </property>
+        </widget>
+       </item>
+       <item row="32" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxSpeed">
+         <item>
+          <property name="text">
+           <string>Нет</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Вывод на каждом шаге</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Вывод при завершении</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Альтернативный замер</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="33" column="4">
+        <widget class="QLineEdit" name="lineEditOver">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>000</string>
+         </property>
+         <property name="text">
+          <string>3</string>
+         </property>
+        </widget>
+       </item>
+       <item row="33" column="0" colspan="4">
+        <widget class="QLabel" name="labelOver">
+         <property name="text">
+          <string>Поправка времени передачи (расходы на локальную сеть) (мс)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="3">
+        <widget class="QLabel" name="labelHeaderDevices">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Устройства</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="3" colspan="2">
+        <widget class="QLabel" name="labelRequire">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>обязательное</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1" colspan="2">
+        <widget class="QLineEdit" name="lineEditDevRT">
+         <property name="text">
+          <string>RT</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1" colspan="2">
+        <widget class="QLineEdit" name="lineEditDevBC">
+         <property name="text">
+          <string>BC</string>
+         </property>
+        </widget>
+       </item>
+       <item row="44" column="0" colspan="3">
+        <widget class="QLabel" name="labelErrMemBCRT">
+         <property name="text">
+          <string>Проверка записи во внешнюю память КШ и ОУ</string>
+         </property>
+        </widget>
+       </item>
        <item row="16" column="2">
         <widget class="QComboBox" name="comboBoxAmplBC">
          <property name="maximumSize">
@@ -664,19 +838,6 @@
          </property>
         </widget>
        </item>
-       <item row="28" column="4">
-        <widget class="QLineEdit" name="lineEditPause">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>150</string>
-         </property>
-        </widget>
-       </item>
        <item row="37" column="4">
         <widget class="QSpinBox" name="spinBoxCycle">
          <property name="maximumSize">
@@ -1118,6 +1279,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="inputMask">
+          <string>000</string>
+         </property>
          <property name="text">
           <string>60</string>
          </property>
@@ -1406,7 +1570,17 @@
         </widget>
        </item>
        <item row="77" column="3">
-        <widget class="QLineEdit" name="lineEditBCOut"/>
+        <widget class="QLineEdit" name="lineEditBCOut">
+         <property name="inputMethodHints">
+          <set>Qt::ImhDigitsOnly</set>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
        </item>
        <item row="6" column="0" colspan="5">
         <widget class="QLabel" name="labelSpace1">
@@ -1519,6 +1693,12 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="inputMethodHints">
+          <set>Qt::ImhDate</set>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
         </widget>
        </item>
        <item row="22" column="4" alignment="Qt::AlignLeft">
@@ -1594,7 +1774,14 @@
         </widget>
        </item>
        <item row="75" column="3">
-        <widget class="QLineEdit" name="lineEditCountOut"/>
+        <widget class="QLineEdit" name="lineEditCountOut">
+         <property name="inputMethodHints">
+          <set>Qt::ImhDigitsOnly</set>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
        </item>
        <item row="58" column="4">
         <widget class="QLineEdit" name="lineEditStep">
@@ -1659,10 +1846,10 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>009</string>
+          <string>000</string>
          </property>
          <property name="text">
-          <string>1</string>
+          <string>0</string>
          </property>
         </widget>
        </item>
@@ -2027,7 +2214,14 @@
         </widget>
        </item>
        <item row="79" column="3">
-        <widget class="QLineEdit" name="lineEditRTOut"/>
+        <widget class="QLineEdit" name="lineEditRTOut">
+         <property name="inputMethodHints">
+          <set>Qt::ImhDigitsOnly</set>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
        </item>
        <item row="41" column="3" colspan="2">
         <widget class="QComboBox" name="comboBoxRTIntErr">
@@ -2062,12 +2256,12 @@
          </property>
          <item>
           <property name="text">
-           <string>Команда передачи (ОУ-&gt;КШ)</string>
+           <string>Команда передачи (ОУ-КШ)</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Команда приёма  (КШ-&gt;ОУ)</string>
+           <string>Команда приёма  (КШ-ОУ)</string>
           </property>
          </item>
          <item>
@@ -2258,30 +2452,8 @@
          </property>
         </widget>
        </item>
-       <item row="50" column="3" colspan="2">
-        <widget class="QComboBox" name="comboBoxCompSPI">
-         <property name="currentIndex">
-          <number>1</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>Сообщать об ошибке spif</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Сообщать о несовпадении</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Выход по ошибке</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="18" column="4">
-        <widget class="QLineEdit" name="lineEditSPIData">
+       <item row="28" column="4">
+        <widget class="QLineEdit" name="lineEditPause">
          <property name="maximumSize">
           <size>
            <width>60</width>
@@ -2289,146 +2461,10 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>HHHH;_</string>
+          <string>000</string>
          </property>
          <property name="text">
-          <string>020</string>
-         </property>
-        </widget>
-       </item>
-       <item row="24" column="0" colspan="4">
-        <widget class="QLabel" name="labelEnaAddr">
-         <property name="text">
-          <string>Разрешение использования адреса ОУ</string>
-         </property>
-        </widget>
-       </item>
-       <item row="35" column="4">
-        <widget class="QCheckBox" name="checkBoxOut">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>40</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::RightToLeft</enum>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="32" column="0" colspan="3">
-        <widget class="QLabel" name="labelSpeed">
-         <property name="text">
-          <string>Измерять скорость передачи данных</string>
-         </property>
-        </widget>
-       </item>
-       <item row="32" column="3" colspan="2">
-        <widget class="QComboBox" name="comboBoxSpeed">
-         <item>
-          <property name="text">
-           <string>Нет</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Вывод на каждом шаге</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Вывод при завершении</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Альтернативный замер</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="33" column="4">
-        <widget class="QLineEdit" name="lineEditOver">
-         <property name="maximumSize">
-          <size>
-           <width>60</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="inputMask">
-          <string>009</string>
-         </property>
-         <property name="text">
-          <string>3</string>
-         </property>
-        </widget>
-       </item>
-       <item row="33" column="0" colspan="4">
-        <widget class="QLabel" name="labelOver">
-         <property name="text">
-          <string>Поправка времени передачи (расходы на локальную сеть) (мс)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="3">
-        <widget class="QLabel" name="labelHeaderDevices">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Устройства</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="3" colspan="2">
-        <widget class="QLabel" name="labelRequire">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>обязательное</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1" colspan="2">
-        <widget class="QLineEdit" name="lineEditDevRT">
-         <property name="text">
-          <string>RT</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1" colspan="2">
-        <widget class="QLineEdit" name="lineEditDevBC">
-         <property name="text">
-          <string>BC</string>
-         </property>
-        </widget>
-       </item>
-       <item row="44" column="0" colspan="3">
-        <widget class="QLabel" name="labelErrMemBCRT">
-         <property name="text">
-          <string>Проверка записи во внешнюю память КШ и ОУ</string>
+          <string>150</string>
          </property>
         </widget>
        </item>

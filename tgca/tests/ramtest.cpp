@@ -150,17 +150,13 @@ void RamTest::resetFlds()
 void ramObjToThread::perform()
 {
     Device *dev = 0;
-    QTcpSocket *tcpSocket;
 
     if (devBC)
     {
         if (connectBC() != AbstractTest::Running)
             return;
         if (devRT == 0)
-        {
             dev = devBC;
-            tcpSocket = &tcpSocketBC;
-        }
         qDebug() << "BC connected";
     }
     if (devRT)
@@ -168,10 +164,7 @@ void ramObjToThread::perform()
         if (connectRT() != AbstractTest::Running)
             return;
         if (devBC == 0)
-        {
             dev = devRT;
-            tcpSocket = &tcpSocketRT;
-        }
         qDebug() << "RT connected";
     }
 
@@ -193,7 +186,6 @@ void ramObjToThread::perform()
     //        stdOutput(QString("Read: (%1)  %2").arg(addr+i1, 8, 16, QLatin1Char('0')).arg((uint)*(uint*)(answer.data()+i), 8, 16, QLatin1Char('0')), "");
             stdOutput(QString("Read: (%1)  %2").arg((uint)*(int*)(readArray.data()+i), 8, 16, QLatin1Char('0')).arg((uint)*(int*)(answer.data()+i), 8, 16, QLatin1Char('0')), "");
         }
-        //tcpSocket->abort();
     }
     else
     {
@@ -233,7 +225,6 @@ void ramObjToThread::perform()
             }
             stdOutput(msg, msg);
         }
-        //tcpSocket->abort();
     }
     emit resultReady(AbstractTest::Completed);
 }
@@ -241,15 +232,4 @@ void ramObjToThread::perform()
 ramObjToThread::ramObjToThread()
 {
     outEnable = true;
-}
-
-void ramObjToThread::terminate(int )
-{
-    if (!isRunning())  // (fl == AbstractTest::ErrorIsOccured || fl == AbstractTest::Completed || fl == AbstractTest::Stopped)
-    {
-        if (devBC != 0 && tcpSocketBC.state() == QAbstractSocket::ConnectedState)
-            tcpSocketBC.abort();
-        if (devRT != 0 && tcpSocketRT.state() == QAbstractSocket::ConnectedState)
-            tcpSocketRT.abort();
-    }
 }

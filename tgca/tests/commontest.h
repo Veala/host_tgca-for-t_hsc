@@ -46,23 +46,58 @@ class CommonTest : public AbstractTest
 {
     Q_OBJECT
 public:
-    explicit CommonTest(QWidget *parent = 0) : AbstractTest(parent) { dataGen.setParentTest(this);}
+    explicit CommonTest(QWidget *parent = 0);
     //virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
     QDialog *getSettings() { return settings; }
 protected slots:
     void updateSettings();
     void statsToZero();
     void statsTestOutput(QString, long);
+
+    void onMenuRTA(QPoint);
+    void applyRTAddr();
+    void onMenuDevBC(QPoint);
+    void applyDevBC();
+    void onMenuDevRT(QPoint);
+    void applyDevRT();
+    void onMenuTime(QPoint);
+    void applyWaitTime();
+    void onMenuPause(QPoint);
+    void applyPause();
+    void onMenuResPause(QPoint);
+    void applyResPause();
+    void onMenuOver(QPoint);
+    void applyOverTime();
+    void onMenuEnaInt(QPoint);
+    void applyEnaInt();
+    void onMenuUseInt(QPoint);
+    void applyUseInt();
+    void onMenuEnaAddr(QPoint);
+    void applyEnaAddr();
+    void onMenuOut(QPoint);
+    void applyOutputMode();
+
 protected:
     void addDevicesTolist();
     virtual int updateDeviceList();
+    void setTestConnections();
     void changeConnections();
-    void assignDevices();
     void connectStatisticSlots();
     void connectThread();
     void statsAddlabel(QString str);
 
     dataGeneration dataGen;
+    // общие поля для разных типов тестов
+    QComboBox *comboBoxRTA;             // адрес ОУ
+    QLineEdit *lineEditTime;            // максимальное время ожидания завершения цикла обмена, в т.ч. прерывания КШ и завершения обмена по SPI
+    QLineEdit *lineEditPause;           // пауза между итерациями
+    QLineEdit *lineEditReservePause;    // задержка для оконного режима
+    QLineEdit *lineEditOver;            // значение, на которое надо уменьшить измереное время передачи данных: расходы на ethernet
+    QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ
+    QCheckBox *checkBoxEnaAddr;         // ОУ
+    QCheckBox *checkBoxUseInt;          // КШ и ОУ, проверяется пока только КШ
+    QLabel    *labelUseInt;
+    QCheckBox *checkBoxOut;
     // устройства
     QLineEdit *lineEditDevBC;           // имя устройства, назначенного КШ
     QLineEdit *lineEditDevRT;           // имя устройства, назначенного ОУ
@@ -72,6 +107,7 @@ protected:
 signals:
     void settingsClosed(int);
 private:
+    void applyCurrent(QWidget* wid);
 };
 
 class commonObjToThread : public absObjToThread
@@ -80,12 +116,11 @@ class commonObjToThread : public absObjToThread
 public slots:
     void doWork();
 protected slots:
-//    void testTerminate(int);
-    virtual void terminate(int) = 0;
+    virtual void terminate(int);
 public:
     explicit commonObjToThread() : absObjToThread(), devBC(0), devRT(0) {}
     void setOutEnabled(bool b) { outEnable = b; }
-    QTcpSocket tcpSocketBC, tcpSocketRT;
+    virtual void destroyData() {}
     Device *devBC, *devRT;
 protected:
     bool outEnable;
@@ -95,7 +130,6 @@ protected:
     virtual void switchWindow(int n);
     AbstractTest::RunningState connectBC();
     AbstractTest::RunningState connectRT();
-//    virtual void terminate(int) = 0;
     bool isRunning();
     void initStartBC();
 signals:

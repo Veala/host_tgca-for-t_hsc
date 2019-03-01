@@ -98,6 +98,7 @@ public:
     bool readRegisters();
     void setChecked(int num, bool ch);
     void setWritten(int addr, int val);
+    bool disInt();
     CTableEditCol *getTableVSK() const;
     CTableEditCol *tableVSK();
 

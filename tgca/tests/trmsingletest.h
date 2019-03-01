@@ -34,10 +34,9 @@ private:
     QLabel *labelSPIen;                 // элемент секции загрузки по SPI      // не блокируется
 
 
-    QCheckBox *checkBoxUseInt;          // определение завершения обмена по прерыванию КШ, если прерывание разрешено в cfg   не б
-    QLabel    *labelUseInt;             // метка блокируется одновременно с checkBoxUseInt, если прерывание не разрешено конфигурационным регистром        не б
-
-
+    // QCheckBox *checkBoxUseInt;          // определение завершения обмена по прерыванию КШ, если прерывание разрешено в cfg   не б
+    // QLabel    *labelUseInt;             // метка должна блокироваться одновременно с checkBoxUseInt, если прерывание не разрешено
+                                           // конфигурационным регистром         не б   поле определено в CommonTest
 
     // ПАРАМЕТРЫ ТЕСТИРОВАНИЯ
 
@@ -46,29 +45,29 @@ private:
     QCheckBox *checkBoxWinMode;         // включение оконного режима
     QComboBox *comboBoxBCIntErr;        // реакция на отсутствие признака завершения обмена КШ
     QComboBox *comboBoxRTIntErr;        // реакция на отсутствие признака завершения обмена ОУ
-    QCheckBox *checkBoxOut;             // включение вывода в окно тестов
-    QLineEdit *lineEditOver;            // значение, на которое надо уменьшить измереное время передачи данных: расходы на ethernet
+    // QCheckBox *checkBoxOut;             // включение вывода в окно тестов   поле определено в CommonTest
+    //QLineEdit *lineEditOver;            // значение, на которое надо уменьшить измереное время передачи данных: расходы на ethernet
     // зацикливание
     QSpinBox  *spinBoxCycle;            // число итераций
     QRadioButton *radioButtonSingle;    // длина цикла 1
     QRadioButton *radioButtonUnlimited; // длина цикла не ограничена
     QRadioButton *radioButtonEnter;     // длина цикла задаётся параметром spinBoxCycle
-    // паузы
-    QLineEdit *lineEditTime;            // максимальное время ожидания прерывания (завершения цикла обмена, в т.ч. обмена по SPI)
-    QLineEdit *lineEditPause;           // пауза между итерациями
-    QLineEdit *lineEditReservePause;    // задержка для оконного режима
+    // паузы  определены в классе CommonTest
+    //QLineEdit *lineEditTime;            // максимальное время ожидания завершения цикла обмена, в т.ч. прерывания КШ и завершения обмена по SPI
+    //QLineEdit *lineEditPause;           // пауза между итерациями
+    //QLineEdit *lineEditReservePause;    // задержка для оконного режима
 
     // настройки командного слова
     QLineEdit *lineEditLen;             // длина передаваемых данных в байтах
-    QComboBox *comboBoxRTA;             // адрес ОУ
+    // QComboBox *comboBoxRTA;             // адрес ОУ  определено в CommonTest
     QComboBox *comboBoxCode;            // код команды
     QCheckBox *checkBoxBroad;           // групповая команда
 
     // параметры конфигурационного регистра
     QComboBox *comboBoxManType;         // КШ и ОУ
     QCheckBox *checkBoxCodec;           // КШ и ОУ
-    QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ
-    QCheckBox *checkBoxEnaAddr;         // ОУ
+    // QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ  поле определено в CommonTest
+    // QCheckBox *checkBoxEnaAddr;         // ОУ  поле определено в CommonTest
 
     // управление загрузкой регистров
     QCheckBox *checkBoxInit;            // загрузка начальной конфигурации
@@ -98,10 +97,9 @@ private:
     QLineEdit *lineEditBCOut;           // частота вывода статуса КШ
     QLineEdit *lineEditRTOut;           // частота вывода статуса ОУ
 
-
     // поля, которые не используются в тесте, но зависят от других полей
     QLabel *labelSpeed;                 // метка измерения скорости передачи данных - не активна при циркулярном возврате
-    QLabel *labelBroad;                 // метка групповой команды - только КШ->ОУ
+    QLabel *labelBroad;                 // метка групповой команды - только КШ-ОУ
     QLabel *labelLen;                   // меняется при изменении настроек cfg
 
     unsigned int mnb;
@@ -160,17 +158,14 @@ public:
     int perOutBC, modeOutBC, perOutRT, modeOutRT;
     QString loadSPI;
     void *trmData;
+    QString privet_msg, hello_msg;
     void *recData;
     QString manipulation;
-    int iManipulation;
     bool codec, broadcast;
     void destroyData();
-    //QTcpSocket tcpSocketBC, tcpSocketRT;
-    //Device *devBC, *devRT;
 
 protected:
     void perform();
-    void terminate(int);
 };
 
 #endif // TRMSINGLETEST_H

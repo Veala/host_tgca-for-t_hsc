@@ -36,19 +36,19 @@ private:
     QCheckBox *checkBoxParamView;
     QLabel *labelParamView;
     QComboBox *comboBoxShow;
-    QCheckBox *checkBoxOut;
+    // QCheckBox *checkBoxOut;   поле определено в CommonTest
     // скорость
     QComboBox *comboBoxSpeed;
-    QLineEdit *lineEditOver;
+    // QLineEdit *lineEditOver;  поле определено в CommonTest
     QLabel *labelOver;
     // регистры
     QCheckBox *checkBoxInit;
     QCheckBox *checkBoxCodec;
-    QCheckBox *checkBoxEnaAddr;
-    QCheckBox *checkBoxEnaInt;
+    // QCheckBox *checkBoxEnaAddr;  поле определено в CommonTest
+    // QCheckBox *checkBoxEnaInt;  поле определено в CommonTest
     QCheckBox *checkBoxRTALoad;
     QComboBox *comboBoxManType;
-    QComboBox *comboBoxRTA;
+    // QComboBox *comboBoxRTA;  адрес ОУ поле определено в CommonTest
     QCheckBox *checkBoxConfRegLoad;
     // проверки
     QComboBox *comboBoxWrongCfgReg;
@@ -57,13 +57,13 @@ private:
     QComboBox *comboBoxErrStatusBC;
     QComboBox *comboBoxBCIntErr;
     QComboBox *comboBoxCheckRTA;
-    // паузы
-    QLineEdit *lineEditReservePause;
-    QLineEdit *lineEditTime;
-    QLineEdit *lineEditPause;
+    // паузы  определены в классе CommonTest
+    //QLineEdit *lineEditReservePause;
+    //QLineEdit *lineEditTime;
+    //QLineEdit *lineEditPause;
     // прерывание
-    QCheckBox *checkBoxUseInt;
-    QLabel *labelUseInt;
+    // QCheckBox *checkBoxUseInt;   поле определено в CommonTest
+    // QLabel *labelUseInt;   поле определено в CommonTest
 
 private slots:
     void statsLongLongOutput(QString, quint64);
@@ -93,7 +93,6 @@ public:
     bool loadRTA;
     int outMode;
 
-    int typeMan;
     QString manipulation;
     bool codec;
 
@@ -102,7 +101,6 @@ public slots:
 
 protected:
     void perform();
-    void terminate(int);
 
 signals:
     void statsOutputReadyLongLong(QString,quint64);

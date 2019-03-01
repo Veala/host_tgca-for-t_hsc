@@ -27,7 +27,6 @@ public slots:
 public:
     QList<uint> addr, data;
     int cycle, lines;
-    QTcpSocket tcpSocket;
     Device *dev;
 };
 

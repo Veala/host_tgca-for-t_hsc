@@ -52,7 +52,6 @@ public:
 protected:
     void stdOutput(QString message_rus, QString message_eng);
     void perform();
-    void terminate(int);
 };
 
 #endif // NULLTEST_H

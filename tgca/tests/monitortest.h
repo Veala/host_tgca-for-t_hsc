@@ -15,7 +15,7 @@ protected slots:
     void save();
 protected:
     void startTest();
-    void setEnabledSpecial(bool) {}
+    //void setEnabledSpecial(bool) {}
 
 private slots:
     void printFin();
@@ -45,6 +45,7 @@ signals:
 
 protected:
     void perform() {}
+protected slots:
     void terminate(int) {}
 };
 

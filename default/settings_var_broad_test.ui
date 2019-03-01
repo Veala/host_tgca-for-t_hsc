@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TestVarBroad</class>
+ <widget class="QDialog" name="TestVarBroad">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>497</width>
+    <height>809</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="baseSize">
+   <size>
+    <width>0</width>
+    <height>900</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Перебор параметров групповой команды. Настройки.</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../tgca/tgca.qrc">
+    <normaloff>:/pictogram/agt_aisles_5533.png</normaloff>:/pictogram/agt_aisles_5533.png</iconset>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>459</width>
+        <height>891</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>20</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>16</number>
+       </property>
+       <property name="bottomMargin">
+        <number>6</number>
+       </property>
+       <property name="horizontalSpacing">
+        <number>10</number>
+       </property>
+       <item row="41" column="0">
+        <widget class="QRadioButton" name="radioButtonRand">
+         <property name="text">
+          <string>Случайное</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroupData</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="42" column="1" colspan="3">
+        <widget class="QLabel" name="labelNumStep">
+         <property name="text">
+          <string>Число шагов до сброса (dec)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="43" column="3">
+        <widget class="QComboBox" name="comboBoxUnit">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="13" column="0" colspan="4">
+        <widget class="QLabel" name="labelManType">
+         <property name="text">
+          <string>Тип манипуляции</string>
+         </property>
+        </widget>
+       </item>
+       <item row="56" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderOut">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Вывод регистров состояния</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderDevices">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Устройства</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignHCenter|Qt::AlignTop</set>
+         </property>
+        </widget>
+       </item>
+       <item row="16" column="0" colspan="5">
+        <widget class="QLabel" name="labelSpace3">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>5</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderConfig">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Настройки конфигурационного регистра</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="41" column="1" colspan="3">
+        <widget class="QLabel" name="labelStep">
+         <property name="text">
+          <string>Приращение  (dec)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="4">
+        <widget class="QCheckBox" name="checkBoxEnaInt">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="60" column="3">
+        <widget class="QLineEdit" name="lineEditRTOut">
+         <property name="inputMethodHints">
+          <set>Qt::ImhDigitsOnly</set>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="32" column="0" colspan="2">
+        <widget class="QLabel" name="labelErrMemRT">
+         <property name="text">
+          <string>Проверка буфера приёма ОУ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="0" colspan="4">
+        <widget class="QLabel" name="labelEnaInt">
+         <property name="text">
+          <string>Разрешение использования прерывания КШ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="44" column="0" colspan="3">
+        <widget class="QLabel" name="labelBufLen">
+         <property name="text">
+          <string>Размер массива данных в байтах (dec)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0" colspan="5">
+        <widget class="QLabel" name="labelSpace2">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>6</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="33" column="0" colspan="3">
+        <widget class="QLabel" name="labelReceived">
+         <property name="text">
+          <string>Получение сообщения оконечным устройством</string>
+         </property>
+        </widget>
+       </item>
+       <item row="40" column="1" colspan="3">
+        <widget class="QLabel" name="labelBegin">
+         <property name="maximumSize">
+          <size>
+           <width>150</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Начальное значение (hex)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="4">
+        <widget class="QCheckBox" name="checkBoxInit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="0" colspan="4">
+        <widget class="QLabel" name="labelCodec">
+         <property name="text">
+          <string>С кодеком</string>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="4">
+        <widget class="QCheckBox" name="checkBoxCodec">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="42" column="4">
+        <widget class="QLineEdit" name="lineEditNumStep">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="31" column="0">
+        <widget class="QLabel" name="labelErrStatusRT">
+         <property name="text">
+          <string>Ошибка статуса ОУ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="30" column="0">
+        <widget class="QLabel" name="labelErrStatusBC">
+         <property name="text">
+          <string>Ошибка статуса КШ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="29" column="0" colspan="3">
+        <widget class="QLabel" name="labelBCIntErr">
+         <property name="text">
+          <string>Нет признака завершения обмена КШ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="0" colspan="3">
+        <widget class="QLabel" name="labelPause">
+         <property name="text">
+          <string>Пауза между повторениями (мс)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="60" column="4">
+        <widget class="QLabel" name="labelRTOutSuf">
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>раз</string>
+         </property>
+        </widget>
+       </item>
+       <item row="40" column="0">
+        <widget class="QRadioButton" name="radioButtonLin">
+         <property name="text">
+          <string>Линейное                    </string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroupData</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="18" column="4">
+        <widget class="QLineEdit" name="lineEditTime">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>000</string>
+         </property>
+         <property name="text">
+          <string>60</string>
+         </property>
+        </widget>
+       </item>
+       <item row="40" column="4">
+        <widget class="QLineEdit" name="lineEditBegin">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMethodHints">
+          <set>Qt::ImhUppercaseOnly</set>
+         </property>
+         <property name="inputMask">
+          <string>HHHHHHHH;_</string>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="58" column="4">
+        <widget class="QLabel" name="labelBCOutSuf">
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>раз</string>
+         </property>
+        </widget>
+       </item>
+       <item row="58" column="3">
+        <widget class="QLineEdit" name="lineEditBCOut">
+         <property name="inputMethodHints">
+          <set>Qt::ImhDigitsOnly</set>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="5">
+        <widget class="QLabel" name="labelSpace1">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>3</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="60" column="2">
+        <widget class="QComboBox" name="comboBoxRTOutPref">
+         <item>
+          <property name="text">
+           <string>первые</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>каждые</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="43" column="0" colspan="3">
+        <widget class="QLabel" name="labelUnit">
+         <property name="text">
+          <string>Размер единицы данных в байтах</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="4">
+        <widget class="QLineEdit" name="lineEditPause">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>000</string>
+         </property>
+         <property name="text">
+          <string>150</string>
+         </property>
+        </widget>
+       </item>
+       <item row="58" column="1">
+        <widget class="QLabel" name="labelBCStatOut">
+         <property name="text">
+          <string>вывод</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="28" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderExit">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Реакция на ошибки</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="labelDevBC">
+         <property name="text">
+          <string>КШ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="60" column="1">
+        <widget class="QLabel" name="labelRTStatOut">
+         <property name="text">
+          <string>вывод</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderCommand">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Параметры теста</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="29" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxBCIntErr">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Сообщение об ошибке</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Выход по ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="labelDevRT">
+         <property name="text">
+          <string>ОУ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="30" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxErrStatusBC">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>Не проверять</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Сообщать об ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="20" column="4">
+        <widget class="QLineEdit" name="lineEditReservePause">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>000</string>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="18" column="0" colspan="4">
+        <widget class="QLabel" name="labelTime">
+         <property name="text">
+          <string>Время ожидания завершения обмена (мс)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="41" column="4">
+        <widget class="QLineEdit" name="lineEditStep">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="20" column="0" colspan="3">
+        <widget class="QLabel" name="labelWinModePause">
+         <property name="text">
+          <string>Задержка сравнения данных (мс)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="27" column="0" colspan="5">
+        <widget class="QLabel" name="labelSpace4">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>3</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="58" column="2">
+        <widget class="QComboBox" name="comboBoxBCOutPref">
+         <item>
+          <property name="text">
+           <string>первые</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>каждые</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="50" column="0" colspan="5">
+        <widget class="QLabel" name="labelSpace6">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>8</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0" colspan="3">
+        <widget class="QLabel" name="labelInit">
+         <property name="text">
+          <string>Загрузка начальной конфигурации</string>
+         </property>
+        </widget>
+       </item>
+       <item row="58" column="0">
+        <widget class="QCheckBox" name="checkBoxBCOut">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string>КШ:             детально</string>
+         </property>
+        </widget>
+       </item>
+       <item row="60" column="0">
+        <widget class="QCheckBox" name="checkBoxRTOut">
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string>ОУ:             детально</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="labelHeaderRepeat">
+         <property name="text">
+          <string>Число повторений (dec)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <widget class="QLineEdit" name="lineEditCycle">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>0009</string>
+         </property>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="3">
+        <widget class="QLabel" name="labelOutput">
+         <property name="text">
+          <string>Вывод в окно тестов разрешен</string>
+         </property>
+        </widget>
+       </item>
+       <item row="44" column="3" colspan="2">
+        <widget class="QLineEdit" name="lineEditBufLen">
+         <property name="maximumSize">
+          <size>
+           <width>90</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="inputMask">
+          <string>000009</string>
+         </property>
+         <property name="text">
+          <string>500056</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="labelUseInt">
+         <property name="text">
+          <string>Использовать прерывание</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="3" colspan="2">
+        <widget class="QLineEdit" name="lineEditDevRT">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>RT</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="QCheckBox" name="checkBoxOut">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="QCheckBox" name="checkBoxUseInt">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="tristate">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="4">
+        <widget class="QComboBox" name="comboBoxManType">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>QPSK</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>QAM16</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>QAM64</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="9" column="3" colspan="2">
+        <widget class="QLineEdit" name="lineEditDevBC">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>BC</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
+        <widget class="QCheckBox" name="checkBoxParamView">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="36" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderData">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Генерация данных</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="QLabel" name="labelParamView">
+         <property name="text">
+          <string>Вывод настроек теста</string>
+         </property>
+        </widget>
+       </item>
+       <item row="17" column="0" colspan="5">
+        <widget class="QLabel" name="labelHeaderPause">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Паузы</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="32" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxMemRT">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>Не проверять</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Сообщать об ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="33" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxRec">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>Не проверять</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Сообщать об ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="31" column="3" colspan="2">
+        <widget class="QComboBox" name="comboBoxErrStatusRT">
+         <property name="maximumSize">
+          <size>
+           <width>160</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string>Не проверять</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Сообщать об ошибке</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="35" column="0" colspan="5">
+        <widget class="QLabel" name="labelSpace5">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>6</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="labelCodes">
+         <property name="text">
+          <string>Коды команд</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="4">
+        <widget class="QPushButton" name="pushButtonCodes">
+         <property name="text">
+          <string>PushButton</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1" colspan="3">
+        <widget class="QLineEdit" name="lineviewCodes">
+         <property name="maximumSize">
+          <size>
+           <width>190</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(240, 240, 240);</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../tgca/tgca.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <slot>onPushCodes()</slot>
+ </slots>
+ <buttongroups>
+  <buttongroup name="buttonGroupData"/>
+ </buttongroups>
+</ui>

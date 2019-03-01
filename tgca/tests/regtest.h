@@ -28,7 +28,6 @@ public:
     uint addr, range, addrinc, data, datainc, inverse, output;
     long inCycle;
     QString mode;
-    QTcpSocket tcpSocket;
     Device *dev;
 };
 

@@ -2,6 +2,7 @@
 #include "../testutil.h"
 #include "../ctestbc.h"
 #include "../command.h"
+//#include <QtWidgets/QMenu>
 
 void TrmSingleTest::setStatSettings()
 {
@@ -19,8 +20,8 @@ void TrmSingleTest::setStatSettings()
     statsMap.insert("errStatusRT", stats->findChild<QLabel*>("errStatusRT"));
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
-    stats->findChild<QLabel*>("errFatal")->setVisible(false);
-    stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
+    //stats->findChild<QLabel*>("errFatal")->setVisible(false);
+    //stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
                 //statsMap.insert("totalReset", stats->findChild<QLabel*>("totalReset"));    // сброс не реализован
                  stats->findChild<QLabel*>("totalReset")->setVisible(false);
                  stats->findChild<QLabel*>("labelTotalReset")->setVisible(false);
@@ -38,6 +39,7 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     load(fName);
 
     setFieldConnections();
+    setTestConnections();
 
     recalcMax();
     onRadioCycle();
@@ -54,6 +56,7 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
 
     testThread.start();
 }
+
 
 void TrmSingleTest::defineFields()
 {
@@ -305,7 +308,6 @@ void TrmSingleTest::setFieldConnections()
     connect(radioButtonUnlimited, SIGNAL(toggled(bool)), this, SLOT(onRadioCycle()));
     connect(radioButtonEnter, SIGNAL(toggled(bool)), this, SLOT(onRadioCycle()));
     connect(checkBoxInit, SIGNAL(clicked()), this, SLOT(onCheckInit()));
-
     connect(comboBoxTestType, SIGNAL(activated(int)), this, SLOT(onTypeChanged()));
 }
 
@@ -381,28 +383,38 @@ void TrmSingleTest::setEnabledSpecial(bool b)
     }
     else
     {
-        comboBoxRTA->setEnabled(true);
         checkBoxCodec->setEnabled(true);
         settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
-        settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
 
         if (checkBoxInit->isChecked())
         {
+            /// Подтип теста - ИНИЦИАЛИЗАЦИЯ
+            if (checkBoxDevRT->isChecked())
+            {
+                comboBoxRTA->setEnabled(true);
+                settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
+            }
             // устройства
-            checkBoxDevBC->setEnabled(true);
-            checkBoxDevRT->setEnabled(true);
-            settings->findChild<QLabel*>("labelHeaderDevices")->setEnabled(true);
-            settings->findChild<QLabel*>("labelDevBC")->setEnabled(true);
-            settings->findChild<QLabel*>("labelDevRT")->setEnabled(true);
+            //checkBoxDevBC->setEnabled(true);
+            //checkBoxDevRT->setEnabled(true);
+            //settings->findChild<QLabel*>("labelHeaderDevices")->setEnabled(true);
+            //settings->findChild<QLabel*>("labelDevBC")->setEnabled(true);
+            //settings->findChild<QLabel*>("labelDevRT")->setEnabled(true);
         }
         else
         {
             dataGen.enable(true);
 
-            checkBoxRTALoad->setEnabled(true);
-            settings->findChild<QLabel*>("labelRTARegLoad")->setEnabled(true);
+            if (!checkBoxEnaAddr->isChecked())
+            {
+                checkBoxRTALoad->setEnabled(true);
+                settings->findChild<QLabel*>("labelRTARegLoad")->setEnabled(true);
+                settings->findChild<QLabel*>("labelHeaderRegisters")->setEnabled(true);
+            }
+            comboBoxRTA->setEnabled(true);
+            settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
 
             settings->findChild<QLabel*>("labelHeaderTest")->setEnabled(true);
             settings->findChild<QLabel*>("labelTime")->setEnabled(true);
@@ -417,18 +429,19 @@ void TrmSingleTest::setEnabledSpecial(bool b)
                 labelLen->setEnabled(true);
 
                 // периодичность вывода
-                comboBoxBCOutPref->setEnabled(true);
-                comboBoxRTOutPref->setEnabled(true);
-                lineEditBCOut->setEnabled(true);
-                lineEditRTOut->setEnabled(true);
+                //comboBoxBCOutPref->setEnabled(true);
+                //comboBoxRTOutPref->setEnabled(true);
+                //lineEditBCOut->setEnabled(true);
+                //lineEditRTOut->setEnabled(true);
+            }
+            else
+            {
+                /// Подтип теста - СКОРОСТЬ
+                lineEditOver->setEnabled(true);
+                settings->findChild<QLabel*>("labelOver")->setEnabled(true);
             }
         }
 
-        if (comboBoxSpeed->currentIndex())
-        {
-            lineEditOver->setEnabled(true);
-            settings->findChild<QLabel*>("labelOver")->setEnabled(true);
-        }
     }
 
 
@@ -457,7 +470,14 @@ void TrmSingleTest::startTest()
     curThread->RTtoBC = (tr_mode != 1);
     curThread->BCtoRT = (tr_mode != 0);
     curThread->broadcast = curThread->RTtoBC ? false : checkBoxBroad->isChecked();
-    curThread->useInt = checkBoxUseInt->isChecked() && checkBoxEnaInt->isChecked();
+    curThread->useInt = checkBoxUseInt->isChecked() && (checkBoxEnaInt->isChecked() || !checkBoxConfRegLoad->isChecked());
+        // Если загрузка cfg_reg выключена, то теоретически может быть загружен флаг en_rt_bc_int. Если проверка cfg_reg
+        // включена и в реальном регистре флаг en_rt_bc_int равен 0, то режим useInt автоматически выключится.
+        // Иначе за противоречия в настройках отвечает пользователь.
+    if (checkBoxUseInt->isChecked() && !checkBoxEnaInt->isChecked() && checkBoxConfRegLoad->isChecked())
+    {
+        message(tr("Использование прерывание КШ не разрешено"));
+    }
     curThread->setOutEnabled(checkBoxOut->isChecked());
     curThread->waitTime = lineEditTime->text().toInt(0, 16);
     curThread->rtaddr = comboBoxRTA->currentIndex();
@@ -505,7 +525,6 @@ void TrmSingleTest::startTest()
     curThread->checkLoadCfg = comboBoxWrongCfgReg->currentIndex() > 0;
 
     curThread->manipulation = comboBoxManType->currentText();
-    curThread->iManipulation = comboBoxManType->currentIndex();
     curThread->codec = checkBoxCodec->isChecked();
 
     ushort rta = curThread->broadcast ? BRD_RT_ADDR : curThread->rtaddr;
@@ -583,6 +602,7 @@ void TrmSingleTest::startTest()
         throw QString("Unexpected configuration parameters");
     }
     curThread->nwrd = test.numWordInSymbol();
+    int num_s = test.NumSymOFDM(num_b);
 
     if (num_b != 0 || (curThread->devBC != 0 && curThread->iterCycle != 0))
     {
@@ -592,11 +612,11 @@ void TrmSingleTest::startTest()
         //int ns = test.NumSymOFDM(num_b) + 1;
 
         // Создаём пакет передачи данных КШ-ОУ
-        // В случае команды передачи ОУ->КШ массив данных, следующий за командным словом,
+        // В случае команды передачи ОУ-КШ массив данных, следующий за командным словом,
         // будет использоваться для передачи и сравнения.
 
         if (curThread->BCtoRT)
-            qDebug() << "BC->RT:  sizes " << num_b << " " << test.NumSymOFDM(num_b) + 1 << " " << curThread->trm_size;
+            qDebug() << "BC-RT:  sizes " << num_b << " " << (num_s+1) << " " << curThread->trm_size;
         curThread->trmData = malloc(curThread->trm_size);
         if (curThread->trmData == 0)
         {
@@ -607,7 +627,7 @@ void TrmSingleTest::startTest()
         if (!test.createCommandPack(curThread->trmData, curThread->trm_size,
                                     rawData, num_b, rta, tgca_tr_REC, comboBoxCode->currentIndex()))
         {
-            message(tr("Error in createCommandPack() BC->RT !!!"));
+            message(tr("Error in createCommandPack() BC-RT !!!"));
             destroyData(rawData);
             curThread->destroyData();
             return;
@@ -617,8 +637,8 @@ void TrmSingleTest::startTest()
 
         if (curThread->RTtoBC)  // приём от ОУ или циркулярный возврат
         {
-            // Создаём командный пакет на передачу ОУ->КШ
-            qDebug() << "RT->BC:  sizes " << num_b << " " << test.NumSymOFDM(num_b) + 1 << " " << NUMBYTEINOFDMSYM;
+            // Создаём командный пакет на передачу ОУ-КШ
+            qDebug() << "RT-BC:  sizes " << num_b << " " << (num_s+1) << " " << NUMBYTEINOFDMSYM;
             curThread->recData = malloc(NUMBYTEINOFDMSYM);
             if (curThread->recData == 0)
             {
@@ -629,13 +649,31 @@ void TrmSingleTest::startTest()
             if (!test.createCommandPack(curThread->recData, NUMBYTEINOFDMSYM,
                                         0, num_b, rta, tgca_tr_TRM, comboBoxCode->currentIndex()))
             {
-                message(tr("Error in createCommandPack() RT->BC !!!"));
+                message(tr("Error in createCommandPack() RT-BC !!!"));
                 destroyData(rawData);
                 curThread->destroyData();
                 return;
             }
         }
     }
+
+    // Начальные сообщения теста
+    QString msg = comboBoxTestType->currentText() + tr(" %1 байт данных (%2 символ").arg(num_b).arg(num_s);
+    QString suf("");
+    int res = num_s%10;
+    if (num_s>10 && (num_s-res)%100 == 10)
+        suf = "ов";
+    else if (res>1 && res<=4)
+        suf = "";
+    else if (res != 1)
+        suf = "ов";
+    curThread->privet_msg = msg + suf + tr(").");
+
+    QString eng_1 = curThread->BCtoRT ? (curThread->RTtoBC ? tr("Wrap around") : tr("Receiving")) : tr("Transmission");
+    QString eng_2 = tr(" data of %1 byte (%2 OFDM symbol)").arg(num_s).arg(num_s);
+    curThread->hello_msg = eng_1 + eng_2;
+
+    //message(curThread->privet_msg);
 
     emit startTestTh();
 }
@@ -905,6 +943,8 @@ trmSingleObjToThread::trmSingleObjToThread():
 void trmSingleObjToThread::perform()
 {
     qDebug() << "trmSingleObjToThread::perform() started";
+    stdOutput(privet_msg, hello_msg);
+
     int rec_pk_size = NUMBYTEINOFDMSYM;
     int errorsBefore = 0;
     int errorsWithin = 0;
@@ -1019,11 +1059,11 @@ void trmSingleObjToThread::perform()
             qDebug() << "RT cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
                      << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
             if (cfg.rt_bc != CFG_MODE_RT || cfg.ena_codec != codec ||
-                cfg.type_man != iManipulation || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
+                cfg.type_man != devRT->reg_hsc_cfg.type_man || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
                 cfg_err = true;
             else
             {
-                if (useInt && (cfg.en_rt_bc_int != devRT->reg_hsc_cfg.en_rt_bc_int))
+                if (useInt && (cfg.en_rt_bc_int != devRT->reg_hsc_cfg.en_rt_bc_int)) // хотя прерывание ОУ сейчас не используется, но всё равно требуем совпадения признака
                     cfg_err = true;
                 else
                 {
@@ -1198,13 +1238,24 @@ void trmSingleObjToThread::perform()
             qDebug() << "BC cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
                      << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
             if (cfg.rt_bc != CFG_MODE_BC || cfg.ena_codec != codec ||
-                cfg.type_man != iManipulation || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
+                cfg.type_man != devBC->reg_hsc_cfg.type_man || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
             {
                 stdOutput(tr("Ошибка сравнения конфигурационного регистра КШ"), tr("Comparison BC cfg register wrong"));
                 emit statsOutputReady("errCompare", 1);
                 setErrorsBeforeCycle(++errorsBefore);
                 return;
             }
+            if (useInt && (cfg.en_rt_bc_int == 0))
+            {
+                useInt = false;
+                stdOutput(tr("Использование прерывание КШ не разрешено"), tr("Interruption is not enabled in BC configuration"));
+            }
+        }
+        // Еще одна возможность проверки разрешения использования прерывания КШ
+        if (useInt && !writeCfg && !checkLoadCfg && initEnable && devBC->configuration.disInt())
+        {
+            useInt = false;
+            stdOutput(tr("Использование прерывание КШ не разрешено"), tr("Interruption is not enabled in BC configuration"));
         }
 
         if (amplBC)
@@ -1273,6 +1324,7 @@ void trmSingleObjToThread::perform()
                 {
                     emit statsOutputReady("totalIter", 1);
                     // Запись данных в буфер передачи
+                    qDebug() << "write_F2";
                     devBC->write_F2(getBufTrm(statusBC), (char*)trmData, trm_size);
                     if (compEnableMemBCRT > 0 && it <= 1)
                     {
@@ -1301,8 +1353,6 @@ void trmSingleObjToThread::perform()
                             errorOccured = true;
                         }
                     }
-                    if (RTtoBC)
-                        stdOutput(tr("Приём"), tr("Receive"));
 
                     // Оконный режим
                     if(windowMode && devRT)
@@ -1367,6 +1417,8 @@ void trmSingleObjToThread::perform()
                             readArrayC.resize(trm_size);
                             if (postponeTime > 0)
                                 thread()->msleep(postponeTime);
+                            qDebug() << "readF2";
+//                            qDebug() << tr("Check RT receive buffer %1. Size=%2").arg(getBufRec(statusRTBefore), 4, 16, QLatin1Char('0')).arg(trm_size);
                             devRT->read_F2(getBufRec(statusRTBefore), trm_size, readArrayC.data());
                             if (test.cmpPack((void*)(readArrayC.data()), trmData, trm_size/NUMBYTEINOFDMSYM -1, true))
                             {
@@ -1450,9 +1502,6 @@ void trmSingleObjToThread::perform()
                     devBC->write_F2(getBufTrm(statusBC), (char*)recData, rec_pk_size);
                     int addr_rx = getBufRec(statusBC);
 
-                    if (BCtoRT)
-                        stdOutput(tr("Передача"), tr("Transmit"));
-
                     // Оконный режим
                     if(windowMode && devRT)
                     {
@@ -1534,7 +1583,7 @@ void trmSingleObjToThread::perform()
                             }
                         } //сравнение данных
                     }
-                } // передача ОУ->КШ или циркулярный возврат
+                } // передача ОУ-КШ или циркулярный возврат
 
                 if (errorOccured)
                 {
@@ -1554,19 +1603,6 @@ void trmSingleObjToThread::perform()
         emit resultReady((int)AbstractTest::ErrorIsOccured);
     else
         emit resultReady((int)AbstractTest::Completed);
-}
-
-void trmSingleObjToThread::terminate(int )
-{
-    if (!isRunning())  // (fl == AbstractTest::ErrorIsOccured || fl == AbstractTest::Completed || fl == AbstractTest::Stopped)
-    {
-        //qDebug() << "terminates: " << devBC << "  " << devRT;
-        if (devBC != 0 && tcpSocketBC.state() == QAbstractSocket::ConnectedState)
-            tcpSocketBC.abort();
-        if (devRT != 0 && tcpSocketRT.state() == QAbstractSocket::ConnectedState)
-            tcpSocketRT.abort();
-        this->destroyData();
-    }
 }
 
 //lineEditSPIData->setInputMask(QApplication::translate("TestTrmSingle", "HHHH;_", 0));

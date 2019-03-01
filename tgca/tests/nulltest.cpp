@@ -171,7 +171,7 @@ void nullObjToThread::perform()
     else
         free (testData);
 
-    stdOutput(tr("Тест тестов запущен"), tr("Null-test started"));
+    stdOutput(QObject::tr("Тест тестов запущен"), tr("Null-test started"));
     if (bConnectBC)
     {
         if (devBC)
@@ -183,8 +183,6 @@ void nullObjToThread::perform()
                 break;
             case AbstractTest::ErrorIsOccured:
                 emit statsOutputReady("errConnect", 1);
-            case AbstractTest::Stopped:
-                return;
             default:
                 stdOutput(tr("Непредусмотренный код ответа connectBC(): %1").arg(ans), tr("Invalid return from connectBC(): %1").arg(ans));
                 emit statsOutputReady("errOther", 1);
@@ -209,8 +207,6 @@ void nullObjToThread::perform()
                 break;
             case AbstractTest::ErrorIsOccured:
                 emit statsOutputReady("errConnect", 1);
-            case AbstractTest::Stopped:
-                return;
             default:
                 stdOutput(tr("Непредусмотренный код ответа connectRT(): %1").arg(ans), tr("Invalid return from connectRT(): %1").arg(ans));
                 emit statsOutputReady("errOther", 1);
@@ -261,15 +257,4 @@ void nullObjToThread::perform()
             return;
     }
     emit resultReady(errCounter == 0 ? (int)(AbstractTest::Completed) : (int)(AbstractTest::ErrorIsOccured));
-}
-
-void nullObjToThread::terminate(int )
-{
-    if (!isRunning())  // (fl == AbstractTest::ErrorIsOccured || fl == AbstractTest::Completed || fl == AbstractTest::Stopped)
-    {
-        if (devBC != 0 && tcpSocketBC.state() == QAbstractSocket::ConnectedState)
-            tcpSocketBC.abort();
-        if (devRT != 0 && tcpSocketRT.state() == QAbstractSocket::ConnectedState)
-            tcpSocketRT.abort();
-    }
 }

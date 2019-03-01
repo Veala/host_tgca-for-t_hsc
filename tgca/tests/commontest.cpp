@@ -6,6 +6,26 @@
 ///   CommonTest - базовый класс для группы тестов с двумя устройствами   ///
 /////////////////////////////////////////////////////////////////////////////
 
+CommonTest::CommonTest(QWidget *parent) :
+    AbstractTest(parent),
+    comboBoxRTA(0),
+    lineEditTime(0),
+    lineEditPause(0),
+    lineEditReservePause(0),
+    lineEditOver(0),
+    checkBoxEnaInt(0),
+    checkBoxEnaAddr(0),
+    checkBoxUseInt(0),
+    labelUseInt(0),
+    checkBoxOut(0),
+    lineEditDevBC(0),
+    lineEditDevRT(0),
+    checkBoxDevBC(0),
+    checkBoxDevRT(0)
+{
+    dataGen.setParentTest(this);
+}
+
 int CommonTest::updateDeviceList()
 {
     if (checkBoxDevBC->isChecked())
@@ -90,8 +110,56 @@ void CommonTest::changeConnections()
     connect(this,SIGNAL(settingsClosed(int)),this,SLOT(checkDeviceAvailability(int)));
 }
 
-void CommonTest::assignDevices()
+void CommonTest::setTestConnections()
 {
+    if (comboBoxRTA) {
+        comboBoxRTA->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(comboBoxRTA, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuRTA(QPoint)));
+    }
+//    lineEditDevBC->setContextMenuPolicy(Qt::CustomContextMenu);
+//    QObject::connect(lineEditDevBC, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuDevBC(QPoint)));
+//    lineEditDevRT->setContextMenuPolicy(Qt::CustomContextMenu);
+//    QObject::connect(lineEditDevRT, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuDevRT(QPoint)));
+    if (lineEditTime) {
+        //lineEditTime->setInputMethodHints(Qt::ImhDigitsOnly);
+        //lineEditTime->setInputMask("009");
+        lineEditTime->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(lineEditTime, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuTime(QPoint)));
+    }
+    if (lineEditPause) {
+        //lineEditPause->setInputMethodHints(Qt::ImhDigitsOnly);
+        //lineEditPause->setInputMask("009");
+        lineEditPause->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(lineEditPause, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuPause(QPoint)));
+    }
+    if (lineEditReservePause) {
+        //lineEditReservePause->setInputMethodHints(Qt::ImhDigitsOnly);
+        //lineEditReservePause->setInputMask("009");
+        lineEditReservePause->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(lineEditReservePause, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuResPause(QPoint)));
+    }
+    if (lineEditOver) {
+        //lineEditOver->setInputMethodHints(Qt::ImhDigitsOnly);
+        //lineEditOver->setInputMask("009");
+        lineEditOver->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(lineEditOver, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuOver(QPoint)));
+    }
+    if (checkBoxEnaInt) {
+        checkBoxEnaInt->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(checkBoxEnaInt, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuEnaInt(QPoint)));
+    }
+    if (checkBoxUseInt) {
+        checkBoxUseInt->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(checkBoxUseInt, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuUseInt(QPoint)));
+    }
+    if (checkBoxEnaAddr) {
+        checkBoxEnaAddr->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(checkBoxEnaAddr, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuEnaAddr(QPoint)));
+    }
+    if (checkBoxOut) {
+        checkBoxOut->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(checkBoxOut, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuOut(QPoint)));
+    }
 }
 
 void CommonTest::connectThread()
@@ -102,7 +170,6 @@ void CommonTest::connectThread()
     connect(objToThread,SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
     connect(objToThread,SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
     connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
-//    connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(testTerminate(int)));
     connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(terminate(int)));
 }
 
@@ -117,6 +184,125 @@ void CommonTest::updateSettings()
 }
 
 
+
+void CommonTest::applyRTAddr() { applyCurrent(comboBoxRTA); }
+void CommonTest::applyDevBC() { applyCurrent(lineEditDevBC); }
+void CommonTest::applyDevRT() { applyCurrent(lineEditDevRT); }
+void CommonTest::applyWaitTime() { applyCurrent(lineEditTime); }
+void CommonTest::applyPause() { applyCurrent(lineEditPause); }
+void CommonTest::applyResPause() { applyCurrent(lineEditReservePause); }
+void CommonTest::applyEnaInt() { applyCurrent(checkBoxEnaInt); }
+void CommonTest::applyUseInt() { applyCurrent(checkBoxUseInt); }
+void CommonTest::applyEnaAddr() { applyCurrent(checkBoxEnaAddr); }
+void CommonTest::applyOutputMode() { applyCurrent(checkBoxOut); }
+
+void CommonTest::applyOverTime() { applyCurrent(lineEditOver);
+                                 qDebug() << "This id different case!!!"; }
+
+void CommonTest::applyCurrent(QWidget* wid)
+{
+    QString testType = name_enabled->text();
+    QString widType = wid->metaObject()->className();
+    QString name = wid->objectName();
+    QString val;
+    if (widType == "QLineEdit")
+        val = ((QLineEdit*)wid)->text();
+    else if (widType == "QComboBox")
+        val = ((QComboBox*)wid)->currentText();
+    else if (widType == "QCheckBox" && ((QCheckBox*)wid)->isChecked())
+        val = "yes";
+
+    emit applyToAll(testType, widType, name, val);
+}
+
+void CommonTest::onMenuRTA(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyRTAddr()));
+    menu.exec(comboBoxRTA->mapToGlobal(point));
+}
+
+void CommonTest::onMenuDevBC(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyDevBC()));
+    menu.exec(lineEditDevBC->mapToGlobal(point));
+}
+
+void CommonTest::onMenuDevRT(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyDevRT()));
+    menu.exec(lineEditDevRT->mapToGlobal(point));
+}
+
+void CommonTest::onMenuTime(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyWaitTime()));
+    menu.exec(lineEditTime->mapToGlobal(point));
+}
+
+void CommonTest::onMenuPause(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyPause()));
+    menu.exec(lineEditPause->mapToGlobal(point));
+}
+
+void CommonTest::onMenuResPause(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyResPause()));
+    menu.exec(lineEditReservePause->mapToGlobal(point));
+}
+
+void CommonTest::onMenuOver(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyOverTime()));
+    menu.exec(lineEditOver->mapToGlobal(point));
+}
+
+void CommonTest::onMenuEnaInt(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyEnaInt()));
+    menu.exec(checkBoxEnaInt->mapToGlobal(point));
+}
+
+void CommonTest::onMenuUseInt(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyUseInt()));
+    menu.exec(checkBoxUseInt->mapToGlobal(point));
+}
+
+void CommonTest::onMenuEnaAddr(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyEnaAddr()));
+    menu.exec(checkBoxEnaAddr->mapToGlobal(point));
+}
+
+void CommonTest::onMenuOut(QPoint point)
+{
+    QMenu menu;
+    QAction *act = menu.addAction(tr("Применить ко всем тестам"));
+    connect(act, SIGNAL(triggered()), this, SLOT(applyOutputMode()));
+    menu.exec(checkBoxOut->mapToGlobal(point));
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 ///   commonObjToThread - базовый класс потока группы тестов с двумя устройствами   ///
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -130,13 +316,7 @@ void commonObjToThread::doWork()
     }
     catch(const QString& exception)
     {
-     /*   if (exception == "socket")
-            stdOutput(tr("Ошибка сокета"), tr("Socket error"));
-        else
-            stdOutput(tr("Неизвестная ошибка"), tr("Unknown error"));
-     */
         stdOutput(tr("Ошибка: ") + exception, tr("Error: ") + exception);
-
         emit resultReady((int)AbstractTest::ErrorIsOccured);
     }
 }
@@ -151,42 +331,37 @@ void commonObjToThread::stdOutput(QString message_rus, QString message_eng)
 
 AbstractTest::RunningState commonObjToThread::connectBC()
 {
-    QString ip = devBC->connection.getServerIP();
-    ushort port = devBC->connection.getServerPORT().toUShort();
-    tcpSocketBC.connectToHost(QHostAddress(ip), port);
-    if (!tcpSocketBC.waitForConnected(5000))
+    try
     {
+        devBC->tryToConnect();
+        qDebug() << "BC connected";
+        return AbstractTest::Running;
+    }
+    catch(const QString&)
+    {
+        qDebug() << "Connection failed";
         stdOutput(tr("Нет соединения с КШ"), tr("BC: no connection"));
-        if (pause_stop() == -1)
-            return AbstractTest::Stopped;
         emit resultReady((int)AbstractTest::ErrorIsOccured);
         return AbstractTest::ErrorIsOccured;
     }
-    devBC->setSocket(&tcpSocketBC);
-    return AbstractTest::Running;
 }
 
 AbstractTest::RunningState commonObjToThread::connectRT()
 {
-    QString ip = devRT->connection.getServerIP();
-    ushort port = devRT->connection.getServerPORT().toUShort();
-    tcpSocketRT.connectToHost(QHostAddress(ip), port);
-    if (!tcpSocketRT.waitForConnected(5000)) {
+    try
+    {
+        devRT->tryToConnect();
+        qDebug() << "RT connected";
+        return AbstractTest::Running;
+    }
+    catch(const QString&)
+    {
+        qDebug() << "Connection failed";
         stdOutput(tr("Нет соединения с ОУ"), tr("RT: no connection"));
-        if (pause_stop() == -1)
-            return AbstractTest::Stopped;
         emit resultReady((int)AbstractTest::ErrorIsOccured);
         return AbstractTest::ErrorIsOccured;
     }
-    devRT->setSocket(&tcpSocketRT);
-    return AbstractTest::Running;
 }
-/*
-void commonObjToThread::testTerminate(int code)
-{
-    terminate(code);
-}
-*/
 
 // Оконный режим
 void commonObjToThread::switchWindow(int n)
@@ -209,6 +384,17 @@ void commonObjToThread::initStartBC()
     devBC->reg_hsc_creg.start_bc = 1;
 }
 
+void commonObjToThread::terminate(int )
+{
+    if (!isRunning())
+    {
+        if (devBC)
+            devBC->tryToDisconnect();
+        if (devRT)
+            devRT->tryToDisconnect();
+        this->destroyData();
+    }
+}
 
 ///////////////////////////////////////////////////
 ///   dataGeneration - класс генерации данных   ///

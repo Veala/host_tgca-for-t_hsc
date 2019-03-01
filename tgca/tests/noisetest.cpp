@@ -11,6 +11,7 @@ void NoiseTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, 
     load(fName);
 
     setFieldConnections();
+    setTestConnections();
     onRadioCycle();
     disableUnimplemented();
 
@@ -27,7 +28,7 @@ void NoiseTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, 
     statsMap.insert("errPack", stats->findChild<QLabel*>("errPack"));
     statsMap.insert("errBit", stats->findChild<QLabel*>("errBit"));
     statsMap.insert("otherErr", stats->findChild<QLabel*>("otherErr"));
-    statsMap.insert("errConnect", stats->findChild<QLabel*>("errConnect"));
+    statsMap.insert("errConfig", stats->findChild<QLabel*>("errConfig"));
     connectStatisticSlots();
     connect(objToThread,SIGNAL(statsOutputReadyLongLong(QString,quint64)), this, SLOT(statsLongLongOutput(QString,quint64)));
 
@@ -126,10 +127,8 @@ void NoiseTest::setEnabledSpecial(bool b)
         checkBoxCodec->setEnabled(true);
 
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
-        settings->findChild<QLabel*>("labelTestType")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
         settings->findChild<QLabel*>("labelNumS")->setEnabled(true);
-        comboBoxTestType->setEnabled(true);
         comboBoxRTA->setEnabled(true);
         lineEditNumS->setEnabled(true);
 
@@ -139,12 +138,15 @@ void NoiseTest::setEnabledSpecial(bool b)
         comboBoxManType->setEnabled(true);
         checkBoxCodec->setEnabled(true);
 
-        settings->findChild<QLabel*>("labelSpeed")->setEnabled(true);
-        settings->findChild<QLabel*>("labelPause")->setEnabled(true);
+        settings->findChild<QLabel*>("labelHeaderTest")->setEnabled(true);
         settings->findChild<QLabel*>("labelTime")->setEnabled(true);
-        lineEditPause->setEnabled(true);
+        settings->findChild<QLabel*>("labelPause")->setEnabled(true);
+        settings->findChild<QLabel*>("labelSpeed")->setEnabled(true);
+        settings->findChild<QLabel*>("labelOver")->setEnabled(true);
         lineEditTime->setEnabled(true);
+        lineEditPause->setEnabled(true);
         comboBoxSpeed->setEnabled(true);
+        lineEditOver->setEnabled(true);
 
         dataGen.enable(true);
     }
@@ -280,7 +282,14 @@ void NoiseTest::startTest()
     noiseObjToThread* curThread = (noiseObjToThread*)objToThread;
 
     curThread->trbit = 1 - comboBoxTestType->currentIndex();
-    curThread->useInt = checkBoxUseInt->isChecked() && checkBoxEnaInt->isChecked();
+    curThread->useInt = checkBoxUseInt->isChecked() && (checkBoxEnaInt->isChecked() || !checkBoxConfRegLoad->isChecked());
+        // Если загрузка cfg_reg выключена, то теоретически может быть загружен флаг en_rt_bc_int. Если проверка cfg_reg
+        // включена и в реальном регистре флаг en_rt_bc_int равен 0, то режим useInt автоматически выключится.
+        // Иначе за противоречия в настройках отвечает пользователь.
+    if (checkBoxUseInt->isChecked() && !checkBoxEnaInt->isChecked() && checkBoxConfRegLoad->isChecked())
+    {
+        message(tr("Использование прерывание КШ не разрешено"));
+    }
     curThread->setOutEnabled(checkBoxOut->isChecked());
     curThread->waitTime = lineEditTime->text().toInt(0, 16);
     curThread->rtaddr = comboBoxRTA->currentIndex();
@@ -302,7 +311,6 @@ void NoiseTest::startTest()
 
     curThread->codec = checkBoxCodec->isChecked();
     curThread->manipulation = comboBoxManType->currentText();
-    curThread->typeMan = comboBoxManType->currentIndex();
 
     curThread->devBC = deviceList.at(0);
     quint32 cfgBC = curThread->devBC->configuration.getConfigReg();
@@ -357,8 +365,6 @@ void NoiseTest::disableUnimplemented()
     // ПОКА НЕ РЕАЛИЗОВАНЫ
     checkBoxParamView->setDisabled(true);
     labelParamView->setDisabled(true);
-    checkBoxUseInt->setDisabled(true);
-    labelUseInt->setDisabled(true);
     comboBoxExitRule->setDisabled(true);  // условие выхода
     settings->findChild<QLabel*>("labelExitRule")->setDisabled(true);
 //    comboBoxShow->setDisabled(true);     // периодичность вывода
@@ -369,17 +375,6 @@ void NoiseTest::disableUnimplemented()
     radioButtonUnlimited->setVisible(false);
     radioButtonSingle->setVisible(false);
     spinBoxCycle->setVisible(false);
-}
-
-void noiseObjToThread::terminate(int )
-{
-    if (!isRunning())  // (fl == AbstractTest::ErrorIsOccured || fl == AbstractTest::Completed || fl == AbstractTest::Stopped)
-    {
-        if (tcpSocketBC.state() == QAbstractSocket::ConnectedState)
-            tcpSocketBC.abort();
-        if (tcpSocketRT.state() == QAbstractSocket::ConnectedState)
-            tcpSocketRT.abort();
-    }
 }
 
 void noiseObjToThread::doWork()
@@ -572,7 +567,7 @@ void noiseObjToThread::perform()
     }
 
     qDebug() << "noiseObjToThread::perform() started";
-    stdOutput(tr("Тест на помехоустойчивость запущен"), tr("Noise test started"));
+    stdOutput(QObject::tr("Тест на помехоустойчивость запущен"), tr("Noise test started"));
 //    goto skipDevices;
 
     if (connectBC() != AbstractTest::Running)
@@ -623,7 +618,7 @@ void noiseObjToThread::perform()
                         stdOutput(tr("Возвращенные значения = %1").arg(*(int*)(readArrayC.data()), 4, 16, QLatin1Char('0')),
                                   tr("Returned values = %1").arg(*(int*)(readArrayC.data()), 4, 16, QLatin1Char('0')));
                         emit resultReady((int)AbstractTest::ErrorIsOccured);
-                        emit statsOutputReady("errConnect", 1);
+                        emit statsOutputReady("errConfig", 1);
                         return;
                     }
                 }
@@ -645,10 +640,10 @@ void noiseObjToThread::perform()
         qDebug() << "RT cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
                  << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
         if (cfg.rt_bc != CFG_MODE_RT || cfg.ena_codec != codec ||
-            cfg.type_man != typeMan || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
+            cfg.type_man != devRT->reg_hsc_cfg.type_man || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
             cfg_err = true;
-        else if (useInt && (cfg.en_rt_bc_int != 1))
-             cfg_err = true;
+        /*else if (useInt && (devRT->reg_hsc_cfg.en_rt_bc_int != cfg.en_rt_bc_int))  // прерывание ОУ сейчас не используется, поэтому признак разрешения прерывания не важен
+             cfg_err = true;*/
         else if ((cfg.rtavsk_ena==1) && (cfg.rtavsk!=rtaddr)) // иначе адрес ОУ должен быть во вспомогательном регистре reg_aux_rtaddr, но это не будем проверять,
                                     // потому что это регулируется записью и проверкой регистра reg_aux_rtaddr
               cfg_err = true;
@@ -657,7 +652,7 @@ void noiseObjToThread::perform()
     {
         stdOutput(tr("Ошибка сравнения конфигурационного регистра ОУ"), tr("Comparison RT cfg register wrong"));
         emit resultReady((int)AbstractTest::ErrorIsOccured);
-        emit statsOutputReady("errConnect", 1);
+        emit statsOutputReady("errConfig", 1);
         return;
     }
     if (loadRTA)
@@ -677,7 +672,7 @@ void noiseObjToThread::perform()
             {
                 stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
-                emit statsOutputReady("errConnect", 1);
+                emit statsOutputReady("errConfig", 1);
                 return;
             }
         }
@@ -691,14 +686,14 @@ void noiseObjToThread::perform()
                 if (cfg.rtavsk != rtaddr)
                     stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
-                emit statsOutputReady("errConnect", 1);
+                emit statsOutputReady("errConfig", 1);
                 return;
             }
             if (cfg.rtavsk != rtaddr)
             {
                 stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
-                emit statsOutputReady("errConnect", 1);
+                emit statsOutputReady("errConfig", 1);
                 return;
             }
         }
@@ -740,7 +735,7 @@ void noiseObjToThread::perform()
                         stdOutput(tr("Возвращенные значения = %1").arg(*(int*)(readArrayC.data()), 4, 16, QLatin1Char('0')),
                                   tr("Returned values = %1").arg(*(int*)(readArrayC.data()), 4, 16, QLatin1Char('0')));
                         emit resultReady((int)AbstractTest::ErrorIsOccured);
-                        emit statsOutputReady("errConnect", 1);
+                        emit statsOutputReady("errConfig", 1);
                         return;
                     }
                 }
@@ -761,18 +756,31 @@ void noiseObjToThread::perform()
     {
         REG_HSC_cfg cfg;
         devBC->readReg(&cfg);
+        // здесь значение регистра devBC->reg_hsc_cfg не может отличаться от настроечного, так как
+        // даже если бы оно было прочитано из устройства, то при несовпадении был бы выход по ошибке
         qDebug() << "BC cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
                  << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
         if (cfg.rt_bc != CFG_MODE_BC || cfg.ena_codec != codec ||
-            cfg.type_man != typeMan || (useInt && (cfg.en_rt_bc_int != 1)))
+            cfg.type_man != devBC->reg_hsc_cfg.type_man || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
             cfg_err = true;
+        if (useInt && (cfg.en_rt_bc_int == 0))
+        {
+            useInt = false;
+            stdOutput(tr("Использование прерывание КШ не разрешено"), tr("Interruption is not enabled in BC configuration"));
+        }
     }
     if (cfg_err)
     {
         stdOutput(tr("Ошибка сравнения конфигурационного регистра КШ"), tr("Comparison BC cfg register wrong"));
         emit resultReady((int)AbstractTest::ErrorIsOccured);
-        emit statsOutputReady("errConnect", 1);
+        emit statsOutputReady("errConfig", 1);
         return;
+    }
+    // Еще одна возможность проверки разрешения использования прерывания КШ
+    if (useInt && !writeCfg && !checkLoadCfg && initEnable && devBC->configuration.disInt())
+    {
+        useInt = false;
+        stdOutput(tr("Использование прерывание КШ не разрешено"), tr("Interruption is not enabled in BC configuration"));
     }
 
     if (pause_stop() == -1)
@@ -836,7 +844,7 @@ void noiseObjToThread::perform()
         emit statsOutputReady("totalIter", 1);
         emit statsOutputReadyLongLong("totalBit", n_cur_bit);
 
-        if (trbit == tgca_tr_TRM)   // ОУ -> КШ
+        if (trbit == tgca_tr_TRM)   // ОУ-КШ
         {
             // создание командного пакета и данных для передачи по МКПД
             if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, n_byte, rtaddr, trbit, 0))
@@ -858,7 +866,7 @@ void noiseObjToThread::perform()
             // Запись данных в буфер передачи ОУ
             devRT->write_F2(getBufAddrTrm(regStatusRT.tx_num_buf) + sizeof(word32_t), trmBuf + sizeof(word32_t), numOFDM*NUMBYTEINOFDMSYM - sizeof(word32_t));
         }
-        else   // КШ -> ОУ
+        else   // КШ-ОУ
         {
             // создание командного пакета и данных для передачи по МКПД
             if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), n_byte, rtaddr, trbit, 0))
@@ -912,7 +920,7 @@ void noiseObjToThread::perform()
 
         // Сравнение переданных данных
         char responseBuf[MAXPACKAGESIZE];
-        if (trbit == tgca_tr_TRM)   // ОУ -> КШ
+        if (trbit == tgca_tr_TRM)   // ОУ-КШ
         {
             // Чтение данных из буфера приёма КШ для проверки ответного слова и сравнения переданных данных
             devBC->read_F2(addr_rx_bc, numOFDM*NUMBYTEINOFDMSYM, responseBuf);
@@ -921,7 +929,7 @@ void noiseObjToThread::perform()
             {
             }
         }
-        else   // КШ -> ОУ
+        else   // КШ-ОУ
         {
             // Чтение данных из буфера приёма ОУ для сравнения
             if (postponeTime > 0)

@@ -1584,6 +1584,15 @@ void Configuration::setChecked(int num, bool ch)
     }
 }
 
+bool Configuration::disInt()
+{
+    if (ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->checkState() == Qt::Checked)
+    {
+        return (ui->tableWidgetVSK->item(config_NUMREG_cfg-config_NUMREG_BEGIN_VSK, rcn_Val)->text().toInt(0,16) & fl_REG_CFG_en_rt_bc_int) == 0;
+    }
+    return false;
+}
+
 void Configuration::setWritten(int addr, int val)
 {
     setRegVal(addr, val);

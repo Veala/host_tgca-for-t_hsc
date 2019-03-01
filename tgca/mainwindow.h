@@ -55,7 +55,7 @@ private:
     bool su;
     int prepareFirstStart;
 
-    QAction *act_devMode;  //"Секретный режим"
+    QAction *act_devMode1, *act_devMode2;  //"Секретный режим"
     //QSettings project;
 
     bool loadProject(QSettings& settings);
@@ -98,6 +98,8 @@ private slots:
     void onMenuOutput(QPoint);
     void outputClear();
     void actDevMode();
+
+    void applyToAllTests(QString&,QString&,QString&,QString&);
 };
 
 #endif // MAINWINDOW_H

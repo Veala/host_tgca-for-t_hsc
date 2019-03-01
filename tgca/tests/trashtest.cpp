@@ -67,22 +67,8 @@ void TrashTest::startTest()
 void trashObjToThread::doWork()
 {
     try {
-        QString ip = dev->connection.getServerIP();
-        ushort port = dev->connection.getServerPORT().toUShort();
-
         emit resultReady((int)AbstractTest::Running);
-        tcpSocket.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocket.waitForConnected(5000)) {
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            tcpSocket.abort();
-            return;
-        }
-        dev->setSocket(&tcpSocket);
-
+        dev->tryToConnect();
 
 //------------------------------------------------------
         qDebug() << mode;
@@ -123,10 +109,20 @@ void trashObjToThread::doWork()
             qDebug() << "left one: " << *(uint*)readArray.left(4).data();
             qDebug() << "right one: " << *(uint*)readArray.right(4).data();
         }
-        tcpSocket.abort();
-        emit resultReady(AbstractTest::Completed);
+        throw QString("finish");
     } catch (const QString& exception) {
-        //if (exception == "socket")
+        if (exception == "connection") {
+            if (pause_stop() == -1) return;
             emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "socket") {
+            //if (pause_stop() == -1) return;
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "stopped") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Stopped);
+        } else if (exception == "finish") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Completed);
+        }
     }
 }

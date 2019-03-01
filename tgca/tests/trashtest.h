@@ -29,7 +29,6 @@ public:
     QByteArray readArray;
     QString mode;
     uint startAddr, count, endAddr, startData, incData;
-    QTcpSocket tcpSocket;
     Device *dev;
 };
 

@@ -1,7 +1,7 @@
 #ifndef DATA_STRUCTS_H
 #define DATA_STRUCTS_H
 #include <QtGlobal>
-#include "device.h"
+//#include "device.h"
 
 class BaseReg
 {

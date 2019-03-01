@@ -77,21 +77,8 @@ void SpiPart::startTest()
 void spiObjToThread::doWork()
 {
     try {
-        QString ip = dev->connection.getServerIP();
-        ushort port = dev->connection.getServerPORT().toUShort();
-
         emit resultReady((int)AbstractTest::Running);
-        tcpSocket.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocket.waitForConnected(5000)) {
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            tcpSocket.abort();
-            return;
-        }
-        dev->setSocket(&tcpSocket);
+        dev->tryToConnect();
 
         QVector<BaseReg*> regs;
         regs.append(&dev->reg_hsc_dr_spi_lsw);
@@ -112,27 +99,33 @@ void spiObjToThread::doWork()
                     } else {
                         n++;
                         emit outputReady(tr("reg_cr_spi.spif != %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
-                        if (n>1000) {
-                            tcpSocket.abort();
-                            emit resultReady((int)AbstractTest::ErrorIsOccured);
-                            return;
-                        }
+                        if (n>1000) throw QString("unknownHardError");
                     }
                 }
 
                 //threadState = AbstractTest::Paused;
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
             }
         } while (cycle);
 
-        tcpSocket.abort();
         emit outputReady(tr("SPI загружено"));
-        emit resultReady(AbstractTest::Completed);
-    } catch(const QString& exception) {
-        //if (exception == "socket")
+        throw QString("finish");
+    } catch (const QString& exception) {
+        if (exception == "connection") {
+            if (pause_stop() == -1) return;
             emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "socket") {
+            //if (pause_stop() == -1) return;
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "stopped") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Stopped);
+        } else if (exception == "finish") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Completed);
+        } else if (exception == "unknownHardError") {
+            dev->tryToDisconnect();
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        }
     }
 }

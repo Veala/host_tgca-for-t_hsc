@@ -55,17 +55,18 @@ void BulbTest::startTest()
 
 void bulbObjToThread::switchOff(int rs)
 {
-    if (rs == AbstractTest::Stopped && tcpSocket.state() == QAbstractSocket::ConnectedState)
+    if (rs == AbstractTest::Stopped /*&& tcpSocket.state() == QAbstractSocket::ConnectedState*/)
     {
         dev->reg_aux_bulb.first=0; dev->reg_aux_bulb.second=0;
         dev->reg_aux_bulb.third=0; dev->reg_aux_bulb.fourth=0;
         dev->writeReg(&dev->reg_aux_bulb);
+        dev->tryToDisconnect();
 //        int addr=REG_AUX_bulb, val=0;
 //        QByteArray array = cmdHead(1, 8);
 //        array.append((char*)&addr, 4);
 //        array.append((char*)&val, 4);
 //        dev->write_F1(array);
-        tcpSocket.abort();
+     //   tcpSocket.abort();
     }
 }
 
@@ -73,30 +74,29 @@ void bulbObjToThread::doWork()
 {
     try
     {
-        QString ip = dev->connection.getServerIP();
-        ushort port = dev->connection.getServerPORT().toUShort();
 
         emit resultReady((int)AbstractTest::Running);
-        tcpSocket.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocket.waitForConnected(5000)) {
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            if (outEnable)
-            {
-                QString ms = tr("Нет соединения: ip = ") + ip;
-                emit outputReady(ms);
-            }
-            tcpSocket.abort();
-            return;
-        }
-        dev->setSocket(&tcpSocket);
+//        tcpSocket.connectToHost(QHostAddress(ip), port);
+//        if (!tcpSocket.waitForConnected(5000)) {
+//            if (pause_stop() == -1) {
+//                tcpSocket.abort();
+//                return;
+//            }
+//            emit resultReady((int)AbstractTest::ErrorIsOccured);
+//            if (outEnable)
+//            {
+//                QString ms = tr("Нет соединения: ip = ") + ip;
+//                emit outputReady(ms);
+//            }
+//            tcpSocket.abort();
+//            return;
+//        }
+//        dev->setSocket(&tcpSocket);
+        dev->tryToConnect();
 
         if (outEnable)
         {
-            QString ms = tr("Соединение установлено: ip = ") + ip;
+            QString ms = tr("Соединение установлено: ip = ") + dev->connection.getServerIP();
             emit outputReady(ms);
         }
 
@@ -114,21 +114,19 @@ void bulbObjToThread::doWork()
                 *(((quint32*)&dev->reg_aux_bulb)+1) &= vals[j];
                 dev->writeReg(&dev->reg_aux_bulb);
                 if (pause_stop() == -1) {
-                    tcpSocket.abort();
+                    dev->tryToDisconnect();
                     return;
                 }
                 thread()->msleep(iterTime);
             }
         }
-        tcpSocket.abort();
+        dev->tryToDisconnect();
         emit resultReady((int)AbstractTest::Completed);
     }
     catch(const QString& exception)
     {
         if (outEnable)
             emit outputReady(tr("Ошибка: ") + exception);
-/*        if (tcpSocket.state() == QAbstractSocket::ConnectedState)
-            tcpSocket.abort(); */
         emit resultReady((int)AbstractTest::ErrorIsOccured);
     }
 }

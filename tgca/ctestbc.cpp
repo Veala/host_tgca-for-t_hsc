@@ -68,7 +68,7 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
     if (num_s < 0)
         return false;   // ошибка метода NumSymOFDM()
 
-    if (tr == tgca_tr_REC)  // передача КШ -> ОУ
+    if (tr == tgca_tr_REC)  // передача КШ-ОУ
     {
         if (mem_src == NULL && size_src > 0)
             return false;   // отсутствуют данные
@@ -105,7 +105,7 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
     return true;
 }
 
-/// Создает образ данных для записи в буфер передатчика ОУ для команды передачи ОУ->КШ.
+/// Создает образ данных для записи в буфер передатчика ОУ для команды передачи ОУ-КШ.
 /// Незначащие байты входного буфера mem_dst заполняются нулями.
 /// Нулевое слово нулевого символа (ответное слово) не изменяется.
 /// Размеры буфера назначения и входных данных задаются в байтах.

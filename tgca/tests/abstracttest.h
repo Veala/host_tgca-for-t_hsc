@@ -75,6 +75,9 @@ public:
     void setEndTest();
     static AbstractTest* getEndTest();
     void resetBeginEnd();
+    QString testType() const { return name_enabled->text(); }
+    template<typename t>
+    t* findField(QString& fieldName) { return (t*)(settings->findChild<t*>(fieldName)); }
 
     enum ValidState {
         DeviceIsNotAvailable,
@@ -103,6 +106,7 @@ signals:
     void unsetEmit(QPushButton*, QPushButton*, QPushButton*);
     void dragged();
     void dropped();
+    void applyToAll(QString&,QString&,QString&,QString&);
 
 protected:
     void mousePressEvent(QMouseEvent *);
@@ -172,17 +176,9 @@ class absObjToThread : public QObject//, public DeviceDriver
 {
     Q_OBJECT
 
-//    int readAll(QTcpSocket*, QByteArray&, int);
-//    int writeAll(QTcpSocket*, QByteArray&);
 public:
     explicit absObjToThread(QObject* parent = 0);
     AbstractTest::RunningState threadState;
-//    int write_F1(QTcpSocket* tcpSocket, QByteArray& writeArray);
-//    int write_F2(QTcpSocket* tcpSocket, QByteArray& writeArray);
-//    int write_Echo(QTcpSocket* tcpSocket, QByteArray& writeArray);
-//    int read_F1(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
-//    int read_F2(QTcpSocket* tcpSocket, QByteArray& writeArray, QByteArray& readArray);
-//    QByteArray cmdHead(int cmd, int dsz);
 
 public slots:
     virtual void doWork() = 0;
@@ -195,6 +191,21 @@ signals:
 protected:
     int pause_stop();
 };
+
+const QString testTypeMemory(QObject::tr("Тест памяти"));
+const QString testTypeRegisters(QObject::tr("Тест регистров"));
+const QString testTypeEcho(QObject::tr("Тест \"Эхо\""));
+const QString testTypeBulbs(QObject::tr("Тест \"лампочек\""));
+const QString testTypeMonitor(QObject::tr("Тест \"монитор\""));
+const QString testTypeTrmSingle(QObject::tr("Передача одного пакета"));
+const QString testTypeVariation(QObject::tr("Перебор параметров команды"));
+const QString testTypeGroupVar(QObject::tr("Перебор параметров групповой команды"));
+const QString testTypeLoadSPI(QObject::tr("Загрузка по SPI"));
+const QString testTypeBuffers(QObject::tr("Проверка буферов"));
+const QString testTypeNull(QObject::tr("Тест отладочный"));
+const QString testTypeTrash(QObject::tr("Тест trash"));
+const QString testTypeNoise(QObject::tr("Помехоустойчивость"));
+
 
 namespace testLib {
 AbstractTest *createTest(QVBoxLayout* devices, QTextBrowser *pB, QTextBrowser *tB, bool su);

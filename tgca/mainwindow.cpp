@@ -28,11 +28,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //setWindowFlags(windowFlags() | Qt::WindowContextHelpButtonHint);
 
-    act_devMode = new QAction(tr("Включить секретный режим"), this);
-    act_devMode->setObjectName(QStringLiteral("act_devMode"));
-    addAction(act_devMode);
-    act_devMode->setShortcut(QApplication::translate("MainWindow", "Alt+Shift+D", 0));
-    connect(act_devMode, SIGNAL(triggered()), this, SLOT(actDevMode()));
+    act_devMode1 = new QAction(tr("Включить секретный режим"), this);
+    act_devMode1->setObjectName(QStringLiteral("act_devMode1"));
+    addAction(act_devMode1);
+    act_devMode1->setShortcut(QApplication::translate("MainWindow", "Alt+Shift+D", 0));
+    connect(act_devMode1, SIGNAL(triggered()), this, SLOT(actDevMode()));
+    act_devMode2 = new QAction(tr("Включить секретный режим"), this);
+    act_devMode2->setObjectName(QStringLiteral("act_devMode2"));
+    addAction(act_devMode2);
+    act_devMode2->setShortcut(QApplication::translate("MainWindow", "Ctrl+Alt+D", 0));
+    connect(act_devMode2, SIGNAL(triggered()), this, SLOT(actDevMode()));
 
     ui->actConfiguration->setVisible(false);
     ui->actConfiguration->setEnabled(false);
@@ -85,7 +90,7 @@ bool MainWindow::clearProject()
         AbstractTest *test = (AbstractTest*)ui->tests->itemAt(i)->widget();
         /// закрыть тест, выгрузить из tests
         delete test;
-    };
+    }
 
     sz = ui->devices->count();
     for (int i=sz-1; i>=0; i--)
@@ -93,7 +98,7 @@ bool MainWindow::clearProject()
         Device *dev = (Device*)ui->devices->itemAt(i)->widget();
         /// Здесь надо разорвать все соединения и удалить устройство
         delete dev;
-    };
+    }
     return bRet;
 }
 /*
@@ -261,14 +266,40 @@ void MainWindow::loadTest(AbstractTest* test)
 {
     test->setParent(this);
     test->setUserLevel(su);
-    connect(act_devMode, SIGNAL(triggered()), test, SLOT(actDevMode()));
+    connect(act_devMode1, SIGNAL(triggered()), test, SLOT(actDevMode()));
+    connect(act_devMode2, SIGNAL(triggered()), test, SLOT(actDevMode()));
     connect(this, SIGNAL(newDev(QString)), test, SLOT(newDev(QString)));
     connect(this, SIGNAL(setTestStateIcon(int)), test, SLOT(setRunningState(int)));
     connect(test, SIGNAL(setEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(setSlot(QPushButton*,QPushButton*,QPushButton*)));
     connect(test, SIGNAL(unsetEmit(QPushButton*,QPushButton*,QPushButton*)), this, SLOT(unsetSlot(QPushButton*,QPushButton*,QPushButton*)));
+    connect(test, SIGNAL(applyToAll(QString&,QString&,QString&,QString&)), this, SLOT(applyToAllTests(QString&,QString&,QString&,QString&)));
     connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
     connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
     ui->tests->addWidget(test);
+}
+
+void MainWindow::applyToAllTests(QString& testType, QString& classType, QString& fieldName, QString& value)
+{
+    for (int i=0; i<ui->tests->count(); i++)
+    {
+        AbstractTest *test = (AbstractTest*)ui->tests->itemAt(i)->widget();
+        //if (test->testType() == testType)
+        {
+            QWidget* wid;
+            if (classType == "QCheckBox")
+            {
+               if (wid = test->findField<QCheckBox>(fieldName)) ((QCheckBox*)wid)->setChecked(!value.isEmpty());
+            }
+            else if (classType == "QLineEdit")
+            {
+                if (wid = test->findField<QLineEdit>(fieldName)) ((QLineEdit*)wid)->setText(value.isEmpty() ? tr("0") : value);
+            }
+            else if (classType == "QComboBox")
+            {
+                if (wid = test->findField<QComboBox>(fieldName)) ((QComboBox*)wid)->setCurrentText(value);
+            }
+        }
+    }
 }
 
 void MainWindow::openTest()
@@ -289,6 +320,7 @@ void MainWindow::createTest()
 
 void MainWindow::actDevMode()
 {
+    qDebug() << "Secret mode";
     if (!su)
     {
         su = true;

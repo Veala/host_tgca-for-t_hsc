@@ -25,7 +25,6 @@ public slots:
     virtual void doWork();
 public:
     QString echoText;
-    QTcpSocket tcpSocket;
     Device *dev;
 };
 

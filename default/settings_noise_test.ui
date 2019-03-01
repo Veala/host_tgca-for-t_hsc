@@ -33,7 +33,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-359</y>
+        <y>0</y>
         <width>459</width>
         <height>1136</height>
        </rect>
@@ -474,7 +474,7 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>009</string>
+          <string>000</string>
          </property>
          <property name="text">
           <string>3</string>
@@ -667,10 +667,10 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>009</string>
+          <string>000</string>
          </property>
          <property name="text">
-          <string>6</string>
+          <string>60</string>
          </property>
         </widget>
        </item>
@@ -743,8 +743,11 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="inputMask">
+          <string>000</string>
+         </property>
          <property name="text">
-          <string>009</string>
+          <string>150</string>
          </property>
         </widget>
        </item>
@@ -1040,10 +1043,10 @@
           </size>
          </property>
          <property name="inputMask">
-          <string>009</string>
+          <string>000</string>
          </property>
          <property name="text">
-          <string>100</string>
+          <string>0</string>
          </property>
         </widget>
        </item>
@@ -1386,12 +1389,12 @@
          </property>
          <item>
           <property name="text">
-           <string>Передача  (ОУ-&gt;КШ)</string>
+           <string>Передача  (ОУ-КШ)</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Приём    (КШ-&gt;ОУ)</string>
+           <string>Приём    (КШ-ОУ)</string>
           </property>
          </item>
         </widget>

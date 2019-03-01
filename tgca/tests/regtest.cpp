@@ -76,20 +76,8 @@ void RegTest::startTest()
 void regObjToThread::doWork()
 {
     try {
-        QString ip = dev->connection.getServerIP();
-        ushort port = dev->connection.getServerPORT().toUShort();
-
         emit resultReady((int)AbstractTest::Running);
-        tcpSocket.connectToHost(QHostAddress(ip), port);
-        if (!tcpSocket.waitForConnected(5000)) {
-            if (pause_stop() == -1) {
-                tcpSocket.abort();
-                return;
-            }
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
-            tcpSocket.abort();
-            return;
-        }
+        dev->tryToConnect();
 
         long it = 0, decrement = 0;
         if (inCycle == 0) { it=-1;  decrement=-1;   }
@@ -111,15 +99,10 @@ void regObjToThread::doWork()
                 writeArray.append((char*)&i, 4);
                 writeArray.append((char*)&final, 4);
             }
-            qDebug() << "tcpSocket.readBufferSize(): " << tcpSocket.readBufferSize();
-
             for (; it<inCycle; it=it+1+decrement) {
                 qDebug() << "writeArray size: " << writeArray.size();
                 dev->write_F1(writeArray.data(), dsz*2);
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
             }
         } else if (mode == "r") {
             for (uint i=addr; i+3<=range; i+=addrinc)
@@ -131,10 +114,7 @@ void regObjToThread::doWork()
                 for (int i=0; i<answer.size(); i+=4) {
                     if (output) outputReady("Read: " + QString::number((int)*(int*)(answer.data()+i), 16));
                 }
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
             }
         } else if (mode == "wr") {
             uint final;
@@ -159,16 +139,23 @@ void regObjToThread::doWork()
                     if (w != r) diff++; else same++;
                 }
                 emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
-                if (pause_stop() == -1) {
-                    tcpSocket.abort();
-                    return;
-                }
+                if (pause_stop() == -1) throw QString("stopped");
             }
         }
-        tcpSocket.abort();
-        emit resultReady(AbstractTest::Completed);
+        throw QString("finish");
     } catch (const QString& exception) {
-        if (exception == "socket")
+        if (exception == "connection") {
+            if (pause_stop() == -1) return;
             emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "socket") {
+            //if (pause_stop() == -1) return;
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else if (exception == "stopped") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Stopped);
+        } else if (exception == "finish") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::Completed);
+        }
     }
 }

@@ -11,6 +11,7 @@
 #include "ramtest.h"
 #include "trashtest.h"
 #include "noisetest.h"
+#include "varbroadtest.h"
 
 #include "../picts.h"
 
@@ -566,7 +567,7 @@ void AbstractTest::setRunningState(int rs)
         if (getRunningState() == Paused) {
             message(tr("Пауза снята (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         } else {
-            message(tr("Тест запущен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+            message(QObject::tr("Тест запущен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
             setGlobalState(BUSY);
             emit setEmit(startButton, pauseButton, stopButton);
         }
@@ -574,13 +575,13 @@ void AbstractTest::setRunningState(int rs)
     case  AbstractTest::Paused:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusInPause.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
         setStatusText(statusTxt, tr("П а у з а"), false, "color: rgb(0, 0, 0)"); // Qt::black)
-        message(tr("Тест поставлен на паузу (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        message(QObject::tr("Тест поставлен на паузу (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         break;
     case AbstractTest::Stopped:
         if (sender()->metaObject()->className() != tr("MainWindow")) {
             statusIcon->setPixmap((QPixmap(tr(strPictTestStatusInterrupted.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
             setStatusText(statusTxt, tr("Остановлен"), false, "color: rgb(0, 0, 0)"); // Qt::black)
-            message(tr("Тест остановлен пользователем (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+            message(QObject::tr("Тест остановлен пользователем (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
             setGlobalState(FREE);
             emit unsetEmit(startButton, pauseButton, stopButton);
             if (runningState == AbstractTest::Deleting)
@@ -595,14 +596,14 @@ void AbstractTest::setRunningState(int rs)
     case AbstractTest::Completed:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedOk.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
         setStatusText(statusTxt, tr("Успех"), true, "color: rgb(0, 0, 255)"); // Qt::blue)
-        message(tr("Тест закончен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        message(QObject::tr("Тест закончен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         setGlobalState(FREE);
         emit unsetEmit(startButton, pauseButton, stopButton);
         break;
     case AbstractTest::ErrorIsOccured:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedErr.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
         setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
-        message(tr("Тест остановлен из-за ошибки (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        message(QObject::tr("Тест остановлен из-за ошибки (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         setGlobalState(FREE);
 //        Device* dev;
 //        foreach (dev, deviceList)
@@ -615,7 +616,7 @@ void AbstractTest::setRunningState(int rs)
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedErr.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
         setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
         message(tr("Внутренняя ошибка: неизвестное состояние теста"));
-        message(tr("Тест остановлен из-за ошибки (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
+        message(QObject::tr("Тест остановлен из-за ошибки (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         setGlobalState(FREE);
 //        Device* dev;
 //        foreach (dev, deviceList)
@@ -706,12 +707,12 @@ void AbstractTest::stopTest()
 AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextBrowser *tB, bool su)
 {
     QStringList allTests;
-    allTests << QObject::tr("Тест \"Эхо\"") << QObject::tr("Тест памяти") << QObject::tr("Тест регистров")
-             << QObject::tr("Тест \"лампочек\"") << QObject::tr("Тест \"монитор\"") << QObject::tr("Передача одного пакета")
-             << QObject::tr("Загрузка по SPI") << QObject::tr("Перебор параметров команды") << QObject::tr("Проверка буферов")
-             << QObject::tr("Тест trash")<< QObject::tr("Помехоустойчивость");
+    allTests << testTypeEcho << testTypeMemory << testTypeRegisters
+             << testTypeBulbs << testTypeMonitor << testTypeTrmSingle
+             << testTypeLoadSPI << testTypeVariation << testTypeBuffers
+             << testTypeTrash << testTypeNoise << testTypeGroupVar;
     if (su)
-        allTests << QObject::tr("Тест отладочный");
+        allTests << testTypeNull;
 
     bool ok;
     QString testType = QInputDialog::getItem(0, QObject::tr("Создать тест"), QObject::tr("Тесты:"), allTests, 0, false, &ok);
@@ -723,29 +724,31 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
 //    }
     QString defFileStr;
 
-    if (testType == QObject::tr("Тест памяти")) {
+    if (testType == testTypeMemory) {
         defFileStr = QObject::tr("../default/mem_test");
-    } else if (testType == QObject::tr("Тест регистров")) {
+    } else if (testType == testTypeRegisters) {
         defFileStr = QObject::tr("../default/reg_test");
-    } else if (testType == QObject::tr("Тест \"Эхо\"")) {
+    } else if (testType == testTypeEcho) {
         defFileStr = QObject::tr("../default/echo_test");
-    } else if (testType == QObject::tr("Тест \"лампочек\"")) {
+    } else if (testType == testTypeBulbs) {
         defFileStr = QObject::tr("../default/bulb_test");
-    } else if (testType == QObject::tr("Тест \"монитор\"")) {
+    } else if (testType == testTypeMonitor) {
         defFileStr = QObject::tr("../default/monitor_test");
-    } else if (testType == QObject::tr("Передача одного пакета")) {
+    } else if (testType == testTypeTrmSingle) {
         defFileStr = QObject::tr("../default/trm_single_test");
-    } else if (testType == QObject::tr("Перебор параметров команды")) {
+    } else if (testType == testTypeVariation) {
         defFileStr = QObject::tr("../default/var_comm_test");
-    } else if (testType == QObject::tr("Загрузка по SPI")) {
+    } else if (testType == testTypeGroupVar) {
+        defFileStr = QObject::tr("../default/var_broad_test");
+    } else if (testType == testTypeLoadSPI) {
         defFileStr = QObject::tr("../default/spi_part");
-    } else if (testType == QObject::tr("Проверка буферов")) {
+    } else if (testType == testTypeBuffers) {
         defFileStr = QObject::tr("../default/ram_test");
-    } else if (testType == QObject::tr("Тест отладочный")) {
+    } else if (testType == testTypeNull) {
         defFileStr = QObject::tr("../default/null_test");
-    } else if (testType == QObject::tr("Тест trash")) {
+    } else if (testType == testTypeTrash) {
         defFileStr = QObject::tr("../default/trash_test");
-    } else if (testType == QObject::tr("Помехоустойчивость")) {
+    } else if (testType == testTypeNoise) {
         defFileStr = QObject::tr("../default/noise_test");
     }
 
@@ -771,54 +774,58 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, Q
     QString uiFileStr;
     QString uiFileStr_stats;
     AbstractTest* test;
-    if (testType == QObject::tr("Тест памяти")) {
+    if (testType == testTypeMemory) {
         uiFileStr = QObject::tr("../default/settings_mem_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_mem_test.ui");
         test = new MemTest(0);
-    }else if (testType == QObject::tr("Проверка буферов")) {
+    }else if (testType == testTypeBuffers) {
         uiFileStr = QObject::tr("../default/settings_ram_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_ram_test.ui");
         test = new RamTest(0);
-    } else if (testType == QObject::tr("Тест регистров")) {
+    } else if (testType == testTypeRegisters) {
         uiFileStr = QObject::tr("../default/settings_reg_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_reg_test.ui");
         test =  new RegTest(0);
-    } else if (testType == QObject::tr("Тест \"Эхо\"")) {
+    } else if (testType == testTypeEcho) {
         uiFileStr = QObject::tr("../default/settings_echo_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_echo_test.ui");
         test = new EchoTest(0);
-    } else if (testType == QObject::tr("Тест \"лампочек\"")) {
+    } else if (testType == testTypeBulbs) {
         uiFileStr = QObject::tr("../default/settings_bulb_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_bulb_test.ui");
         test = new BulbTest(0);
-    } else if (testType == QObject::tr("Тест \"монитор\"")) {
+    } else if (testType == testTypeMonitor) {
         uiFileStr = QObject::tr("../default/settings_monitor_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_monitor_test.ui");
         test = new MonitorTest(0);
-    } else if (testType == QObject::tr("Передача одного пакета")) {
+    } else if (testType == testTypeTrmSingle) {
         uiFileStr = QObject::tr("../default/settings_trm_single_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_trm_single_test.ui");
         test = new TrmSingleTest(0);
-    } else if (testType == QObject::tr("Перебор параметров команды")) {
+    } else if (testType == testTypeVariation) {
         uiFileStr = QObject::tr("../default/settings_var_comm_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_var_comm_test.ui");
         test = new VarCommandTest(0);
-    } else if (testType == QObject::tr("Загрузка по SPI")) {
+    } else if (testType == testTypeLoadSPI) {
         uiFileStr = QObject::tr("../default/settings_spi_part.ui");
         uiFileStr_stats = QObject::tr("../default/stats_spi_part.ui");
         test = new SpiPart(0);
-    } else if (testType == QObject::tr("Тест отладочный")) {
+    } else if (testType == testTypeNull) {
         uiFileStr = QObject::tr("../default/settings_null_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_null_test.ui");
         test = new NullTest(0);
-    } else if (testType == QObject::tr("Тест trash")) {
+    } else if (testType == testTypeTrash) {
         uiFileStr = QObject::tr("../default/settings_trash_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_trash_test.ui");
         test = new TrashTest(0);
-    } else if (testType == QObject::tr("Помехоустойчивость")) {
+    } else if (testType == testTypeNoise) {
         uiFileStr = QObject::tr("../default/settings_noise_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_noise_test.ui");
         test = new NoiseTest(0);
+    } else if (testType == testTypeGroupVar) {
+        uiFileStr = QObject::tr("../default/settings_var_broad_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_var_broad_test.ui");
+        test = new VarBroadTest(0);
     } else {
         qDebug() << "unknown test";
         return NULL;

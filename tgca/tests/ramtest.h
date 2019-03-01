@@ -28,8 +28,6 @@ private:
     QLabel *labelEndAddrRT;
     QLineEdit *lineEditNum;
     QComboBox *comboBoxDev;
-    QLineEdit *lineEditDevBC;
-    QLineEdit *lineEditDevRT;
 
     uint begAddrBC();
     uint begAddrRT();
@@ -48,7 +46,6 @@ public:
 
 protected:
     void perform();
-    void terminate(int);
 };
 
 #endif // RAMTEST_H

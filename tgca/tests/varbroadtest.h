@@ -1,26 +1,25 @@
-#ifndef VARCOMMTEST_H
-#define VARCOMMTEST_H
+#ifndef VARBROADTEST_H
+#define VARBROADTEST_H
 
 #include "commontest.h"
 
-class VarCommandTest : public CommonTest
+class VarBroadTest : public CommonTest
 {
     Q_OBJECT
 public:
-    explicit VarCommandTest(QWidget *parent = 0) : CommonTest(parent) { }
+    explicit VarBroadTest(QWidget *parent = 0) : CommonTest(parent) { }
     void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     virtual void save();
+private slots:
+    void onPushCodes();
 protected:
     void startTest();
     void setEnabledSpecial(bool b);
 
 private:
-    QComboBox *comboBoxCheckRW;         // проверка ответного пакета                           не и
     QComboBox *comboBoxRec;             // проверка, что сообщение от КШ принято ОУ                 не и
-    QComboBox *comboBoxMemBC;           // сравнение буфера приема КШ с исходными данными    не и ???
     QComboBox *comboBoxMemRT;           // сравнение командного пакета с содержимым буфера приёма ОУ      не и
-    QComboBox *comboBoxCheckRTA;        // проверка адреса ОУ  не и
 
     // QCheckBox *checkBoxUseInt;          // определение завершения обмена по прерыванию КШ, если прерывание разрешено в cfg   не б
     // QLabel    *labelUseInt;             // метка должна блокироваться одновременно с checkBoxUseInt, если прерывание не разрешено
@@ -29,23 +28,17 @@ private:
 
     // параметры тестирования
     QComboBox *comboBoxBCIntErr;        // реакция на отсутствие признака завершения обмена КШ
-    QComboBox *comboBoxRTIntErr;        // реакция на отсутствие признака завершения обмена ОУ
-    // QCheckBox *checkBoxOut;             // включение вывода в окно тестов   поле определено в CommonTest
+    // QCheckBox *checkBoxOut;             // включение вывода в окно тестов    поле определено в CommonTest
     QCheckBox *checkBoxInit;            // загрузка начальной конфигурации
     QLineEdit  *lineEditCycle;          // число итераций
 
     // параметры конфигурационного регистра
     QComboBox *comboBoxManType;         // КШ и ОУ
     QCheckBox *checkBoxCodec;           // КШ и ОУ
-    // QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ  поле определено в CommonTest
-    // QCheckBox *checkBoxEnaAddr;         // ОУ  поле определено в CommonTest
-
-    // адрес ОУ
-    QCheckBox *checkBoxRTALoad;         // разрешение загрузки rta во вспомогательный регистр в случае выключенного checkBoxEnaAddr (бит rtavsk_ena=0)
-    // QComboBox *comboBoxRTA;             // адрес ОУ  определено в CommonTest
+    //QCheckBox *checkBoxEnaInt;          // КШ и ОУ, проверяется пока только КШ  поле определено в CommonTest
 
     // паузы  определены в классе CommonTest
-    //QLineEdit *lineEditTime;            // максимальное время ожидания завершения обмена
+    //QLineEdit *lineEditTime;            // максимальное время ожидания завершения цикла обмена
     //QLineEdit *lineEditPause;           // пауза между итерациями
     //QLineEdit *lineEditReservePause;    // задержка для оконного режима
 
@@ -53,11 +46,15 @@ private:
     QComboBox *comboBoxErrStatusBC;     // проверка флагов ошибок в регистре статуса КШ
     QComboBox *comboBoxErrStatusRT;     // проверка флагов ошибок в регистре статуса ОУ
 
-    // периодичность вывода регистра состояния
+    // управление выводом регистров состояния
+    QCheckBox *checkBoxBCOut;           // включение,выключение вывода номеров буферов приёма/передачи при выводе регистра статуса КШ
+    QCheckBox *checkBoxRTOut;           // включение,выключение вывода номеров буферов приёма/передачи при выводе регистра статуса ОУ
     QComboBox *comboBoxBCOutPref;       // выбор периодичности вывода статуса КШ
     QComboBox *comboBoxRTOutPref;       // выбор периодичности вывода статуса ОУ
     QLineEdit *lineEditBCOut;           // частота вывода статуса КШ: если 0, то нет вывода
     QLineEdit *lineEditRTOut;           // частота вывода статуса ОУ: если 0, то нет вывода
+
+    QPushButton *pushButtonCodes;
 
     unsigned int mnb;
     void setStatSettings();
@@ -71,7 +68,7 @@ private slots:
     void onCheckEnaInt();
 };
 
-class varCommandObjToThread : public commonObjToThread
+class varBroadObjToThread : public commonObjToThread
 {
     Q_OBJECT
 
@@ -80,25 +77,26 @@ class varCommandObjToThread : public commonObjToThread
     void setErrorsBeforeCycle(int numerr);
     void setErrorsWithinCycle(bool fatal);
 
+    int buf_rx_bc;
+    int buf_tx_rt;
+
 public:
-    varCommandObjToThread();
+    varBroadObjToThread();
 
     quint32  waitTime, pauseTime, postponeTime;
     int iterCycle;
-    int rtaddr;
-    bool useInt, loadRTA, initEnable;
+    bool useInt, initEnable;
+    bool statusBCOut, statusRTOut;
     bool checkStatusErrBC, checkStatusErrRT, noIntFatalBC;
-    int noIntFatalRT;
-    bool compEnableMemBC, compEnableMemRT;
+    bool compEnableMemRT;
     int perOutBC, modeOutBC, perOutRT, modeOutRT;
     void *testData;
     long dataSize;
     bool codec;
-    bool checkRTA;
     void destroyData();
 
 protected:
     void perform();
 };
 
-#endif // VARCOMMTEST_H
+#endif // VARBROADTEST_H

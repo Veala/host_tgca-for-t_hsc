@@ -159,6 +159,7 @@ void memObjToThread::doWork()
             if (pause_stop() == -1) return;
             emit resultReady((int)AbstractTest::ErrorIsOccured);
         } else if (exception == "socket") {
+            //if (pause_stop() == -1) return;
             emit resultReady((int)AbstractTest::ErrorIsOccured);
         } else if (exception == "stopped") {
             dev->tryToDisconnect();

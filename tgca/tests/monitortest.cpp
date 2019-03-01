@@ -93,33 +93,15 @@ void monitorObjToThread::doWork()
     signalFromMonitor = Monitor::wait,
     force_exit = false;
     emit resultReady((int)AbstractTest::Running);
-    if (devBC)
+    if (devBC && (connectBC() == AbstractTest::Running))
     {
-        AbstractTest::RunningState ans = connectBC();
-        if (ans == AbstractTest::Running)
-        {
-            qDebug() << "BC connected";
-            emit connected(0);
-        }
-        else if (ans == AbstractTest::Stopped)
-        {
-            prepTerminate();
-            return;
-        }
+        qDebug() << "BC connected";
+        emit connected(0);
     }
-    if (devRT)
+    if (devRT && (connectRT() == AbstractTest::Running))
     {
-        AbstractTest::RunningState ans = connectRT();
-        if (ans == AbstractTest::Running)
-        {
-            qDebug() << "RT connected";
-            emit connected(1);
-        }
-        else if (ans == AbstractTest::Stopped)
-        {
-            prepTerminate();
-            return;
-        }
+        qDebug() << "RT connected";
+        emit connected(1);
     }
 
 //        //Monitor monit;
@@ -205,10 +187,10 @@ void monitorObjToThread::doWork()
 void monitorObjToThread::prepTerminate()
 {
     qDebug() << "terminates";
-    if (devBC && tcpSocketBC.state() == QAbstractSocket::ConnectedState)
-        tcpSocketBC.abort();
-    if (devRT && tcpSocketRT.state() == QAbstractSocket::ConnectedState)
-        tcpSocketRT.abort();
+    if (devBC)
+        devBC->tryToDisconnect();
+    if (devRT)
+        devRT->tryToDisconnect();
     emit terminated();
     //emit resultReady((int)AbstractTest::Completed);
 }

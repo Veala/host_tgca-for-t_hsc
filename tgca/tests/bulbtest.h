@@ -27,7 +27,6 @@ public:
     void setIter(QLineEdit* ed) { iterCount = ed->text().toInt(); }
     void setPause(QLineEdit* ed) { iterTime = ed->text().toInt(); }
     void setOutEnabled(bool b) { outEnable = b; }
-    QTcpSocket tcpSocket;
     Device *dev;
 private slots:
     void switchOff(int);

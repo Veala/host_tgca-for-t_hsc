@@ -45,7 +45,8 @@ SOURCES += main.cpp\
     tests/nulltest.cpp \
     tests/ramtest.cpp \
     tests/trashtest.cpp \
-    tests/noisetest.cpp
+    tests/noisetest.cpp \
+    tests/varbroadtest.cpp
 
 HEADERS  += mainwindow.h \
     configuration.h \
@@ -78,7 +79,8 @@ HEADERS  += mainwindow.h \
     tests/nulltest.h \
     tests/ramtest.h \
     tests/trashtest.h \
-    tests/noisetest.h
+    tests/noisetest.h \
+    tests/varbroadtest.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
@@ -109,7 +111,10 @@ FORMS    += mainwindow.ui \
     ../default/settings_ram_test.ui \
     ../default/stats_ram_test.ui \
     ../default/settings_trash_test.ui \
-    ../default/stats_trash_test.ui
+    ../default/stats_trash_test.ui \
+    ../default/settings_var_broad_test.ui \
+    ../default/stats_var_broad_test.ui \
+    ../default/codeselect.ui
 
 RESOURCES += \
     tgca.qrc

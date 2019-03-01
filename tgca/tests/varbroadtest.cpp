@@ -1,13 +1,12 @@
-#include "varcommtest.h"
+#include "varbroadtest.h"
 #include "../testutil.h"
 #include "../ctestbc.h"
 
-void VarCommandTest::setStatSettings()
+void VarBroadTest::setStatSettings()
 {
     statsMap.insert("totalIter", stats->findChild<QLabel*>("totalIter"));
     statsMap.insert("totalErr", stats->findChild<QLabel*>("totalErr"));
-    statsMap.insert("errNoSW", stats->findChild<QLabel*>("errNoSW"));
-    statsMap.insert("errNoFinRT", stats->findChild<QLabel*>("errNoFinRT"));
+    statsMap.insert("errYesSW", stats->findChild<QLabel*>("errYesSW"));
     statsMap.insert("errNoFinBC", stats->findChild<QLabel*>("errNoFinBC"));
     statsMap.insert("errCompare", stats->findChild<QLabel*>("errCompare"));
     statsMap.insert("errStatusRT", stats->findChild<QLabel*>("errStatusRT"));
@@ -18,7 +17,7 @@ void VarCommandTest::setStatSettings()
     connectStatisticSlots();
 }
 
-void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
+void VarBroadTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
     AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
 
@@ -35,7 +34,7 @@ void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tT
     deviceLineEditList.append(lineEditDevRT);
     checkDeviceAvailability(3);
 
-    objToThread = new varCommandObjToThread();
+    objToThread = new varBroadObjToThread();
     connectThread();
 
     setStatSettings();
@@ -43,19 +42,17 @@ void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tT
     testThread.start();
 }
 
-void VarCommandTest::defineFields()
+void VarBroadTest::defineFields()
 {
     dataGen.settings();
 
     lineEditTime = settings->findChild<QLineEdit*>("lineEditTime");
     lineEditPause = settings->findChild<QLineEdit*>("lineEditPause");
 
-    comboBoxRTA = settings->findChild<QComboBox*>("comboBoxRTA");
     comboBoxManType = settings->findChild<QComboBox*>("comboBoxManType");
 
     checkBoxCodec = settings->findChild<QCheckBox*>("checkBoxCodec");
     checkBoxEnaInt = settings->findChild<QCheckBox*>("checkBoxEnaInt");
-    checkBoxEnaAddr = settings->findChild<QCheckBox*>("checkBoxEnaAddr");
     checkBoxUseInt = settings->findChild<QCheckBox*>("checkBoxUseInt");
     labelUseInt = settings->findChild<QLabel*>("labelUseInt");
     checkBoxOut = settings->findChild<QCheckBox*>("checkBoxOut");
@@ -66,8 +63,8 @@ void VarCommandTest::defineFields()
 
     lineEditCycle = settings->findChild<QLineEdit*>("lineEditCycle");
 
-    checkBoxRTALoad = settings->findChild<QCheckBox*>("checkBoxRTALoad");
-
+    checkBoxBCOut = settings->findChild<QCheckBox*>("checkBoxBCOut");
+    checkBoxRTOut = settings->findChild<QCheckBox*>("checkBoxRTOut");
     comboBoxBCOutPref = settings->findChild<QComboBox*>("comboBoxBCOutPref");
     comboBoxRTOutPref = settings->findChild<QComboBox*>("comboBoxRTOutPref");
     lineEditBCOut = settings->findChild<QLineEdit*>("lineEditBCOut");
@@ -77,27 +74,22 @@ void VarCommandTest::defineFields()
 
     comboBoxErrStatusBC = settings->findChild<QComboBox*>("comboBoxErrStatusBC");
     comboBoxErrStatusRT = settings->findChild<QComboBox*>("comboBoxErrStatusRT");
-    comboBoxCheckRW = settings->findChild<QComboBox*>("comboBoxCheckRW");
     comboBoxRec = settings->findChild<QComboBox*>("comboBoxRec");
     comboBoxBCIntErr = settings->findChild<QComboBox*>("comboBoxBCIntErr");
-    comboBoxRTIntErr = settings->findChild<QComboBox*>("comboBoxRTIntErr");
-    comboBoxMemBC = settings->findChild<QComboBox*>("comboBoxMemBC");
     comboBoxMemRT = settings->findChild<QComboBox*>("comboBoxMemRT");
 
     checkBoxParamView = settings->findChild<QCheckBox*>("checkBoxParamView");
-    comboBoxCheckRTA = settings->findChild<QComboBox*>("comboBoxCheckRTA");
-}
 
-void VarCommandTest::load(QString fName)
+    pushButtonCodes = settings->findChild<QPushButton*>("pushButtonCodes");
+ }
+
+void VarBroadTest::load(QString fName)
 {
 top_1
-
-    comboBoxRTA->setCurrentText(out.readLine());
 
     comboBoxManType->setCurrentText(out.readLine());
     checkBoxCodec->setChecked(!out.readLine().isEmpty());
     checkBoxEnaInt->setChecked(!out.readLine().isEmpty());
-    checkBoxEnaAddr->setChecked(!out.readLine().isEmpty());
 
     QString genDataType = out.readLine();
     QString genDataBegin = out.readLine();
@@ -116,7 +108,6 @@ top_1
     checkBoxParamView->setChecked(!out.readLine().isEmpty());
     checkBoxInit->setChecked(!out.readLine().isEmpty());
     lineEditCycle->setText(out.readLine());
-    checkBoxRTALoad->setChecked(!out.readLine().isEmpty());
     comboBoxBCOutPref->setCurrentText(out.readLine());
     comboBoxRTOutPref->setCurrentText(out.readLine());
 
@@ -125,31 +116,28 @@ top_1
 
     comboBoxErrStatusBC->setCurrentIndex(out.readLine().toInt());
     comboBoxErrStatusRT->setCurrentIndex(out.readLine().toInt());
-    comboBoxCheckRW->setCurrentIndex(out.readLine().toInt());
     comboBoxRec->setCurrentIndex(out.readLine().toInt());
     comboBoxBCIntErr->setCurrentIndex(out.readLine().toInt());
-    comboBoxRTIntErr->setCurrentIndex(out.readLine().toInt());
-    comboBoxMemBC->setCurrentIndex(out.readLine().toInt());
     comboBoxMemRT->setCurrentIndex(out.readLine().toInt());
-    out.readLine();
     lineEditReservePause->setText(out.readLine());
+
     QString genDataLen = out.readLine();
-    comboBoxCheckRTA->setCurrentIndex(out.readLine().toInt());
+
+    checkBoxBCOut->setChecked(!out.readLine().isEmpty());
+    checkBoxRTOut->setChecked(!out.readLine().isEmpty());
 
     settingsFile.close();
     dataGen.init(genDataType, genDataBegin, genDataStep, genDataNumStep, genDataUnit, genDataLen);
 }
 
-void VarCommandTest::save()
+void VarBroadTest::save()
 {
     AbstractTest::save();
 top_2(saveFileNameStr)
-    in << comboBoxRTA->currentText() << endl;
 
     in << comboBoxManType->currentText() << endl;
     in << (checkBoxCodec->isChecked() ? "1" : "") << endl;
     in << (checkBoxEnaInt->isChecked() ? "1" : "") << endl;
-    in << (checkBoxEnaAddr->isChecked() ? "1" : "") << endl;
 
     in << dataGen.genType() << endl;
     in << dataGen.begin() << endl;
@@ -168,7 +156,6 @@ top_2(saveFileNameStr)
     in << (checkBoxParamView->isChecked() ? "1" : "") << endl;
     in << (checkBoxInit->isChecked() ? "1" : "") << endl;
     in << lineEditCycle->text() << endl;
-    in << (checkBoxRTALoad->isChecked() ? "1" : "") << endl;
 
     in << comboBoxBCOutPref->currentText() << endl;
     in << comboBoxRTOutPref->currentText() << endl;
@@ -177,34 +164,37 @@ top_2(saveFileNameStr)
 
     in << comboBoxErrStatusBC->currentIndex() << endl;
     in << comboBoxErrStatusRT->currentIndex() << endl;
-    in << comboBoxCheckRW->currentIndex() << endl;
     in << comboBoxRec->currentIndex() << endl;
     in << comboBoxBCIntErr->currentIndex() << endl;
-    in << comboBoxRTIntErr->currentIndex() << endl;
-    in << comboBoxMemBC->currentIndex() << endl;
     in << comboBoxMemRT->currentIndex() << endl;
-    in << tr("reserve") << endl;
     in << lineEditReservePause->text() << endl;
+
     in << dataGen.dataLen() << endl;
-    in << comboBoxCheckRTA->currentIndex() << endl;
+    in << (checkBoxBCOut->isChecked() ? "1" : "") << endl;
+    in << (checkBoxRTOut->isChecked() ? "1" : "") << endl;
 
     settingsFile.close();
 }
 
-void VarCommandTest::setFieldConnections()
+void VarBroadTest::setFieldConnections()
 {
     connect(checkBoxUseInt, SIGNAL(clicked()), this, SLOT(onCheckUseInt()));
     connect(checkBoxEnaInt, SIGNAL(clicked()), this, SLOT(onCheckEnaInt()));
+    connect(pushButtonCodes, SIGNAL(clicked()), this, SLOT(onPushCodes()));
 }
 
-void VarCommandTest::onCheckUseInt()
+void VarBroadTest::onPushCodes()
+{
+}
+
+void VarBroadTest::onCheckUseInt()
 {
     qDebug() << "onCheckUseInt() " << checkBoxUseInt->checkState();
     if (checkBoxUseInt->checkState() == Qt::PartiallyChecked)
         checkBoxUseInt->setCheckState(Qt::Checked);
 }
 
-void VarCommandTest::onCheckEnaInt()
+void VarBroadTest::onCheckEnaInt()
 {
     qDebug() << "onCheckEnaInt() " << checkBoxEnaInt->isChecked();
     checkBoxUseInt->setEnabled(checkBoxEnaInt->isChecked());
@@ -214,18 +204,16 @@ void VarCommandTest::onCheckEnaInt()
         checkBoxUseInt->setCheckState(Qt::PartiallyChecked);
 }
 
-void VarCommandTest::disableUnimplemented()
+void VarBroadTest::disableUnimplemented()
 {
     // ПОКА НЕ РЕАЛИЗОВАНЫ
-    comboBoxCheckRW->setDisabled(true);                             // проверка ответного пакета
-    settings->findChild<QLabel*>("labelCheckRW")->setDisabled(true);
     comboBoxRec->setDisabled(true);                                 // проверка, что сообщение от КШ принято ОУ
     settings->findChild<QLabel*>("labelReceived")->setDisabled(true);
     checkBoxParamView->setDisabled(true);
     settings->findChild<QLabel*>("labelParamView")->setDisabled(true);
 }
 
-void VarCommandTest::setEnabledSpecial(bool b)
+void VarBroadTest::setEnabledSpecial(bool b)
 {
     AbstractTest::setEnabledSpecial(b);
 
@@ -235,36 +223,28 @@ void VarCommandTest::setEnabledSpecial(bool b)
     }
     else
     {
-        comboBoxRTA->setEnabled(true);
-        checkBoxRTALoad->setEnabled(true);
         checkBoxCodec->setEnabled(true);
         settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
-        settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
-        settings->findChild<QLabel*>("labelRTARegLoad")->setEnabled(true);
-        settings->findChild<QLabel*>("labelHeaderRegisters")->setEnabled(true);
+        settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
 
-        dataGen.enable(true);
+//        dataGen.enable(true);
 
         settings->findChild<QLabel*>("labelHeaderPause")->setEnabled(true);
         settings->findChild<QLabel*>("labelTime")->setEnabled(true);
         settings->findChild<QLabel*>("labelPause")->setEnabled(true);
         lineEditTime->setEnabled(true);
         lineEditPause->setEnabled(true);
-
     }
 }
 
-void VarCommandTest::startTest()
+void VarBroadTest::startTest()
 {
-    varCommandObjToThread* curThread = (varCommandObjToThread*)objToThread;
+    varBroadObjToThread* curThread = (varBroadObjToThread*)objToThread;
 
     curThread->useInt = ((checkBoxUseInt->checkState() == Qt::Checked) && checkBoxEnaInt->isChecked()); // напоминание: загрузка cfg_reg в этом тесте всегда включена
     curThread->setOutEnabled(checkBoxOut->isChecked());
     curThread->waitTime = lineEditTime->text().toInt(0, 16);
-    curThread->rtaddr = comboBoxRTA->currentIndex();
 
-    //curThread->testData = 0;
-    curThread->compEnableMemBC = (comboBoxMemBC->currentIndex() > 0);
     curThread->compEnableMemRT = (comboBoxMemRT->currentIndex() > 0);
     curThread->iterCycle = lineEditCycle->text().toInt(0, 10);
     if (curThread->iterCycle <= 0)
@@ -274,14 +254,13 @@ void VarCommandTest::startTest()
     curThread->checkStatusErrBC = (comboBoxErrStatusBC->currentIndex() > 0);
     curThread->checkStatusErrRT = (comboBoxErrStatusRT->currentIndex() > 0);
     curThread->noIntFatalBC = (comboBoxBCIntErr->currentIndex() != 0);
-    curThread->noIntFatalRT = comboBoxRTIntErr->currentIndex();
+    curThread->statusBCOut = checkBoxBCOut->isChecked();
+    curThread->statusRTOut = checkBoxRTOut->isChecked();
     curThread->perOutBC = lineEditBCOut->text().isEmpty() ? 0 : lineEditBCOut->text().toInt(0, 10);
     curThread->perOutRT = lineEditRTOut->text().isEmpty() ? 0 : lineEditRTOut->text().toInt(0, 10);
     curThread->modeOutBC = comboBoxBCOutPref->currentIndex();
     curThread->modeOutRT = comboBoxRTOutPref->currentIndex();
     curThread->initEnable = checkBoxInit->isChecked();
-
-    //curThread->manipulation = comboBoxManType->currentText();
     curThread->codec = checkBoxCodec->isChecked();
 
     curThread->devBC = deviceList.at(0);
@@ -300,16 +279,6 @@ void VarCommandTest::startTest()
     curThread->devRT->reg_hsc_cfg.type_man = comboBoxManType->currentIndex();
     curThread->devRT->reg_hsc_cfg.en_rt_bc_int = checkBoxEnaInt->isChecked() ? 1 : 0;
     curThread->devRT->reg_hsc_cfg.ena_codec = checkBoxCodec->isChecked() ? 1 : 0;
-    curThread->devRT->reg_hsc_cfg.rtavsk_ena = checkBoxEnaAddr->isChecked() ? 1 : 0;
-    if (checkBoxEnaAddr->isChecked())
-        curThread->devRT->reg_hsc_cfg.rtavsk = curThread->rtaddr;
-
-    // Конфигурационный регистр будет загружен обязательно.
-    // Если адрес ОУ содержится в конфигурационном регистре, то мы его не будем загружать во вспомогательный регистр.
-    // Проверка записи регистров в этом тесте не предусмотрена, поэтому проверка адреса ОУ
-    // осуществляется только на ветке, когда запись этого адреса в регистры выключена.
-    curThread->loadRTA = checkBoxRTALoad->isChecked() && !checkBoxEnaAddr->isChecked();
-    curThread->checkRTA = (comboBoxCheckRTA->currentIndex() > 0) && !checkBoxRTALoad->isChecked() && !checkBoxEnaAddr->isChecked();
 
     curThread->dataSize = dataGen.getDataLen();
     int dataSizeRequired = MAXNUMSYM * calcNumWordInSymbol(comboBoxManType->currentIndex(), curThread->codec?1:0) - sizeof(word32_t);
@@ -320,7 +289,7 @@ void VarCommandTest::startTest()
     emit startTestTh();
 }
 
-bool varCommandObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, bool *error)
+bool varBroadObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, bool *error)
 {
     bool bNoInt = false;
 
@@ -337,19 +306,60 @@ bool varCommandObjToThread::checkStatusRegBC(int statusBC, int interruption, int
         *error = true;
         bNoInt = true;
     }
+    if ((statusBC & fl_REG_STATUS_rx_num_buf) != buf_rx_bc)
+    {
+        buf_rx_bc = statusBC & fl_REG_STATUS_rx_num_buf;
+        stdOutput(tr("Неожиданное изменение активного буфера приёма КШ"), tr("BC rec. buffer unexpectedly changed"));
+    }
 
-    if ( checkStatusErrBC && ( (codec && ((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
+    if ( checkStatusErrBC && ( (/*codec && */((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
         (statusBC & fl_REG_STATUS_no_aw_err) != 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
     {
-            stdOutput(tr("Итерация = %1   Ошибка в статусе КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')),
+            stdOutput(tr("Итерация = %1   Есть ошибки в статусе КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')),
                       tr("Iter = %1   Errors in BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')));
         *error = true;
         emit statsOutputReady("errStatusBC", 1);
+        QString rus, eng;
+        if (statusBC & fl_REG_STATUS_rs_err)
+        {
+            rus = tr("       ") + tr("  Ошибка кодека");
+            eng = tr("       ") + tr("  Codec error");
+        }
+        if (statusBC & fl_REG_STATUS_no_aw_err)
+        {
+            if (rus.isEmpty())
+            {
+                rus = tr("       Н");
+                eng = tr("       U");
+            }
+            else
+            {
+                rus = tr(",  н");
+                eng = tr(",  u");
+            }
+            rus += tr("еуместный флаг ошибки");
+            eng += tr("nsuitable error flag");
+        }
+        if (!rus.isEmpty())
+            stdOutput(rus, eng);
+        if (statusBC & fl_REG_STATUS_yes_aw_gr_err)
+        {
+            emit statsOutputReady("errYesSW", 1);
+            stdOutput(tr("Признак получения ответа от групповой команды"), tr("Response flag for broadcast command"));
+        }
+    }
+    else if ((!checkStatusErrBC) && (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0)
+    {
+        *error = true;
+        emit statsOutputReady("errYesSW", 1);
+        stdOutput(tr("Итерация = %1   Ошибка в статусе КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')),
+                  tr("Iter = %1   Error in BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')));
+        stdOutput(tr("Признак получения ответа от групповой команды"), tr("Response flag for broadcast command"));
     }
     else if (bNoInt)
     {
-            stdOutput(tr("Статус КШ: %1").arg(statusBC, 4, 16, QLatin1Char('0')),
-                      tr("BC status: %1").arg(statusBC, 4, 16, QLatin1Char('0')));
+        stdOutput(tr("Статус КШ: %1").arg(statusBC, 4, 16, QLatin1Char('0')),
+                  tr("BC status: %1").arg(statusBC, 4, 16, QLatin1Char('0')));
     }
     else if ((it < perOutBC && modeOutBC == 0) || (perOutBC != 0 && modeOutBC == 1 && (it%perOutBC) == 0))
     {
@@ -362,21 +372,11 @@ bool varCommandObjToThread::checkStatusRegBC(int statusBC, int interruption, int
     return bNoInt;
 }
 
-bool varCommandObjToThread::checkStatusRegRT(int status, int it, bool *error)
+bool varBroadObjToThread::checkStatusRegRT(int status, int it, bool *error)
 {
     bool bNoInt = false;
 
-    /*
-    if (useInt && noIntFatalRT)
-    {
-        devRT->readReg(&devRT->reg_aux_interruption);
-        if (devRT->reg_aux_interruption.inter == 0)
-        stdOutput(tr("Итерация = %1   Нет прерывания ОУ").arg(it, 6), tr("Iter = %1   No interruption from RT").arg(it, 6));
-        *error = true;
-        bNoInt = true;
-    }
-    */
-    if ((status & fl_REG_STATUS_rt_bc_int) == 0 && (noIntFatalRT || checkStatusErrRT))
+    if ((status & fl_REG_STATUS_rt_bc_int) == 0 && checkStatusErrRT)
     {
         stdOutput(tr("Итерация = %1   Нет признака завершения обмена ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
                   tr("Iter = %1   No interruption flag in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
@@ -395,17 +395,15 @@ bool varCommandObjToThread::checkStatusRegRT(int status, int it, bool *error)
             stdOutput(tr("Итерация = %1   Статус ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
                       tr("Iter = %1   RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
     }
-    if (bNoInt)
-        emit statsOutputReady("errNoFinRT", 1);
     return bNoInt;
 }
 
-varCommandObjToThread::varCommandObjToThread():
+varBroadObjToThread::varBroadObjToThread():
     commonObjToThread()
 {
 }
 
-void varCommandObjToThread::perform()
+void varBroadObjToThread::perform()
 {
     int errorsBefore = 0;
     if (testData == 0)
@@ -417,7 +415,7 @@ void varCommandObjToThread::perform()
         return;
     }
 
-    qDebug() << "varCommandObjToThread::perform() started";
+    qDebug() << "varBroadObjToThread::perform() started";
 
     if (connectBC() != AbstractTest::Running)
         return;
@@ -442,31 +440,6 @@ void varCommandObjToThread::perform()
     devRT->writeReg(&devRT->reg_hsc_cfg);
     setRegWritten(devRT, devRT->reg_hsc_cfg);
 
-    if (loadRTA)
-    {
-        devRT->reg_aux_rtaddr.addr = rtaddr;
-        devRT->writeReg(&devRT->reg_aux_rtaddr);
-    }
-
-    if (checkRTA) // проверка адреса ОУ
-    {
-        if (devRT->reg_hsc_cfg.rtavsk_ena == 0)
-        {
-            // проверяем вспомогательный регистр
-            REG_AUX_rtaddr reg;
-            devRT->readReg(&reg);
-            if (reg.addr != rtaddr)
-            {
-                stdOutput(tr("Ошибка сравнения адреса ОУ"), tr("Comparison RT address wrong"));
-                errorsBefore++;
-                emit statsOutputReady("errCompare", 1);
-                setErrorsBeforeCycle(++errorsBefore);
-                return;
-            }
-        }
-        // иначе ничего не проверяем, потому что адрес ОУ сидит в конфигурационном регистре, который в этом тесте всегда загружается
-    }
-
     if (initEnable)
     {
         // Начальная конфигурация КШ
@@ -485,9 +458,6 @@ void varCommandObjToThread::perform()
     devBC->writeReg(&devBC->reg_hsc_cfg);
     setRegWritten(devBC, devBC->reg_hsc_cfg);
 
-    if (pause_stop() == -1)
-        return;
-
     initStartBC();
 
     CTestBC test;
@@ -496,11 +466,16 @@ void varCommandObjToThread::perform()
 
     int statusRT = getStatusReg(devRT);
     int statusBC = getStatusReg(devBC);
+    buf_rx_bc = statusBC & fl_REG_STATUS_rx_num_buf;
+    buf_tx_rt = statusRT & fl_REG_STATUS_tx_num_buf;
 
     int it = 0;
     int errCounter = 0;
     int pos = 0;
     char *pData = (char*)testData;
+
+    if (pause_stop() == -1)
+        return;
 
     for (int iter = 0; iter < iterCycle; iter++)
     {
@@ -508,76 +483,73 @@ void varCommandObjToThread::perform()
         {
             for (int num=1; num<=MAXNUMSYM; num++)
             {
+                char trmBuf[MAXPACKAGESIZE];
                 int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
-                int trbit = tgca_tr_REC;   // КШ-ОУ
+                bool errorOccured = false;
+                int addr_rx_rt = getBufRec(statusRT);
+
+                if (pos > dataSize)
+                    pos -= dataSize;
+
+                emit statsOutputReady("totalIter", 1);
+
+                // создание командного пакета с данными для передачи по МКПД КШ-ОУ
+                if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, BRD_RT_ADDR, tgca_tr_REC, code))
                 {
-                    char trmBuf[MAXPACKAGESIZE];
-                    bool errorOccured = false;
-                    int addr_rx = getBufRec(statusRT);
+                    stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                    emit statsOutputReady("otherErr", 1);
+                    setErrorsWithinCycle(false);
+                    return;
+                }
+                // Запись командного пакета в буфер передачи КШ
+                devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
 
-                    if (pos > dataSize)
-                        pos -= dataSize;
+                // Оконный режим
+                switchWindow(1);
+                thread()->msleep(delayTime);
 
-                    emit statsOutputReady("totalIter", 1);
+                // Старт обмена
+                devBC->writeReg(&devBC->reg_hsc_creg);
+                int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
 
-                    // создание командного пакета и данных для передачи по МКПД
-                    if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, rtaddr, trbit, code))
+                // Оконный режим
+                switchWindow(0);
+
+                statusRT = getStatusReg(devRT);
+                bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
+                checkStatusRegRT(statusRT, it, &errorOccured);
+
+                if (bNoIntBC && noIntFatalBC)
+                {
+                    setErrorsWithinCycle(true);
+                    return;
+                }
+
+                if (compEnableMemRT)
+                {
+                    // Чтение данных из буфера приёма ОУ для сравнения
+                    QByteArray readArrayC;
+                    readArrayC.resize(num*NUMBYTEINOFDMSYM);
+                    if (postponeTime > 0)
+                        thread()->msleep(postponeTime);
+                    devRT->read_F2(addr_rx_rt, num*NUMBYTEINOFDMSYM, readArrayC.data());
+                    if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
                     {
-                        stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
-                        emit statsOutputReady("otherErr", 1);
-                        setErrorsWithinCycle(false);
-                        return;
+                        if (it <= 1)
+                            stdOutput(tr("Итерация %1: сравнение буфера приёма ОУ успешно").arg(it), tr("Iter %1: comparison RT rec buffer OK").arg(it));
                     }
-                    // Запись командного пакета в буфер передачи КШ
-                    devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
-
-                    // Оконный режим
-                    switchWindow(1);
-                    thread()->msleep(delayTime);
-
-                    // Старт обмена
-                    devBC->writeReg(&devBC->reg_hsc_creg);
-                    int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
-
-                    // Оконный режим
-                    switchWindow(0);
-
-                    statusRT = getStatusReg(devRT);
-                    bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                    bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
-
-                    if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
+                    else
                     {
-                        setErrorsWithinCycle(true);
-                        return;
+                        stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
+                        stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                        emit statsOutputReady("errCompare", 1);
+                        errorOccured = true;
                     }
-
-                    if (compEnableMemRT)
-                    {
-                        // Чтение данных из буфера приёма ОУ для сравнения
-                        QByteArray readArrayC;
-                        readArrayC.resize(num*NUMBYTEINOFDMSYM);
-                        if (postponeTime > 0)
-                            thread()->msleep(postponeTime);
-                        devRT->read_F2(addr_rx, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                        if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
-                        {
-                            if (it <= 1)
-                                stdOutput(tr("Сравнение буфера приёма ОУ успешно"), tr("Comparison RT rec buffer OK"));
-                        }
-                        else
-                        {
-                            stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
-                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                            emit statsOutputReady("errCompare", 1);
-                            errorOccured = true;
-                        }
-                    }
-                    if (errorOccured)
-                    {
-                        emit statsOutputReady("totalErr", 1);
-                        errCounter ++;
-                    }
+                }
+                if (errorOccured)
+                {
+                    emit statsOutputReady("totalErr", 1);
+                    errCounter ++;
                 }
 
                 it++;
@@ -586,94 +558,6 @@ void varCommandObjToThread::perform()
                     thread()->msleep(pauseTime);
                 if (pause_stop() == -1)
                     return;
-
-                trbit = tgca_tr_TRM;   // ОУ-КШ
-                {
-                    char trmBuf[MAXPACKAGESIZE];
-                    char recBuf[NUMBYTEINOFDMSYM];
-
-                    bool errorOccured = false;
-                    int addr_tr_rt = getBufTrm(statusRT);
-                    int addr_rx_bc = getBufRec(statusBC);
-
-                    if (pos > dataSize)
-                        pos -= dataSize;
-
-                    emit statsOutputReady("totalIter", 1);
-
-                    // создание командного пакета и данных для передачи по МКПД
-                    if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, num_b, rtaddr, trbit, code))
-                    {
-                        stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
-                        emit statsOutputReady("otherErr", 1);
-                        setErrorsWithinCycle(false);
-                        return;
-                    }
-                    if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b))
-                    {
-                        stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
-                        emit statsOutputReady("otherErr", 1);
-                        setErrorsWithinCycle(false);
-                        return;
-                    }
-                    // Запись командного пакета в буфер передачи КШ
-                    devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
-                    // Запись данных в буфер передачи ОУ
-                    devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
-
-                    // Оконный режим
-                    switchWindow(1);
-                    thread()->msleep(delayTime);
-
-                    // Старт обмена
-                    devBC->writeReg(&devBC->reg_hsc_creg);
-                    int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
-
-                    // Оконный режим
-                    switchWindow(0);
-
-                    statusRT = getStatusReg(devRT);
-                    bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                    bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
-
-                    if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
-                    {
-                        setErrorsWithinCycle(true);
-                        return;
-                    }
-
-                    if (compEnableMemBC)
-                    {
-                        // Чтение данных из буфера приёма КШ для сравнения
-                        QByteArray readArrayC;
-                        readArrayC.resize(num*NUMBYTEINOFDMSYM);
-                        devBC->read_F2(addr_rx_bc, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                        if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
-                        {
-                            if (it <= 1)
-                                stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
-                        }
-                        else
-                        {
-                            stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                            emit statsOutputReady("errCompare", 1);
-                            errorOccured = true;
-                        }
-                    }
-                    if (errorOccured)
-                    {
-                        emit statsOutputReady("totalErr", 1);
-                        errCounter ++;
-                    }
-                }
-                it++;
-                pos += num_b;
-                if (pauseTime > 0)
-                    thread()->msleep(pauseTime);
-                if (pause_stop() == -1)
-                    return;
-
             } //length cycle
         } // code cycle
     } // iter cycle
@@ -686,14 +570,14 @@ void varCommandObjToThread::perform()
 
 //lineEditSPIData->setInputMask(QApplication::translate("TestTrmSingle", "HHHH;_", 0));
 
-void varCommandObjToThread::setErrorsBeforeCycle(int errors)
+void varBroadObjToThread::setErrorsBeforeCycle(int errors)
 {
     emit resultReady((int)AbstractTest::ErrorIsOccured);
     emit statsOutputReady("errBefore", errors);
     emit statsOutputReady("totalErr", errors);
 }
 
-void varCommandObjToThread::setErrorsWithinCycle(bool fatal)
+void varBroadObjToThread::setErrorsWithinCycle(bool fatal)
 {
     emit resultReady((int)AbstractTest::ErrorIsOccured);
     if (fatal)
@@ -701,7 +585,7 @@ void varCommandObjToThread::setErrorsWithinCycle(bool fatal)
     emit statsOutputReady("totalErr", 1);
 }
 
-void varCommandObjToThread::destroyData()
+void varBroadObjToThread::destroyData()
 {
     if  (testData)
         free (testData);

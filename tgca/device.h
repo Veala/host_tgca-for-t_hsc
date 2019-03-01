@@ -33,7 +33,7 @@ class SocketDriver : public QObject
     Q_OBJECT
 
 public:
-    explicit SocketDriver(QWidget *parent = 0) : QObject(parent), timer(NULL), socket(NULL) { }
+    explicit SocketDriver(QWidget *parent = 0) : QObject(parent), timer(NULL), socket(NULL), mutex(NULL) { }
     ~SocketDriver();
     QAbstractSocket::SocketState getSocketState() {
         return socket->state();
@@ -59,6 +59,7 @@ public:
         int allDataToWrite = 0;
         int allDataToRead = 0;
     } allData;
+    QMutex* mutex;
 
 private:
     QTcpSocket* socket;
@@ -66,6 +67,7 @@ private:
 
 private slots:
     void init();
+    void stop();
     void connectedSlot();
     void disconnectedSlot();
     void readyReadSlot();
@@ -77,7 +79,6 @@ public slots:
     void tryToConnect(QString ip, ushort port);
     void tryToDisconnect();
     void tryToExchange();
-    void tryToAbort();
 };
 
 class Device : public QFrame
@@ -86,6 +87,7 @@ class Device : public QFrame
 
 signals:
     void tcpInit();
+    void stopAll();
     void tcpConnect(QString, ushort);
     void tcpDisconnect();
     void tcpExchange();
