@@ -57,6 +57,11 @@ void NullTest::defineFields()
     checkBoxConnRT = settings->findChild<QCheckBox *>("checkBoxConnRT");
     // вывод
     comboBoxOut = settings->findChild<QComboBox*>("comboBoxOut");
+    // параметры заданий
+    lineEditSleepTime = settings->findChild<QLineEdit*>("lineEditSleepTime");
+    lineEditErrBit = settings->findChild<QLineEdit*>("lineEditErrBit");
+    comboBoxManType = settings->findChild<QComboBox*>("comboBoxManType");
+    checkBoxCodec = settings->findChild<QCheckBox*>("checkBoxCodec");
 }
 
 void NullTest::load(QString fName)
@@ -80,6 +85,11 @@ top_1
         checkBoxDevRT->setChecked(!out.readLine().isEmpty());
         checkBoxConnRT->setChecked(!out.readLine().isEmpty());
         comboBoxOut->setCurrentText(out.readLine());
+
+        comboBoxManType->setCurrentText(out.readLine());
+        checkBoxCodec->setChecked(!out.readLine().isEmpty());
+        lineEditSleepTime->setText(out.readLine());
+        lineEditErrBit->setText(out.readLine());
 }
 
 void NullTest::save()
@@ -103,6 +113,10 @@ top_2(saveFileNameStr)
     in << (checkBoxDevRT->isChecked() ? "1" : "") << endl;
     in << (checkBoxConnRT->isChecked() ? "1" : "") << endl;
     in << comboBoxOut->currentText() << endl;
+    in << comboBoxManType->currentText() << endl;
+    in << (checkBoxCodec->isChecked() ? "1" : "") << endl;
+    in << lineEditSleepTime->text() << endl;
+    in << lineEditErrBit->text() << endl;
 
     settingsFile.close();
 }
@@ -122,6 +136,13 @@ void NullTest::startTest()
     int outMode = comboBoxOut->currentIndex();
     curThread->bDebugOut = (outMode == 3);
     curThread->setOutEnabled(outMode%2);
+
+    curThread->timeTest = !lineEditSleepTime->text().isEmpty();
+    curThread->timeSleep = curThread->timeTest ? lineEditSleepTime->text().toInt() : 0;
+    curThread->compTest = !lineEditErrBit->text().isEmpty();
+    curThread->wrongBit = curThread->compTest ? lineEditErrBit->text().toInt() : 0;
+    curThread->manType = comboBoxManType->currentIndex();
+    curThread->codec = checkBoxCodec->isChecked();
 
     curThread->testData = dataGen.createData(dataGen.getDataLen(), 2);
 
@@ -168,8 +189,6 @@ void nullObjToThread::perform()
         errCounter++;
         emit statsOutputReady("errData", 1);
     }
-    else
-        free (testData);
 
     stdOutput(QObject::tr("Тест тестов запущен"), tr("Null-test started"));
     if (bConnectBC)
@@ -187,6 +206,8 @@ void nullObjToThread::perform()
                 stdOutput(tr("Непредусмотренный код ответа connectBC(): %1").arg(ans), tr("Invalid return from connectBC(): %1").arg(ans));
                 emit statsOutputReady("errOther", 1);
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
+                if (testData)
+                    free (testData);
                 return;
             }
         }
@@ -211,6 +232,8 @@ void nullObjToThread::perform()
                 stdOutput(tr("Непредусмотренный код ответа connectRT(): %1").arg(ans), tr("Invalid return from connectRT(): %1").arg(ans));
                 emit statsOutputReady("errOther", 1);
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
+                if (testData)
+                    free (testData);
                 return;
             }
         }
@@ -218,6 +241,8 @@ void nullObjToThread::perform()
         {
             emit statsOutputReady("errOther", 1);
             emit resultReady((int)AbstractTest::ErrorIsOccured);
+            if (testData)
+                free (testData);
             return;
         }
     }
@@ -229,6 +254,7 @@ void nullObjToThread::perform()
 
         if (bDebugOut && (iter%20 == 0))
             stdOutput(tr("Итерация %1").arg(iter), tr("Iter = %1").arg(iter));
+        qDebug() << "iter " << iter;
 
    /*     QTime curTime;
         curTime.start(); // = QTime::currentTime();
@@ -253,8 +279,49 @@ void nullObjToThread::perform()
             qDebug() << "time2 = " << time2;
             qDebug() << "diff = " << diff;*/
 
+        if (timeTest)
+        {
+        }
+
+        if (compTest && testData!=0)
+        {
+            char trmBuf[MAXPACKAGESIZE];
+            CTestBC test;
+            test.setConfigFlds(manType, codec);
+            int mb = test.maxNumByte();
+            if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, testData, mb, 0, tgca_tr_REC, 0))
+            {
+                stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                emit statsOutputReady("otherErr", 1);
+                emit resultReady((int)AbstractTest::ErrorIsOccured);
+                    free (testData);
+                return;
+            }
+            // портим несколько бит
+            for (int i=0; i<wrongBit && i<256; i++)
+            {
+                trmBuf[i*NUMBYTEINOFDMSYM + 8] = trmBuf[i*NUMBYTEINOFDMSYM + 8]  ^ (char)1;
+            }
+            int err_1, err_eq, err_gt;
+            bool b_1  = test.cmpPackDataBit(trmBuf, testData, mb, &err_1, 1 );
+            qDebug() << 1 << " " << err_1 << " " << b_1;
+            bool b_eq = test.cmpPackDataBit(trmBuf, testData, mb, &err_eq, wrongBit+1 );
+            qDebug() << wrongBit+1 << " " << err_eq << " " << b_eq;
+            if (wrongBit > 2)
+            {
+                bool b_gt = test.cmpPackDataBit(trmBuf, testData, mb, &err_gt, wrongBit-1 );
+                qDebug() << wrongBit-1 << " " << err_gt << " " << b_gt;
+            }
+        }
+
         if (pause_stop() == -1)
+        {
+            if (testData)
+                free (testData);
             return;
+        }
     }
+    if (testData)
+        free (testData);
     emit resultReady(errCounter == 0 ? (int)(AbstractTest::Completed) : (int)(AbstractTest::ErrorIsOccured));
 }

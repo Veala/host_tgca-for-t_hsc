@@ -1,6 +1,7 @@
 #include "varcommtest.h"
 #include "../testutil.h"
 #include "../ctestbc.h"
+#include "../codeselect.h"
 
 void VarCommandTest::setStatSettings()
 {
@@ -86,6 +87,9 @@ void VarCommandTest::defineFields()
 
     checkBoxParamView = settings->findChild<QCheckBox*>("checkBoxParamView");
     comboBoxCheckRTA = settings->findChild<QComboBox*>("comboBoxCheckRTA");
+
+    pushButtonCodes = settings->findChild<QPushButton*>("pushButtonCodes");
+    lineViewCodes = settings->findChild<QLineEdit*>("lineViewCodes");
 }
 
 void VarCommandTest::load(QString fName)
@@ -135,9 +139,11 @@ top_1
     lineEditReservePause->setText(out.readLine());
     QString genDataLen = out.readLine();
     comboBoxCheckRTA->setCurrentIndex(out.readLine().toInt());
+    QString codes = out.readLine();
 
     settingsFile.close();
     dataGen.init(genDataType, genDataBegin, genDataStep, genDataNumStep, genDataUnit, genDataLen);
+    codesToLabel(codes, lineViewCodes);
 }
 
 void VarCommandTest::save()
@@ -187,6 +193,7 @@ top_2(saveFileNameStr)
     in << lineEditReservePause->text() << endl;
     in << dataGen.dataLen() << endl;
     in << comboBoxCheckRTA->currentIndex() << endl;
+    in << commmonTest_labelToCodes(lineViewCodes);
 
     settingsFile.close();
 }
@@ -195,18 +202,30 @@ void VarCommandTest::setFieldConnections()
 {
     connect(checkBoxUseInt, SIGNAL(clicked()), this, SLOT(onCheckUseInt()));
     connect(checkBoxEnaInt, SIGNAL(clicked()), this, SLOT(onCheckEnaInt()));
+    connect(pushButtonCodes, SIGNAL(clicked()), this, SLOT(onPushCodes()));
+}
+
+void VarCommandTest::onPushCodes()
+{
+    CodeSelect cs(this);
+    cs.labelToCodes(lineViewCodes->text());
+    connect(&cs, SIGNAL(applyCodes(QString)), this, SLOT(applyCodes(QString)));
+    cs.exec();
+}
+
+void VarCommandTest::applyCodes(QString str)
+{
+    commmonTest_applyCodesToLabel(lineViewCodes, str);
 }
 
 void VarCommandTest::onCheckUseInt()
 {
-    qDebug() << "onCheckUseInt() " << checkBoxUseInt->checkState();
     if (checkBoxUseInt->checkState() == Qt::PartiallyChecked)
         checkBoxUseInt->setCheckState(Qt::Checked);
 }
 
 void VarCommandTest::onCheckEnaInt()
 {
-    qDebug() << "onCheckEnaInt() " << checkBoxEnaInt->isChecked();
     checkBoxUseInt->setEnabled(checkBoxEnaInt->isChecked());
     if (checkBoxUseInt->checkState() == Qt::PartiallyChecked)
         checkBoxUseInt->setCheckState(Qt::Checked);
@@ -251,6 +270,8 @@ void VarCommandTest::setEnabledSpecial(bool b)
         lineEditTime->setEnabled(true);
         lineEditPause->setEnabled(true);
 
+        lineViewCodes->setEnabled(true);
+        settings->findChild<QLabel*>("labelCodes")->setEnabled(true);
     }
 }
 
@@ -316,6 +337,8 @@ void VarCommandTest::startTest()
     if (curThread->dataSize < dataSizeRequired)
         curThread->dataSize = dataSizeRequired;
     curThread->testData = dataGen.createData(curThread->dataSize, 2);
+
+    curThread->codeMask = lineViewCodes->text();
 
     emit startTestTh();
 }
@@ -411,7 +434,14 @@ void varCommandObjToThread::perform()
     if (testData == 0)
     {
         stdOutput(tr("Не удалось сгенерировать данные"), tr("Data generation failed"));
-        //emit resultReady((int)AbstractTest::ErrorIsOccured);
+        emit statsOutputReady("otherErr", 1);
+        setErrorsBeforeCycle(++errorsBefore);
+        return;
+    }
+
+    if (codeMask.length() != (MAX_COMMAND_CODE*2+1))
+    {
+        stdOutput(tr("Некорректно задан список кодов"), tr("Invalid command code set"));
         emit statsOutputReady("otherErr", 1);
         setErrorsBeforeCycle(++errorsBefore);
         return;
@@ -421,11 +451,9 @@ void varCommandObjToThread::perform()
 
     if (connectBC() != AbstractTest::Running)
         return;
-    qDebug() << tr("BC connected");
 
     if (connectRT() != AbstractTest::Running)
         return;
-    qDebug() << tr("RT connected");
 
     if (initEnable)
     {
@@ -504,177 +532,180 @@ void varCommandObjToThread::perform()
 
     for (int iter = 0; iter < iterCycle; iter++)
     {
-        for (int code = 0; code < 64; code++)
+        for (int code = 0; code <= MAX_COMMAND_CODE; code++)
         {
-            for (int num=1; num<=MAXNUMSYM; num++)
+            if (codeMask.at(code*2) == '1')
             {
-                int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
-                int trbit = tgca_tr_REC;   // КШ-ОУ
+                for (int num=1; num<=MAXNUMSYM; num++)
                 {
-                    char trmBuf[MAXPACKAGESIZE];
-                    bool errorOccured = false;
-                    int addr_rx = getBufRec(statusRT);
-
-                    if (pos > dataSize)
-                        pos -= dataSize;
-
-                    emit statsOutputReady("totalIter", 1);
-
-                    // создание командного пакета и данных для передачи по МКПД
-                    if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, rtaddr, trbit, code))
+                    int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
+                    int trbit = tgca_tr_REC;   // КШ-ОУ
                     {
-                        stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
-                        emit statsOutputReady("otherErr", 1);
-                        setErrorsWithinCycle(false);
-                        return;
-                    }
-                    // Запись командного пакета в буфер передачи КШ
-                    devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
+                        char trmBuf[MAXPACKAGESIZE];
+                        bool errorOccured = false;
+                        int addr_rx = getBufRec(statusRT);
 
-                    // Оконный режим
-                    switchWindow(1);
-                    thread()->msleep(delayTime);
+                        if (pos > dataSize)
+                            pos -= dataSize;
 
-                    // Старт обмена
-                    devBC->writeReg(&devBC->reg_hsc_creg);
-                    int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+                        emit statsOutputReady("totalIter", 1);
 
-                    // Оконный режим
-                    switchWindow(0);
-
-                    statusRT = getStatusReg(devRT);
-                    bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                    bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
-
-                    if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
-                    {
-                        setErrorsWithinCycle(true);
-                        return;
-                    }
-
-                    if (compEnableMemRT)
-                    {
-                        // Чтение данных из буфера приёма ОУ для сравнения
-                        QByteArray readArrayC;
-                        readArrayC.resize(num*NUMBYTEINOFDMSYM);
-                        if (postponeTime > 0)
-                            thread()->msleep(postponeTime);
-                        devRT->read_F2(addr_rx, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                        if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                        // создание командного пакета и данных для передачи по МКПД
+                        if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, rtaddr, trbit, code))
                         {
-                            if (it <= 1)
-                                stdOutput(tr("Сравнение буфера приёма ОУ успешно"), tr("Comparison RT rec buffer OK"));
+                            stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                            emit statsOutputReady("otherErr", 1);
+                            setErrorsWithinCycle(false);
+                            return;
                         }
-                        else
+                        // Запись командного пакета в буфер передачи КШ
+                        devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
+
+                        // Оконный режим
+                        switchWindow(1);
+                        thread()->msleep(delayTime);
+
+                        // Старт обмена
+                        devBC->writeReg(&devBC->reg_hsc_creg);
+                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+
+                        // Оконный режим
+                        switchWindow(0);
+
+                        statusRT = getStatusReg(devRT);
+                        bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
+                        bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
+
+                        if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
                         {
-                            stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
-                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                            emit statsOutputReady("errCompare", 1);
-                            errorOccured = true;
+                            setErrorsWithinCycle(true);
+                            return;
                         }
-                    }
-                    if (errorOccured)
-                    {
-                        emit statsOutputReady("totalErr", 1);
-                        errCounter ++;
-                    }
-                }
 
-                it++;
-                pos += num_b;
-                if (pauseTime > 0)
-                    thread()->msleep(pauseTime);
-                if (pause_stop() == -1)
-                    return;
-
-                trbit = tgca_tr_TRM;   // ОУ-КШ
-                {
-                    char trmBuf[MAXPACKAGESIZE];
-                    char recBuf[NUMBYTEINOFDMSYM];
-
-                    bool errorOccured = false;
-                    int addr_tr_rt = getBufTrm(statusRT);
-                    int addr_rx_bc = getBufRec(statusBC);
-
-                    if (pos > dataSize)
-                        pos -= dataSize;
-
-                    emit statsOutputReady("totalIter", 1);
-
-                    // создание командного пакета и данных для передачи по МКПД
-                    if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, num_b, rtaddr, trbit, code))
-                    {
-                        stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
-                        emit statsOutputReady("otherErr", 1);
-                        setErrorsWithinCycle(false);
-                        return;
-                    }
-                    if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b))
-                    {
-                        stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
-                        emit statsOutputReady("otherErr", 1);
-                        setErrorsWithinCycle(false);
-                        return;
-                    }
-                    // Запись командного пакета в буфер передачи КШ
-                    devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
-                    // Запись данных в буфер передачи ОУ
-                    devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
-
-                    // Оконный режим
-                    switchWindow(1);
-                    thread()->msleep(delayTime);
-
-                    // Старт обмена
-                    devBC->writeReg(&devBC->reg_hsc_creg);
-                    int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
-
-                    // Оконный режим
-                    switchWindow(0);
-
-                    statusRT = getStatusReg(devRT);
-                    bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
-                    bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
-
-                    if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
-                    {
-                        setErrorsWithinCycle(true);
-                        return;
-                    }
-
-                    if (compEnableMemBC)
-                    {
-                        // Чтение данных из буфера приёма КШ для сравнения
-                        QByteArray readArrayC;
-                        readArrayC.resize(num*NUMBYTEINOFDMSYM);
-                        devBC->read_F2(addr_rx_bc, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                        if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                        if (compEnableMemRT)
                         {
-                            if (it <= 1)
-                                stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                            // Чтение данных из буфера приёма ОУ для сравнения
+                            QByteArray readArrayC;
+                            readArrayC.resize(num*NUMBYTEINOFDMSYM);
+                            if (postponeTime > 0)
+                                thread()->msleep(postponeTime);
+                            devRT->read_F2(addr_rx, num*NUMBYTEINOFDMSYM, readArrayC.data());
+                            if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                            {
+                                if (it <= 1)
+                                    stdOutput(tr("Сравнение буфера приёма ОУ успешно"), tr("Comparison RT rec buffer OK"));
+                            }
+                            else
+                            {
+                                stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
+                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                                emit statsOutputReady("errCompare", 1);
+                                errorOccured = true;
+                            }
                         }
-                        else
+                        if (errorOccured)
                         {
-                            stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                            emit statsOutputReady("errCompare", 1);
-                            errorOccured = true;
+                            emit statsOutputReady("totalErr", 1);
+                            errCounter ++;
                         }
                     }
-                    if (errorOccured)
-                    {
-                        emit statsOutputReady("totalErr", 1);
-                        errCounter ++;
-                    }
-                }
-                it++;
-                pos += num_b;
-                if (pauseTime > 0)
-                    thread()->msleep(pauseTime);
-                if (pause_stop() == -1)
-                    return;
 
-            } //length cycle
+                    it++;
+                    pos += num_b;
+                    if (pauseTime > 0)
+                        thread()->msleep(pauseTime);
+                    if (pause_stop() == -1)
+                        return;
+
+                    trbit = tgca_tr_TRM;   // ОУ-КШ
+                    {
+                        char trmBuf[MAXPACKAGESIZE];
+                        char recBuf[NUMBYTEINOFDMSYM];
+
+                        bool errorOccured = false;
+                        int addr_tr_rt = getBufTrm(statusRT);
+                        int addr_rx_bc = getBufRec(statusBC);
+
+                        if (pos > dataSize)
+                            pos -= dataSize;
+
+                        emit statsOutputReady("totalIter", 1);
+
+                        // создание командного пакета и данных для передачи по МКПД
+                        if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, num_b, rtaddr, trbit, code))
+                        {
+                            stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                            emit statsOutputReady("otherErr", 1);
+                            setErrorsWithinCycle(false);
+                            return;
+                        }
+                        if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b))
+                        {
+                            stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
+                            emit statsOutputReady("otherErr", 1);
+                            setErrorsWithinCycle(false);
+                            return;
+                        }
+                        // Запись командного пакета в буфер передачи КШ
+                        devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
+                        // Запись данных в буфер передачи ОУ
+                        devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
+
+                        // Оконный режим
+                        switchWindow(1);
+                        thread()->msleep(delayTime);
+
+                        // Старт обмена
+                        devBC->writeReg(&devBC->reg_hsc_creg);
+                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+
+                        // Оконный режим
+                        switchWindow(0);
+
+                        statusRT = getStatusReg(devRT);
+                        bool bNoIntBC = checkStatusRegBC(statusBC, interruption, it, &errorOccured);
+                        bool bNoIntRT = checkStatusRegRT(statusRT, it, &errorOccured);
+
+                        if ((bNoIntBC && noIntFatalBC) || (bNoIntRT && noIntFatalRT > 1))
+                        {
+                            setErrorsWithinCycle(true);
+                            return;
+                        }
+
+                        if (compEnableMemBC)
+                        {
+                            // Чтение данных из буфера приёма КШ для сравнения
+                            QByteArray readArrayC;
+                            readArrayC.resize(num*NUMBYTEINOFDMSYM);
+                            devBC->read_F2(addr_rx_bc, num*NUMBYTEINOFDMSYM, readArrayC.data());
+                            if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                            {
+                                if (it <= 1)
+                                    stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                            }
+                            else
+                            {
+                                stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
+                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                                emit statsOutputReady("errCompare", 1);
+                                errorOccured = true;
+                            }
+                        }
+                        if (errorOccured)
+                        {
+                            emit statsOutputReady("totalErr", 1);
+                            errCounter ++;
+                        }
+                    }
+                    it++;
+                    pos += num_b;
+                    if (pauseTime > 0)
+                        thread()->msleep(pauseTime);
+                    if (pause_stop() == -1)
+                        return;
+
+                } //length cycle
+            } // if (код в списке)
         } // code cycle
     } // iter cycle
 

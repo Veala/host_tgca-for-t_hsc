@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FormTrmTestErr</class>
- <widget class="QWidget" name="FormTrmTestErr">
+ <class>TrmTestErr</class>
+ <widget class="QWidget" name="TrmTestErr">
   <property name="geometry">
    <rect>
     <x>0</x>

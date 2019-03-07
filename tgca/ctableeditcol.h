@@ -28,6 +28,7 @@ public:
 
 private:
     int columnAtX(int x) { return QTableWidget::columnAt(x); }
+protected:
     void mouseDoubleClickEvent(QMouseEvent* ev);
 };
 

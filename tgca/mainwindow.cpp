@@ -320,7 +320,6 @@ void MainWindow::createTest()
 
 void MainWindow::actDevMode()
 {
-    qDebug() << "Secret mode";
     if (!su)
     {
         su = true;

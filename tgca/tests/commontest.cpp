@@ -183,6 +183,29 @@ void CommonTest::updateSettings()
     // Здесь можно проверить и другие настройки.
 }
 
+void CommonTest::codesToLabel(QString codes, QLineEdit* line)
+{
+    if (codes.isEmpty())
+        codes = "1";
+    QString str(codes.at(0));
+    int i=1;
+    for (; i<=MAX_COMMAND_CODE && i<codes.length(); i++)
+    {
+        QChar ch = codes.at(i);
+        if (ch != '0' && ch != '1')
+        {
+            message(QObject::tr("Неправильный список кодов, прерван"));
+            qDebug() << QObject::tr("Error reading codes from input, truncated");
+            break;
+        }
+        str += QObject::tr(",%1").arg(ch);
+    }
+    for (; i<=MAX_COMMAND_CODE; i++)
+    {
+        str += QObject::tr(",0");
+    }
+    commmonTest_applyCodesToLabel(line, str);
+}
 
 
 void CommonTest::applyRTAddr() { applyCurrent(comboBoxRTA); }
@@ -495,4 +518,25 @@ void *dataGeneration::createData(long numb, int numcopy)
     else
         return createRandomData(numb, lineEditBegin->text().toInt(0, 16), lineEditStep->text().toInt(0, 16),
                                     lineEditNumStep->text().toInt(0, 16), comboBoxUnit->currentText().toInt(0,10), numcopy);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+///   общие функции для тестов класса CommonTest, не обращающиеся к членам класса   ///
+///////////////////////////////////////////////////////////////////////////////////////
+
+void commmonTest_applyCodesToLabel(QLineEdit* line, QString str)
+{
+    line->setText(str);
+    line->setToolTip(str);
+    line->setCursorPosition(0);
+}
+
+QString commmonTest_labelToCodes(QLineEdit* line)
+{
+    QString codes;
+    QString str = line->text();
+    for (int i=0; i<=MAX_COMMAND_CODE; i++)
+        codes.append(str.at(i*2));
+    return codes;
 }

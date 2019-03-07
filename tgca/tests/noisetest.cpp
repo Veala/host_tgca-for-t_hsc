@@ -514,8 +514,9 @@ void noiseObjToThread::printCurrInfo(int iter, quint64 curbit, quint64 prevbit, 
             rus1 += tr("успех");
             eng1 += tr("ok");
         }
-        QString rus2 = tr(". Всего передано %1 вит. Ошибочных пакетов %2. Ошибочных бит %3").arg(curbit).arg(errCounter).arg(wrongBit);
-        QString eng2 = tr(". Total bit sent %1. Wrong packages: %2. Wrong bit: %3").arg(curbit).arg(errCounter).arg(wrongBit);
+        QString strCurBit = formattedLongInteger(curbit);
+        QString rus2 = tr(". Всего передано %1 вит. Ошибочных пакетов %2. Ошибочных бит %3").arg(strCurBit).arg(errCounter).arg(wrongBit);
+        QString eng2 = tr(". Total bit sent %1. Wrong packages: %2. Wrong bit: %3").arg(strCurBit).arg(errCounter).arg(wrongBit);
         stdOutput(rus1+rus2, eng1+eng2);
     }
 }
@@ -531,18 +532,7 @@ void noiseObjToThread::averageSpeed(long time_ms, long wholePackBits, int iter)
         if (wholePackBits > 0 && time_sec > 0)
         {
             int mb = wholePackBits / time_sec;
-            QString word = QString::number(mb, 10);
-            int w_size = word.size();
-            if (w_size > 3)
-            {
-                word.insert(word.size() - 3, " ");
-                if (w_size > 6)
-                {
-                    word.insert(word.size() - 7, " ");
-                    if (w_size > 9)
-                        word.insert(word.size() - 11, " ");
-                }
-            }
+            QString word = formattedLongInteger(mb);
 
             QString rus = tr("Оценка скорости передачи данных - ") + word + tr(" бит/с");
             QString eng = tr("Estimated transmission speed = ") + word + tr(" bps");
@@ -575,14 +565,12 @@ void noiseObjToThread::perform()
         emit statsOutputReady("errConnect", 1);
         return;
     }
-    qDebug() << tr("BC connected");
 
     if (connectRT() != AbstractTest::Running)
     {
         emit statsOutputReady("errConnect", 1);
         return;
     }
-    qDebug() << tr("RT connected");
 
     if (initEnable)
     {

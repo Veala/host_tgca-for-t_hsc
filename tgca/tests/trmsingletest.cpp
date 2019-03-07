@@ -4,6 +4,8 @@
 #include "../command.h"
 //#include <QtWidgets/QMenu>
 
+#include <QElapsedTimer>
+
 void TrmSingleTest::setStatSettings()
 {
     statsMap.insert("totalIter", stats->findChild<QLabel*>("totalIter"));
@@ -387,6 +389,9 @@ void TrmSingleTest::setEnabledSpecial(bool b)
         settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
+
+        checkBoxWinMode->setVisible(false);
+        settings->findChild<QLabel*>("labelWinMode")->setVisible(false);
 
         if (checkBoxInit->isChecked())
         {
@@ -970,7 +975,6 @@ void trmSingleObjToThread::perform()
         if (connectBC() != AbstractTest::Running)
             return;
 
-        qDebug() << tr("BC connected");
         checkCounters(devBC);
     }
     else
@@ -982,7 +986,6 @@ void trmSingleObjToThread::perform()
         if (connectRT() != AbstractTest::Running)
             return;
 
-        qDebug() << tr("RT connected");
         checkCounters(devRT);
     }
     else
@@ -1056,8 +1059,8 @@ void trmSingleObjToThread::perform()
         {
             REG_HSC_cfg cfg;
             devRT->readReg(&cfg);
-            qDebug() << "RT cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
-                     << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
+//            qDebug() << "RT cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
+//                     << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
             if (cfg.rt_bc != CFG_MODE_RT || cfg.ena_codec != codec ||
                 cfg.type_man != devRT->reg_hsc_cfg.type_man || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
                 cfg_err = true;
@@ -1235,8 +1238,8 @@ void trmSingleObjToThread::perform()
         {
             REG_HSC_cfg cfg;
             devBC->readReg(&cfg);
-            qDebug() << "BC cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
-                     << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
+//            qDebug() << "BC cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
+//                     << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
             if (cfg.rt_bc != CFG_MODE_BC || cfg.ena_codec != codec ||
                 cfg.type_man != devBC->reg_hsc_cfg.type_man || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
             {
@@ -1324,7 +1327,6 @@ void trmSingleObjToThread::perform()
                 {
                     emit statsOutputReady("totalIter", 1);
                     // Запись данных в буфер передачи
-                    qDebug() << "write_F2";
                     devBC->write_F2(getBufTrm(statusBC), (char*)trmData, trm_size);
                     if (compEnableMemBCRT > 0 && it <= 1)
                     {
@@ -1362,9 +1364,12 @@ void trmSingleObjToThread::perform()
                     }
 
                     // Старт обмена
-                    QTime curTime;
+//                    QTime curTime;
+//                    if (timeCompose)
+//                        curTime = QTime::currentTime();
+                    QElapsedTimer curTime;
                     if (timeCompose)
-                        curTime = QTime::currentTime();
+                        curTime.start();
 
                     devBC->writeReg(&devBC->reg_hsc_creg);
                     int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
@@ -1374,8 +1379,8 @@ void trmSingleObjToThread::perform()
                         timeCounter++;
                         if (timeCompose)
                         {
-                            int t = curTime.msecsTo(QTime::currentTime());
-                            // int t = curTime.elapsed();
+                            //int t = curTime.msecsTo(QTime::currentTime());
+                             int t = curTime.elapsed();
                             if (t > timeOverhead)
                                 t -= timeOverhead;
                             totalTime += t;
@@ -1417,8 +1422,6 @@ void trmSingleObjToThread::perform()
                             readArrayC.resize(trm_size);
                             if (postponeTime > 0)
                                 thread()->msleep(postponeTime);
-                            qDebug() << "readF2";
-//                            qDebug() << tr("Check RT receive buffer %1. Size=%2").arg(getBufRec(statusRTBefore), 4, 16, QLatin1Char('0')).arg(trm_size);
                             devRT->read_F2(getBufRec(statusRTBefore), trm_size, readArrayC.data());
                             if (test.cmpPack((void*)(readArrayC.data()), trmData, trm_size/NUMBYTEINOFDMSYM -1, true))
                             {
@@ -1433,11 +1436,6 @@ void trmSingleObjToThread::perform()
                                           tr("First read word = %1").arg(*(int*)(readArrayC.data()), 4, 16, QLatin1Char('0')));*/
                                 emit statsOutputReady("errCompare", 1);
                                 errorOccured = true;
-
-                                /*char* pc = (char*)trmData;
-                                for (int i=0; i<readArrayC.size(); i+=4)
-                                    qDebug() << QString(tr("%1")).arg(*(uint*)(readArrayC.data()+i), 8, 16, QLatin1Char('0')) << "  "
-                                            << QString(tr("%1")).arg(*(uint*)(pc+i), 8, 16, QLatin1Char('0'));*/
                             }
                         }
                     }
@@ -1511,9 +1509,13 @@ void trmSingleObjToThread::perform()
 
                     if (!BCtoRT)
                         emit statsOutputReady("totalIter", 1);
-                    QTime curTime;
+
+//                    QTime curTime;
+//                    if (timeCompose)
+//                        curTime = QTime::currentTime();
+                    QElapsedTimer curTime;
                     if (timeCompose)
-                        curTime = QTime::currentTime();
+                        curTime.start();
 
                     // Старт обмена
                     devBC->writeReg(&devBC->reg_hsc_creg);
@@ -1525,7 +1527,8 @@ void trmSingleObjToThread::perform()
                         timeCounter++;
                         if (timeCompose)
                         {
-                            int t = curTime.msecsTo(QTime::currentTime());
+                            //int t = curTime.msecsTo(QTime::currentTime());
+                            int t = curTime.elapsed();
                             if (t > timeOverhead)
                                 t -= timeOverhead;
                             totalTime += t;
@@ -1565,8 +1568,6 @@ void trmSingleObjToThread::perform()
                             QByteArray readArrayC;
                             readArrayC.resize(trm_size);
                             devBC->read_F2(addr_rx, trm_size, readArrayC.data());
-                            //char * ptr_src = readArrayC.data();
-                            //qDebug() << (trm_size/NUMBYTEINOFDMSYM) <<  " " << addr_rx << " received " << (uint)(*(ptr_src+0)) << " " << (uint)(*(ptr_src+1)) << " " << (uint)(*(ptr_src+2)) << " " << (uint)(*(ptr_src+3)) << " " << (uint)(*(ptr_src+4)) << " " << (uint)(*(ptr_src+5));
                             if (test.cmpPack((void*)(readArrayC.data()), trmData, trm_size/NUMBYTEINOFDMSYM - 1, true))
                             {
                                 if (it <= 1)

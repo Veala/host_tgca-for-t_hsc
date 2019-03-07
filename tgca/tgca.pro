@@ -46,7 +46,11 @@ SOURCES += main.cpp\
     tests/ramtest.cpp \
     tests/trashtest.cpp \
     tests/noisetest.cpp \
-    tests/varbroadtest.cpp
+    tests/varbroadtest.cpp \
+    codeselect.cpp \
+    ctablewidget8x8codes.cpp \
+    tests/alientest.cpp \
+    tests/invalidcommtest.cpp
 
 HEADERS  += mainwindow.h \
     configuration.h \
@@ -80,7 +84,11 @@ HEADERS  += mainwindow.h \
     tests/ramtest.h \
     tests/trashtest.h \
     tests/noisetest.h \
-    tests/varbroadtest.h
+    tests/varbroadtest.h \
+    codeselect.h \
+    ctablewidget8x8codes.h \
+    tests/alientest.h \
+    tests/invalidcommtest.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
@@ -114,7 +122,11 @@ FORMS    += mainwindow.ui \
     ../default/stats_trash_test.ui \
     ../default/settings_var_broad_test.ui \
     ../default/stats_var_broad_test.ui \
-    ../default/codeselect.ui
+    codeselect.ui \
+    ../default/settings_alien_test.ui \
+    ../default/settings_invalid_test.ui \
+    ../default/stats_alien_test.ui \
+    ../default/stats_invalid_test.ui
 
 RESOURCES += \
     tgca.qrc

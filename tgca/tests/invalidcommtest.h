@@ -1,13 +1,13 @@
-#ifndef VARBROADTEST_H
-#define VARBROADTEST_H
+#ifndef INVALIDCOMMTEST_H
+#define INVALIDCOMMTEST_H
 
 #include "commontest.h"
 
-class VarBroadTest : public CommonTest
+class InvalidCommTest : public CommonTest
 {
     Q_OBJECT
 public:
-    explicit VarBroadTest(QWidget *parent = 0) : CommonTest(parent) { }
+    explicit InvalidCommTest(QWidget *parent = 0) : CommonTest(parent) { }
     void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     virtual void save();
@@ -70,7 +70,7 @@ private slots:
     void applyCodes(QString);
 };
 
-class varBroadObjToThread : public commonObjToThread
+class invalidCommObjToThread : public commonObjToThread
 {
     Q_OBJECT
 
@@ -83,7 +83,7 @@ class varBroadObjToThread : public commonObjToThread
     int buf_tx_rt;
 
 public:
-    varBroadObjToThread();
+    invalidCommObjToThread();
 
     quint32  waitTime, pauseTime, postponeTime;
     int iterCycle;
@@ -102,4 +102,4 @@ protected:
     void perform();
 };
 
-#endif // VARBROADTEST_H
+#endif // INVALIDCOMMTEST_H

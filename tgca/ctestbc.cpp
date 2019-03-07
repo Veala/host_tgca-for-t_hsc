@@ -86,7 +86,6 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
     ptr_dst += sizeof(word32_t);
     memset((void*)ptr_dst, 0, size_required - sizeof(word32_t));
 
-
     /// Преамбулы будут созданы автоматически. В память будут записаны только OFDM символы.
     /// Создаём и записываем командное слово
     createCommandWord(&command, addr, num_s, tr, code);
@@ -96,7 +95,9 @@ bool CTestBC::createCommandPack(void* mem_dst, unsigned int size_dst, void* mem_
         return true;
 
     if (mt == val_REG_CFG_type_man_QPSK)
+    {
         array2PackQPSK((char*)mem_dst, (char*)mem_src, size_src);
+    }
     else if (mt == val_REG_CFG_type_man_QAM16)
         array2PackQAM16((char*)mem_dst, (char*)mem_src, size_src);
     else
@@ -350,7 +351,7 @@ void CTestBC::array2PackQPSK(char* ptr_dst, char* ptr_src, unsigned int size_src
     if (nc > size_src)
         nc = size_src;
     size_src -= nc;
-    //qDebug() << "nc " << nc << " nw " << nw << " nb " << nb << " size_src " << size_src << " size_dst " << size_dst;
+    //qDebug() << "nc " << nc << " nw " << nw << " nb " << nb << " size_src " << size_src;
     if (nc > 0)
         memcpy((void*)(ptr_dst + sizeof(word32_t)), (void*)ptr_src, nc);
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TestTrmSingle</class>
- <widget class="QDialog" name="TestTrmSingle">
+ <class>NoiseTestDefault</class>
+ <widget class="QDialog" name="NoiseTestDefault">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -1091,12 +1091,12 @@
          </item>
          <item>
           <property name="text">
-           <string>Получение больше 2 допустимых ошибок</string>
+           <string>Получение больше 2 лишних ошибок</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>10%-е превышение допустимых ошибок</string>
+           <string>Получение больше 1000 ошибок</string>
           </property>
          </item>
          <item>

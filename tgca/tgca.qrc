@@ -25,7 +25,6 @@
         <file>../pictogram/control_pause_blue_1763.png</file>
         <file>../pictogram/button_cancel_6086.png</file>
         <file>../pictogram/ok.png</file>
-        <file>../pictogram/searchCancel.png</file>
         <file>../pictogram/dragdroprobot-example.png</file>
         <file>../pictogram/spinner.png</file>
         <file>../pictogram/tile.png</file>
@@ -41,5 +40,11 @@
         <file>../pictogram/images[10].png</file>
         <file>../pictogram/memory.png</file>
         <file>../pictogram/agt_aisles_5533.png</file>
+        <file>../pictogram/searchCancelPressed.png</file>
+        <file>../pictogram/accept_7396.png</file>
+        <file>../pictogram/cancel__red_2586.png</file>
+        <file>../pictogram/control_repeat_blue_5356.png</file>
+        <file>../pictogram/squarefacespriteXX.png</file>
+        <file>../pictogram/melee.png</file>
     </qresource>
 </RCC>

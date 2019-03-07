@@ -11,6 +11,8 @@ public:
     void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
 protected slots:
     virtual void save();
+private slots:
+    void onPushCodes();
 protected:
     void startTest();
     void setEnabledSpecial(bool b);
@@ -26,6 +28,9 @@ private:
     // QLabel    *labelUseInt;             // метка должна блокироваться одновременно с checkBoxUseInt, если прерывание не разрешено
                                            // конфигурационным регистром         не б   поле определено в CommonTest
     QCheckBox *checkBoxParamView;       // вывод параметров теста в окно тестов или проекта    не и
+
+    QLineEdit * lineViewCodes;
+    QPushButton *pushButtonCodes;
 
     // параметры тестирования
     QComboBox *comboBoxBCIntErr;        // реакция на отсутствие признака завершения обмена КШ
@@ -69,6 +74,7 @@ private:
 private slots:
     void onCheckUseInt();
     void onCheckEnaInt();
+    void applyCodes(QString);
 };
 
 class varCommandObjToThread : public commonObjToThread
@@ -95,6 +101,7 @@ public:
     long dataSize;
     bool codec;
     bool checkRTA;
+    QString codeMask;
     void destroyData();
 
 protected:

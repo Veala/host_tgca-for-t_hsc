@@ -157,7 +157,6 @@ void ramObjToThread::perform()
             return;
         if (devRT == 0)
             dev = devBC;
-        qDebug() << "BC connected";
     }
     if (devRT)
     {
@@ -165,7 +164,6 @@ void ramObjToThread::perform()
             return;
         if (devBC == 0)
             dev = devRT;
-        qDebug() << "RT connected";
     }
 
     int addrinc = sizeof(word32_t);

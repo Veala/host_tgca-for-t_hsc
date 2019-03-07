@@ -47,8 +47,11 @@ class CommonTest : public AbstractTest
     Q_OBJECT
 public:
     explicit CommonTest(QWidget *parent = 0);
+
     //virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
     QDialog *getSettings() { return settings; }
+    void codesToLabel(QString codes, QLineEdit* line);
+
 protected slots:
     void updateSettings();
     void statsToZero();
@@ -140,5 +143,8 @@ inline void setRegWritten(Device *dev, BaseReg &reg)
 {
     dev->configuration.setWritten(reg.address, reg.getData());
 }
+
+QString commmonTest_labelToCodes(QLineEdit* line);
+void commmonTest_applyCodesToLabel(QLineEdit* line, QString str);
 
 #endif // COMMONTEST_H

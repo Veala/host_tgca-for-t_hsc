@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <author></author>
- <comment></comment>
- <exportmacro></exportmacro>
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>TestEchoErr</class>
+ <widget class="QWidget" name="TestEchoErr">
   <property name="geometry">
    <rect>
     <x>0</x>

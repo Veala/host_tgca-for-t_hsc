@@ -9,6 +9,7 @@ ConfSelect::ConfSelect(QWidget *parent) :
 {
     ui->setupUi(this);
 //    connect(this, SIGNAL(configurate(QString, int*)), parent, SLOT(initFrom(QString, int*)));
+    setWindowFlags(Qt::WindowCloseButtonHint | Qt::Dialog);
 }
 
 ConfSelect::~ConfSelect()

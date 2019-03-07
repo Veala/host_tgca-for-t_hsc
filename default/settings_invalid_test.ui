@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TestVarBroadDefault</class>
- <widget class="QDialog" name="TestVarBroadDefault">
+ <class>InvalidTestDefault</class>
+ <widget class="QDialog" name="InvalidTestDefault">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,11 +23,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Перебор параметров групповой команды. Настройки.</string>
+   <string>Неопределённые команды. Настройки.</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../tgca/tgca.qrc">
-    <normaloff>:/pictogram/agt_aisles_5533.png</normaloff>:/pictogram/agt_aisles_5533.png</iconset>
+   <iconset>
+    <normaloff>../pictogram/Qt/trash.png</normaloff>../pictogram/Qt/trash.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -1050,9 +1050,7 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../tgca/tgca.qrc"/>
- </resources>
+ <resources/>
  <connections/>
  <slots>
   <slot>onPushCodes()</slot>

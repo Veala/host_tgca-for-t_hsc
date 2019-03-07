@@ -1,9 +1,9 @@
-#include "varbroadtest.h"
+#include "invalidcommtest.h"
 #include "../testutil.h"
 #include "../ctestbc.h"
 #include "../codeselect.h"
 
-void VarBroadTest::setStatSettings()
+void InvalidCommTest::setStatSettings()
 {
     statsMap.insert("totalIter", stats->findChild<QLabel*>("totalIter"));
     statsMap.insert("totalErr", stats->findChild<QLabel*>("totalErr"));
@@ -18,7 +18,7 @@ void VarBroadTest::setStatSettings()
     connectStatisticSlots();
 }
 
-void VarBroadTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
+void InvalidCommTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
     AbstractTest::setSettings(b,d,ch,tType,fName,markStr,pB,tB,d2);
 
@@ -35,7 +35,7 @@ void VarBroadTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTyp
     deviceLineEditList.append(lineEditDevRT);
     checkDeviceAvailability(3);
 
-    objToThread = new varBroadObjToThread();
+    objToThread = new invalidCommObjToThread();
     connectThread();
 
     setStatSettings();
@@ -43,7 +43,7 @@ void VarBroadTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTyp
     testThread.start();
 }
 
-void VarBroadTest::defineFields()
+void InvalidCommTest::defineFields()
 {
     dataGen.settings();
 
@@ -85,7 +85,7 @@ void VarBroadTest::defineFields()
     lineViewCodes = settings->findChild<QLineEdit*>("lineViewCodes");
  }
 
-void VarBroadTest::load(QString fName)
+void InvalidCommTest::load(QString fName)
 {
 top_1
 
@@ -135,7 +135,7 @@ top_1
     codesToLabel(codes, lineViewCodes);
 }
 
-void VarBroadTest::save()
+void InvalidCommTest::save()
 {
     AbstractTest::save();
 top_2(saveFileNameStr)
@@ -183,14 +183,14 @@ top_2(saveFileNameStr)
     settingsFile.close();
 }
 
-void VarBroadTest::setFieldConnections()
+void InvalidCommTest::setFieldConnections()
 {
     connect(checkBoxUseInt, SIGNAL(clicked()), this, SLOT(onCheckUseInt()));
     connect(checkBoxEnaInt, SIGNAL(clicked()), this, SLOT(onCheckEnaInt()));
     connect(pushButtonCodes, SIGNAL(clicked()), this, SLOT(onPushCodes()));
 }
 
-void VarBroadTest::onPushCodes()
+void InvalidCommTest::onPushCodes()
 {
     CodeSelect cs(this);
     cs.labelToCodes(lineViewCodes->text());
@@ -198,18 +198,18 @@ void VarBroadTest::onPushCodes()
     cs.exec();
 }
 
-void VarBroadTest::applyCodes(QString str)
+void InvalidCommTest::applyCodes(QString str)
 {
     commmonTest_applyCodesToLabel(lineViewCodes, str);
 }
 
-void VarBroadTest::onCheckUseInt()
+void InvalidCommTest::onCheckUseInt()
 {
     if (checkBoxUseInt->checkState() == Qt::PartiallyChecked)
         checkBoxUseInt->setCheckState(Qt::Checked);
 }
 
-void VarBroadTest::onCheckEnaInt()
+void InvalidCommTest::onCheckEnaInt()
 {
     checkBoxUseInt->setEnabled(checkBoxEnaInt->isChecked());
     if (checkBoxUseInt->checkState() == Qt::PartiallyChecked)
@@ -218,7 +218,7 @@ void VarBroadTest::onCheckEnaInt()
         checkBoxUseInt->setCheckState(Qt::PartiallyChecked);
 }
 
-void VarBroadTest::disableUnimplemented()
+void InvalidCommTest::disableUnimplemented()
 {
     // ПОКА НЕ РЕАЛИЗОВАНЫ
     comboBoxRec->setDisabled(true);                                 // проверка, что сообщение от КШ принято ОУ
@@ -227,7 +227,7 @@ void VarBroadTest::disableUnimplemented()
     settings->findChild<QLabel*>("labelParamView")->setDisabled(true);
 }
 
-void VarBroadTest::setEnabledSpecial(bool b)
+void InvalidCommTest::setEnabledSpecial(bool b)
 {
     AbstractTest::setEnabledSpecial(b);
 
@@ -254,9 +254,9 @@ void VarBroadTest::setEnabledSpecial(bool b)
     }
 }
 
-void VarBroadTest::startTest()
+void InvalidCommTest::startTest()
 {
-    varBroadObjToThread* curThread = (varBroadObjToThread*)objToThread;
+    invalidCommObjToThread* curThread = (invalidCommObjToThread*)objToThread;
 
     curThread->useInt = ((checkBoxUseInt->checkState() == Qt::Checked) && checkBoxEnaInt->isChecked()); // напоминание: загрузка cfg_reg в этом тесте всегда включена
     curThread->setOutEnabled(checkBoxOut->isChecked());
@@ -308,7 +308,7 @@ void VarBroadTest::startTest()
     emit startTestTh();
 }
 
-bool varBroadObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, bool *error)
+bool invalidCommObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, bool *error)
 {
     bool bNoInt = false;
 
@@ -391,7 +391,7 @@ bool varBroadObjToThread::checkStatusRegBC(int statusBC, int interruption, int i
     return bNoInt;
 }
 
-bool varBroadObjToThread::checkStatusRegRT(int status, int it, bool *error)
+bool invalidCommObjToThread::checkStatusRegRT(int status, int it, bool *error)
 {
     bool bNoInt = false;
 
@@ -417,12 +417,12 @@ bool varBroadObjToThread::checkStatusRegRT(int status, int it, bool *error)
     return bNoInt;
 }
 
-varBroadObjToThread::varBroadObjToThread():
+invalidCommObjToThread::invalidCommObjToThread():
     commonObjToThread()
 {
 }
 
-void varBroadObjToThread::perform()
+void invalidCommObjToThread::perform()
 {
     int errorsBefore = 0;
     if (testData == 0)
@@ -442,7 +442,7 @@ void varBroadObjToThread::perform()
         return;
     }
 
-    qDebug() << "varBroadObjToThread::perform() started";
+    qDebug() << "invalidCommObjToThread::perform() started";
 
     if (connectBC() != AbstractTest::Running)
         return;
@@ -598,14 +598,14 @@ void varBroadObjToThread::perform()
 
 //lineEditSPIData->setInputMask(QApplication::translate("TestTrmSingle", "HHHH;_", 0));
 
-void varBroadObjToThread::setErrorsBeforeCycle(int errors)
+void invalidCommObjToThread::setErrorsBeforeCycle(int errors)
 {
     emit resultReady((int)AbstractTest::ErrorIsOccured);
     emit statsOutputReady("errBefore", errors);
     emit statsOutputReady("totalErr", errors);
 }
 
-void varBroadObjToThread::setErrorsWithinCycle(bool fatal)
+void invalidCommObjToThread::setErrorsWithinCycle(bool fatal)
 {
     emit resultReady((int)AbstractTest::ErrorIsOccured);
     if (fatal)
@@ -613,7 +613,7 @@ void varBroadObjToThread::setErrorsWithinCycle(bool fatal)
     emit statsOutputReady("totalErr", 1);
 }
 
-void varBroadObjToThread::destroyData()
+void invalidCommObjToThread::destroyData()
 {
     if  (testData)
         free (testData);

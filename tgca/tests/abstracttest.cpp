@@ -12,6 +12,8 @@
 #include "trashtest.h"
 #include "noisetest.h"
 #include "varbroadtest.h"
+#include "alientest.h"
+#include "invalidcommtest.h"
 
 #include "../picts.h"
 
@@ -425,8 +427,11 @@ void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tT
         fileName->setText(fName);
     mark->setText(markStr);
 
-    settings->setWindowTitle("Настройки(" + mark->text() + ")");
-    stats->setWindowTitle("Статистика(" + mark->text() + ")");
+    if (!markStr.isEmpty())
+    {
+        settings->setWindowTitle("Настройки(" + mark->text() + ")");
+        stats->setWindowTitle("Статистика(" + mark->text() + ")");
+    }
 
     connect((QAction*)menu.findChild<QAction*>("settings"), SIGNAL(triggered(bool)), settings, SLOT(exec()));
     connect((QAction*)menu.findChild<QAction*>("stats"), SIGNAL(triggered(bool)), stats, SLOT(show()));
@@ -435,7 +440,8 @@ void AbstractTest::setSettings(QVBoxLayout *b, QDialog *d, bool ched, QString tT
 
 //    if (this->parentWidget() == NULL) qDebug() << "objname parent NULL";
 //    else qDebug() << this->parentWidget()->objectName() << "objname parent";
-    stats->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint);
+    stats->setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
+    settings->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
     connect(this,SIGNAL(destroyed(QObject*)),stats,SLOT(hide()));
     connect(mark,SIGNAL(textChanged(QString)),this,SLOT(markChanged(QString)));
     connect(settings,SIGNAL(finished(int)),this,SLOT(checkDeviceAvailability(int)));
@@ -595,7 +601,7 @@ void AbstractTest::setRunningState(int rs)
         break;
     case AbstractTest::Completed:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedOk.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
-        setStatusText(statusTxt, tr("Успех"), true, "color: rgb(0, 0, 255)"); // Qt::blue)
+        setStatusText(statusTxt, tr("Успех"), true, "color: rgb(0, 0, 0)"); // Qt::blue color: rgb(0, 0, 255)
         message(QObject::tr("Тест закончен (файл: %1, тест: %2)").arg(fileName->text()).arg(mark->text()));
         setGlobalState(FREE);
         emit unsetEmit(startButton, pauseButton, stopButton);
@@ -710,7 +716,8 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
     allTests << testTypeEcho << testTypeMemory << testTypeRegisters
              << testTypeBulbs << testTypeMonitor << testTypeTrmSingle
              << testTypeLoadSPI << testTypeVariation << testTypeBuffers
-             << testTypeTrash << testTypeNoise << testTypeGroupVar;
+             << testTypeTrash << testTypeNoise << testTypeGroupVar
+             << testTypeAlien << testTypeInvalid;
     if (su)
         allTests << testTypeNull;
 
@@ -748,6 +755,10 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
         defFileStr = QObject::tr("../default/null_test");
     } else if (testType == testTypeTrash) {
         defFileStr = QObject::tr("../default/trash_test");
+    } else if (testType == testTypeAlien) {
+        defFileStr = QObject::tr("../default/alien_test");
+    } else if (testType == testTypeInvalid) {
+        defFileStr = QObject::tr("../default/invalid_test");
     } else if (testType == testTypeNoise) {
         defFileStr = QObject::tr("../default/noise_test");
     }
@@ -818,6 +829,14 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, Q
         uiFileStr = QObject::tr("../default/settings_trash_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_trash_test.ui");
         test = new TrashTest(0);
+    } else if (testType == testTypeAlien) {
+        uiFileStr = QObject::tr("../default/settings_alien_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_alien_test.ui");
+        test = new AlienTest(0);
+    } else if (testType == testTypeInvalid) {
+        uiFileStr = QObject::tr("../default/settings_invalid_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_invalid_test.ui");
+        test = new InvalidCommTest(0);
     } else if (testType == testTypeNoise) {
         uiFileStr = QObject::tr("../default/settings_noise_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_noise_test.ui");

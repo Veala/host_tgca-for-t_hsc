@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TestTrmSingle</class>
- <widget class="QDialog" name="TestTrmSingle">
+ <class>TestTrmSingleDefault</class>
+ <widget class="QDialog" name="TestTrmSingleDefault">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -2479,7 +2479,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupRepeat"/>
   <buttongroup name="buttonGroupData"/>
+  <buttongroup name="buttonGroupRepeat"/>
  </buttongroups>
 </ui>

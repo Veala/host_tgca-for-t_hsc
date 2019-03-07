@@ -205,6 +205,8 @@ const QString testTypeBuffers(QObject::tr("Проверка буферов"));
 const QString testTypeNull(QObject::tr("Тест отладочный"));
 const QString testTypeTrash(QObject::tr("Тест trash"));
 const QString testTypeNoise(QObject::tr("Помехоустойчивость"));
+const QString testTypeAlien(QObject::tr("Команды с чужими адресами"));
+const QString testTypeInvalid(QObject::tr("Неопределённые команды"));
 
 
 namespace testLib {

@@ -39,9 +39,9 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
     toSocketDriver.setObjectName(name);
     socketDriver.setObjectName(name);
     toSocketDriver.start();
-    qDebug() << "Device(): after toSocketDriver.start();";
+    //qDebug() << "Device(): after toSocketDriver.start();";
     emit tcpInit();
-    qDebug() << "Device(): after emit tcpInit();";
+    //qDebug() << "Device(): after emit tcpInit();";
 }
 
 Device::~Device()
@@ -84,14 +84,14 @@ QString Device::getName() const
 
 void Device::tryToConnect()
 {
-    qDebug() << "tryToConnect(): begin";
+    //qDebug() << "tryToConnect(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "tryToConnect(): after mutex.unlock()";
-    qDebug() << "tryToConnect(): before emit tcpConnect();";
+    //qDebug() << "tryToConnect(): after mutex.unlock()";
+    //qDebug() << "tryToConnect(): before emit tcpConnect();";
     emit tcpConnect(connection.getServerIP(), connection.getServerPORT().toUShort());
-    qDebug() << "tryToConnect(): before mutex.lock(); after emit tcpConnect();";
+    //qDebug() << "tryToConnect(): before mutex.lock(); after emit tcpConnect();";
     socketDriver.mutex->lock();
-    qDebug() << "tryToConnect(): after mutex.lock();";
+    //qDebug() << "tryToConnect(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("connection");
 }
@@ -121,8 +121,8 @@ void Device::readAll(char* array, int size)
         r = sock->read(array+n, size-n);
         if (r!=0) {
 #ifdef debug_AT
-            qDebug() << "read: " << r;
-            qDebug() << "n: " << n;
+            //qDebug() << "read: " << r;
+            //qDebug() << "n: " << n;
 #endif
         }
         if (r == -1) {
@@ -131,13 +131,13 @@ void Device::readAll(char* array, int size)
             throw QString("socket read");
         } else if (r==0) {
 #ifdef debug_AT
-            qDebug() << "-------------if (r==0)";
+            //qDebug() << "-------------if (r==0)";
 #endif
             int msec = 10000;
             //if (n != 0) msec = 1;
             if (!sock->waitForReadyRead(msec)) {
 #ifdef debug_AT
-                qDebug() << "sock->waitForReadyRead(5000) error!";
+                //qDebug() << "sock->waitForReadyRead(5000) error!";
 #endif
                 sock->abort();
                 //emit resultReady((int)AbstractTest::ErrorIsOccured);
@@ -156,7 +156,7 @@ void Device::writeAll(char* array, int size)
     while (1) {
         int n = sock->write(temp, size);
 #ifdef debug_AT
-        qDebug() << "wrote: " << n;
+        //qDebug() << "wrote: " << n;
 #endif
         if (n == -1) {
             sock->abort();
@@ -173,7 +173,7 @@ void Device::writeAll(char* array, int size)
 
     if (!sock->waitForBytesWritten(5000)) {
 #ifdef debug_AT
-        qDebug() << "sock->waitForBytesWritten(5000) error!";
+        //qDebug() << "sock->waitForBytesWritten(5000) error!";
 #endif
         sock->abort();
         //emit resultReady((int)AbstractTest::ErrorIsOccured);
@@ -190,7 +190,7 @@ void Device::getLittleAnswer(int cmdCode)
     readAll(littleAnswer.data(), 4);
     if (*(int*)littleAnswer.data() != cmdCode) {
 #ifdef debug_AT
-        qDebug() << "(int*)littleAnswer.data() != cmd";
+        //qDebug() << "(int*)littleAnswer.data() != cmd";
 #endif
         sock->abort();
         throw QString("socket getLittleAnswer");
@@ -201,108 +201,108 @@ void Device::getLittleAnswer(int cmdCode)
 
 void Device::write_F1(char* writeArray, int size)
 {
-    qDebug() << "write_F1(): begin";
+    //qDebug() << "write_F1(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "write_F1(): after mutex.unlock()";
+    //qDebug() << "write_F1(): after mutex.unlock()";
     socketDriver.allData.format = ExchangeFormat::write_f1;
     socketDriver.allData.size = size;
     socketDriver.allData.writeArray = writeArray;
-    qDebug() << "write_F1(): before emit tcpExchange();";
+    //qDebug() << "write_F1(): before emit tcpExchange();";
     emit tcpExchange();
-    qDebug() << "write_F1(): before mutex.lock(); after emit tcpExchange();";
+    //qDebug() << "write_F1(): before mutex.lock(); after emit tcpExchange();";
     socketDriver.mutex->lock();
-    qDebug() << "write_F1(): after mutex.lock();";
+    //qDebug() << "write_F1(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("socket");
 }
 
 void Device::write_F2(int startAddr, char *writeArray, int size)
 {
-    qDebug() << "write_F2(): begin";
+    //qDebug() << "write_F2(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "write_F2(): after mutex.unlock()";
+    //qDebug() << "write_F2(): after mutex.unlock()";
     socketDriver.allData.format = ExchangeFormat::write_f2;
     socketDriver.allData.size = size;
     socketDriver.allData.writeArray = writeArray;
     socketDriver.allData.startAddr = startAddr;
-    qDebug() << "write_F2(): before emit tcpExchange();";
+    //qDebug() << "write_F2(): before emit tcpExchange();";
     emit tcpExchange();
-    qDebug() << "write_F2(): before mutex.lock(); after emit tcpExchange();";
+    //qDebug() << "write_F2(): before mutex.lock(); after emit tcpExchange();";
     socketDriver.mutex->lock();
-    qDebug() << "write_F2(): after mutex.lock();";
+    //qDebug() << "write_F2(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("socket");
 }
 
 void Device::write_Echo(QString &text)
 {
-    qDebug() << "write_echo(): begin";
+    //qDebug() << "write_echo(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "write_echo(): after mutex.unlock()";
+    //qDebug() << "write_echo(): after mutex.unlock()";
     socketDriver.allData.format = ExchangeFormat::write_echo;
     socketDriver.allData.text = text;
     socketDriver.allData.size = text.size()+1;
-    qDebug() << "write_echo(): before emit tcpExchange();";
+    //qDebug() << "write_echo(): before emit tcpExchange();";
     emit tcpExchange();
-    qDebug() << "write_echo(): before mutex.lock(); after emit tcpExchange();";
+    //qDebug() << "write_echo(): before mutex.lock(); after emit tcpExchange();";
     socketDriver.mutex->lock();
-    qDebug() << "write_echo(): after mutex.lock();";
+    //qDebug() << "write_echo(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("socket");
 }
 
 void Device::read_F1(char *writeArray, char *readArray, int wrsize)
 {
-    qDebug() << "read_F1(): begin";
+    //qDebug() << "read_F1(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "read_F1(): after mutex.unlock()";
+    //qDebug() << "read_F1(): after mutex.unlock()";
     socketDriver.allData.format = ExchangeFormat::read_f1;
     socketDriver.allData.writeArray = writeArray;
     socketDriver.allData.readArray = readArray;
     socketDriver.allData.size = wrsize;
-    qDebug() << "read_F1(): before emit tcpExchange();";
+    //qDebug() << "read_F1(): before emit tcpExchange();";
     emit tcpExchange();
-    qDebug() << "read_F1(): before mutex.lock(); after emit tcpExchange();";
+    //qDebug() << "read_F1(): before mutex.lock(); after emit tcpExchange();";
     socketDriver.mutex->lock();
-    qDebug() << "read_F1(): after mutex.lock();";
+    //qDebug() << "read_F1(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("socket");
 }
 
 void Device::read_F2(int startAddr, int count, char *readArray)
 {
-    qDebug() << "read_F2(): begin";
+    //qDebug() << "read_F2(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "read_F2(): after mutex.unlock()";
+    //qDebug() << "read_F2(): after mutex.unlock()";
     socketDriver.allData.format = ExchangeFormat::read_f2;
     socketDriver.allData.startAddr = startAddr;
     socketDriver.allData.count = count;
     socketDriver.allData.size = 8; //sizeof(count) + sizeof(startAddr)
     socketDriver.allData.readArray = readArray;
-    qDebug() << "read_F2(): before emit tcpExchange();";
+    //qDebug() << "read_F2(): before emit tcpExchange();";
     emit tcpExchange();
-    qDebug() << "read_F2(): before mutex.lock(); after emit tcpExchange();";
+    //qDebug() << "read_F2(): before mutex.lock(); after emit tcpExchange();";
     socketDriver.mutex->lock();
-    qDebug() << "read_F2(): after mutex.lock();";
+    //qDebug() << "read_F2(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("socket");
 }
 
 void Device::cpyOnHard(int fromAddr, int count, int toAddr)
 {
-    qDebug() << "cpyOnHard(): begin";
+    //qDebug() << "cpyOnHard(): begin";
     socketDriver.mutex->unlock();
-    qDebug() << "cpyOnHard(): after mutex.unlock()";
+    //qDebug() << "cpyOnHard(): after mutex.unlock()";
     socketDriver.allData.format = ExchangeFormat::cpy_on_hard;
     socketDriver.allData.fromAddr = fromAddr;
     socketDriver.allData.count = count;
     socketDriver.allData.toAddr = toAddr;
     socketDriver.allData.size = 12; //sizeof(fromAddr) + sizeof(count) + sizeof(toAddr)
-    qDebug() << "cpyOnHard(): before emit tcpExchange();";
+    //qDebug() << "cpyOnHard(): before emit tcpExchange();";
     emit tcpExchange();
-    qDebug() << "cpyOnHard(): before mutex.lock(); after emit tcpExchange();";
+    //qDebug() << "cpyOnHard(): before mutex.lock(); after emit tcpExchange();";
     socketDriver.mutex->lock();
-    qDebug() << "cpyOnHard(): after mutex.lock();";
+    //qDebug() << "cpyOnHard(): after mutex.lock();";
     if (socketDriver.getSocketState() != QAbstractSocket::ConnectedState)
         throw QString("socket");
 }
@@ -590,7 +590,7 @@ void SocketDriver::init()
     connect(socket, SIGNAL(readyRead()), this, SLOT(readyReadSlot()));
     connect(socket, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWrittenSlot(qint64)));
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSlot(QAbstractSocket::SocketError)));
-    qDebug() << "SocketDriver::init(): the end;";
+    //qDebug() << "SocketDriver::init(): the end;";
 }
 
 void SocketDriver::stop()
@@ -617,9 +617,9 @@ void SocketDriver::disconnectedSlot()
 void SocketDriver::readyReadSlot()
 {
     qint64 bytesAvailable = socket->bytesAvailable();
-    qDebug() << "In readyReadSlot(); bytesAvailable(): " << bytesAvailable;
+    //qDebug() << "In readyReadSlot(); bytesAvailable(): " << bytesAvailable;
     qint64 bytesRead = socket->read(allData.tempArray, bytesAvailable);
-    qDebug() << "In readyReadSlot(); real socket->read() bytes: " << bytesRead;
+    //qDebug() << "In readyReadSlot(); real socket->read() bytes: " << bytesRead;
 
     allData.allDataToRead-=bytesRead;
     allData.tempArray+=bytesRead;
@@ -627,7 +627,7 @@ void SocketDriver::readyReadSlot()
     if (allData.allDataToRead != 0) {
         if (bytesRead != bytesAvailable)
             qDebug() << "Warning: return from readyReadSlot() with (bytesRead != bytesAvailable)!";
-        qDebug() << "In readyReadSlot(); allData.allDataToRead: " << allData.allDataToRead;
+        //qDebug() << "In readyReadSlot(); allData.allDataToRead: " << allData.allDataToRead;
         return;
     }
 
@@ -643,11 +643,11 @@ void SocketDriver::readyReadSlot()
 
 void SocketDriver::bytesWrittenSlot(qint64 bytes)
 {
-    qDebug() << "From bytesWrittenSlot(qint64 bytes); bytes: " << bytes;
-    qDebug() << "From bytesWrittenSlot(qint64 bytes); bytesToWrite(): " << socket->bytesToWrite();
+    //qDebug() << "From bytesWrittenSlot(qint64 bytes); bytes: " << bytes;
+    //qDebug() << "From bytesWrittenSlot(qint64 bytes); bytesToWrite(): " << socket->bytesToWrite();
 //    allData.allDataToWrite-=bytes;
 //    int pos = head_and_Data.size()-allData.allDataToWrite;
-//    qDebug() << "In bytesWrittenSlot(qint64 bytes); bytesToWrite(): " << socket->bytesToWrite();
+//    //qDebug() << "In bytesWrittenSlot(qint64 bytes); bytesToWrite(): " << socket->bytesToWrite();
 //    if (allData.allDataToWrite)
 //        socket->write(head_and_Data.data() + pos, allData.allDataToWrite);
 }
@@ -667,11 +667,12 @@ void SocketDriver::timerTOSlot()
 
 void SocketDriver::tryToConnect(QString ip, ushort port)
 {
+    socket->setProxy(QNetworkProxy::NoProxy);
     timer->start();
     socket->connectToHost(QHostAddress(ip), port);
-    qDebug() << "SocketDriver::tryToConnect(): before mutex.lock();";
+    //qDebug() << "SocketDriver::tryToConnect(): before mutex.lock();";
     mutex->lock();
-    qDebug() << "SocketDriver::tryToConnect(): after mutex.lock();";
+    //qDebug() << "SocketDriver::tryToConnect(): after mutex.lock();";
 }
 
 void SocketDriver::tryToDisconnect()
@@ -679,9 +680,9 @@ void SocketDriver::tryToDisconnect()
     socket->abort();
 //    timer->start();
 //    socket->disconnectFromHost();
-//    qDebug() << "SocketDriver::tryToDisconnect(): before mutex.lock();";
+//    //qDebug() << "SocketDriver::tryToDisconnect(): before mutex.lock();";
 //    mutex.lock();
-//    qDebug() << "SocketDriver::tryToDisconnect(): after mutex.lock();";
+//    //qDebug() << "SocketDriver::tryToDisconnect(): after mutex.lock();";
 }
 
 void SocketDriver::tryToExchange()
@@ -729,8 +730,8 @@ void SocketDriver::tryToExchange()
     }
     allData.allDataToWrite = head_and_Data.size();
     allData.curPointer = 0;
-    qDebug() << "Before socket->write() in tryExchange()!";
+    //qDebug() << "Before socket->write() in tryExchange()!";
     socket->write(head_and_Data.data(), allData.allDataToWrite);
-    qDebug() << "After socket->write() in tryExchange()!";
+    //qDebug() << "After socket->write() in tryExchange()!";
     mutex->lock();
 }

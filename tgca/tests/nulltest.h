@@ -21,6 +21,11 @@ private:
     QRadioButton *radioButtonUnlimited; // длина цикла не ограничена
     QRadioButton *radioButtonEnter;     // длина цикла задаётся параметром spinBoxCycle
 
+    QLineEdit *lineEditSleepTime;    // пауза, которую должна определить функция измерения времени
+    QLineEdit *lineEditErrBit;       // число внесенных ошибочных бит
+    QComboBox *comboBoxManType;
+    QCheckBox *checkBoxCodec;
+
     // пауза между итерациями
     QLineEdit *lineEditPause;
 
@@ -48,6 +53,13 @@ public:
     uint iterCount, iterTime, outMode;
     bool bConnectBC, bConnectRT, bDebugOut;
     void *testData;
+
+    bool timeTest;
+    int timeSleep;
+    bool compTest;
+    int wrongBit;
+    int manType;
+    bool codec;
 
 protected:
     void stdOutput(QString message_rus, QString message_eng);
