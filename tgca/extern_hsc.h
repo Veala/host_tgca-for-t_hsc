@@ -25,14 +25,14 @@ typedef unsigned int*   p_mem_t;
 
 /// Адрес ОУ для групповой команды.
 #define BRD_RT_ADDR  31
-/// Максимальный рарешенный адрес ОУ - 5 бит
+/// Максимальный разрешенный адрес ОУ - 5 бит
 #define MAX_RT_ADDR  31
-/// Максимальный рарешенный код команды - 7 бит
+/// Максимальный разрешенный код команды - 7 бит
 #define MAX_COMMAND_CODE  127
 
 /// Биты ответного слова.
-#define  tgca_fl_SW_NOTRDY   1
-#define  tgca_fl_SW_DEVERR   2
+//#define  tgca_fl_SW_NOTRDY   1
+//#define  tgca_fl_SW_DEVERR   2
 #define  tgca_fl_SW_DATERR   4
 
 /// Признак trbit: направление передачи данных.

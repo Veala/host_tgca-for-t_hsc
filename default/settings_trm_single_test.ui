@@ -54,7 +54,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-629</y>
         <width>488</width>
         <height>1496</height>
        </rect>
@@ -2295,7 +2295,7 @@
        <item row="51" column="2" colspan="3">
         <widget class="QComboBox" name="comboBoxCheckRW">
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -2304,17 +2304,12 @@
          </item>
          <item>
           <property name="text">
-           <string>Сообщать о неверной длине пакета</string>
+           <string>Сообщать об ошибках получения ОП</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Сообщать об ошибках ответного слова</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Сообщать обо всех ошибках</string>
+           <string>Сообщать о всех ошибках ОС</string>
           </property>
          </item>
         </widget>
@@ -2479,7 +2474,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupData"/>
   <buttongroup name="buttonGroupRepeat"/>
+  <buttongroup name="buttonGroupData"/>
  </buttongroups>
 </ui>

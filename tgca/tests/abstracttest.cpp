@@ -772,6 +772,25 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
     return loadTest(defFileStr, devices, pB, tB);
 }
 
+static QAction* findActionByName(QList<QAction*> list, QString name)
+{
+    for (int i=0; i<list.size(); i++)
+    {
+        QAction* pAct = list[i];
+        if (pAct->objectName() == name)
+            return pAct;
+    }
+    return 0;
+}
+
+void AbstractTest::connectActions()
+{
+    settings->addAction(findActionByName(actions(), tr("act_devMode1")));
+    settings->addAction(findActionByName(actions(), tr("act_devMode2")));
+    stats->addAction(findActionByName(actions(), tr("act_devMode1")));
+    stats->addAction(findActionByName(actions(), tr("act_devMode2")));
+}
+
 AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, QTextBrowser *pB, QTextBrowser *tB)
 {
     QFile settingsFile(settingsFileStr);

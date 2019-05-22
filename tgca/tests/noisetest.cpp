@@ -14,6 +14,8 @@ void NoiseTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, 
     setTestConnections();
     onRadioCycle();
     disableUnimplemented();
+    checkBoxParamView->setVisible(false);
+    settings->findChild<QLabel*>("labelParamView")->setVisible(false);
 
     deviceLineEditList.append(lineEditDevBC);
     deviceLineEditList.append(lineEditDevRT);
@@ -790,7 +792,7 @@ void noiseObjToThread::perform()
     int statusBC = getStatusReg(devBC);
 
 
-//stdOutput();....
+//stdOutput();
 
     int pos = 0;
     char *pData = (char*)testData;

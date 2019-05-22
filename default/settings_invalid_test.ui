@@ -26,8 +26,8 @@
    <string>Неопределённые команды. Настройки.</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../pictogram/Qt/trash.png</normaloff>../pictogram/Qt/trash.png</iconset>
+   <iconset resource="../tgca/tgca.qrc">
+    <normaloff>:/pictogram/trash.png</normaloff>:/pictogram/trash.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -1031,13 +1031,13 @@
           <string notr="true">background-color: rgb(240, 240, 240);</string>
          </property>
          <property name="text">
-          <string>1234567890123456789012345678901234567890123456789012345,6789,0</string>
+          <string/>
          </property>
          <property name="maxLength">
           <number>256</number>
          </property>
          <property name="cursorPosition">
-          <number>62</number>
+          <number>0</number>
          </property>
          <property name="readOnly">
           <bool>true</bool>
@@ -1050,7 +1050,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../tgca/tgca.qrc"/>
+ </resources>
  <connections/>
  <slots>
   <slot>onPushCodes()</slot>

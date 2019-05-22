@@ -39,7 +39,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-300</y>
         <width>459</width>
         <height>1087</height>
        </rect>
@@ -409,7 +409,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -418,17 +418,12 @@
          </item>
          <item>
           <property name="text">
-           <string>Сообщать о неверной длине пакета</string>
+           <string>Сообщать об отсутствии ОП</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Сообщать об ошибках ответного слова</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Сообщать обо всех ошибках</string>
+           <string>Сообщать об ошибках в ОС</string>
           </property>
          </item>
         </widget>

@@ -15,6 +15,9 @@ void VarBroadTest::setStatSettings()
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
     statsMap.insert("otherErr", stats->findChild<QLabel*>("otherErr"));
+
+    stats->findChild<QLabel*>("errFatal")->setVisible(false);
+    stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
     connectStatisticSlots();
 }
 
@@ -30,6 +33,8 @@ void VarBroadTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTyp
     setTestConnections();
 
     disableUnimplemented();    // отключить нереализованные настройки
+    checkBoxParamView->setVisible(false);
+    settings->findChild<QLabel*>("labelParamView")->setVisible(false);
 
     deviceLineEditList.append(lineEditDevBC);
     deviceLineEditList.append(lineEditDevRT);

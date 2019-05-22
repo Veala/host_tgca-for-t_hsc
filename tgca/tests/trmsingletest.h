@@ -145,6 +145,7 @@ public:
     bool BCtoRT, RTtoBC;
     //bool trm_mode;
     int rtaddr;
+    int addr_dst;
     bool useInt, initEnable, writeCfg, checkCountersEnable;
     bool statusBCOut, statusRTOut, windowMode;
     bool checkStatusErrBC, checkStatusErrRT, noIntFatalBC, checkLoadCfg;
@@ -163,6 +164,8 @@ public:
     QString manipulation;
     bool codec, broadcast;
     void destroyData();
+    bool checkReceiving;
+    int checkResponse;
 
 protected:
     void perform();

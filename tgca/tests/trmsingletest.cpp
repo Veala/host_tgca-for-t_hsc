@@ -22,8 +22,9 @@ void TrmSingleTest::setStatSettings()
     statsMap.insert("errStatusRT", stats->findChild<QLabel*>("errStatusRT"));
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
-    //stats->findChild<QLabel*>("errFatal")->setVisible(false);
-    //stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
+
+    stats->findChild<QLabel*>("errFatal")->setVisible(false);
+    stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
                 //statsMap.insert("totalReset", stats->findChild<QLabel*>("totalReset"));    // сброс не реализован
                  stats->findChild<QLabel*>("totalReset")->setVisible(false);
                  stats->findChild<QLabel*>("labelTotalReset")->setVisible(false);
@@ -47,6 +48,8 @@ void TrmSingleTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tTy
     onRadioCycle();
     onTypeChanged();
     disableUnimplemented();    // отключить нереализованные настройки
+    checkBoxParamView->setVisible(false);
+    settings->findChild<QLabel*>("labelParamView")->setVisible(false);
 
     addDevicesTolist();
 
@@ -360,10 +363,10 @@ void TrmSingleTest::onCheckInit()
 void TrmSingleTest::disableUnimplemented()
 {
     // ПОКА НЕ РЕАЛИЗОВАНЫ
-    comboBoxCheckRW->setDisabled(true);                             // проверка ответного пакета
-    settings->findChild<QLabel*>("labelCheckRW")->setDisabled(true);
-    comboBoxRec->setDisabled(true);                                 // проверка, что сообщение от КШ принято ОУ
-    settings->findChild<QLabel*>("labelReceived")->setDisabled(true);
+//    comboBoxCheckRW->setDisabled(true);                             // проверка ответного пакета
+//    settings->findChild<QLabel*>("labelCheckRW")->setDisabled(true);
+//    comboBoxRec->setDisabled(true);                                 // проверка, что сообщение от КШ принято ОУ
+//    settings->findChild<QLabel*>("labelReceived")->setDisabled(true);
     comboBoxCountPref->setDisabled(true);                           // выбор периодичности вывода счётчиков принятых/переданных пакетов
     lineEditCountOut->setDisabled(true);                            // частота вывода счётчиков принятых/переданных пакетов
     settings->findChild<QLabel*>("labelCntOut")->setDisabled(true);
@@ -375,6 +378,9 @@ void TrmSingleTest::disableUnimplemented()
 void TrmSingleTest::setEnabledSpecial(bool b)
 {
     AbstractTest::setEnabledSpecial(b);
+
+    checkBoxWinMode->setVisible(b);
+    settings->findChild<QLabel*>("labelWinMode")->setVisible(b);
 
     if (b)
     {
@@ -389,9 +395,6 @@ void TrmSingleTest::setEnabledSpecial(bool b)
         settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
-
-        checkBoxWinMode->setVisible(false);
-        settings->findChild<QLabel*>("labelWinMode")->setVisible(false);
 
         if (checkBoxInit->isChecked())
         {
@@ -486,6 +489,7 @@ void TrmSingleTest::startTest()
     curThread->setOutEnabled(checkBoxOut->isChecked());
     curThread->waitTime = lineEditTime->text().toInt(0, 16);
     curThread->rtaddr = comboBoxRTA->currentIndex();
+    curThread->addr_dst = curThread->rtaddr;
     curThread->checkCountersEnable = checkBoxCounters->isChecked();
     curThread->writeCfg = checkBoxConfRegLoad->isChecked();
     //curThread->modeSPI = val_REG_CR_SPI_dr_UNDEF;
@@ -527,7 +531,9 @@ void TrmSingleTest::startTest()
     curThread->modeOutBC = comboBoxBCOutPref->currentIndex();
     curThread->modeOutRT = comboBoxRTOutPref->currentIndex();
     curThread->timeOverhead = lineEditOver->text().isEmpty() ? 0 : lineEditOver->text().toInt(0, 10);
-    curThread->checkLoadCfg = comboBoxWrongCfgReg->currentIndex() > 0;
+    curThread->checkLoadCfg = (comboBoxWrongCfgReg->currentIndex() > 0);
+    curThread->checkResponse = comboBoxCheckRW->currentIndex();
+    curThread->checkReceiving = (comboBoxRec->currentIndex() > 0);
 
     curThread->manipulation = comboBoxManType->currentText();
     curThread->codec = checkBoxCodec->isChecked();
@@ -604,6 +610,8 @@ void TrmSingleTest::startTest()
     if (test.maxNumByte() != mnb)
     {
         qDebug() << "Error max num byte: " << mnb << " " << test.maxNumByte();
+        qDebug() << QString("Unexpected configuration parameters");
+        return;
         throw QString("Unexpected configuration parameters");
     }
     curThread->nwrd = test.numWordInSymbol();
@@ -1143,7 +1151,6 @@ void trmSingleObjToThread::perform()
         if (compEnableRTA > 0 && !broadcast) // окончательная проверка адреса ОУ
         {
             REG_HSC_cfg cfg;
-            int addr_dst = getRtaFromCommand(trmData);  // адрес отправки пакета
             bool check_aux_rtaddr = (devRT->reg_hsc_cfg.rtavsk_ena == 0);
             int addr_real = devRT->reg_hsc_cfg.rtavsk;
             if (!initEnable && !writeCfg && !checkLoadCfg)  // если конфигурационный регистр загружали или проверяли, то считаеи, что текущее значение правильное
@@ -1326,6 +1333,7 @@ void trmSingleObjToThread::perform()
                 if (BCtoRT)
                 {
                     emit statsOutputReady("totalIter", 1);
+                    int addr_rx_bc;
                     // Запись данных в буфер передачи
                     devBC->write_F2(getBufTrm(statusBC), (char*)trmData, trm_size);
                     if (compEnableMemBCRT > 0 && it <= 1)
@@ -1354,6 +1362,13 @@ void trmSingleObjToThread::perform()
                             }
                             errorOccured = true;
                         }
+                    }
+                    if (checkResponse)
+                    {
+                        // распишем первое слово буфера приёма КШ, чтобы можно было потом сравнить
+                        addr_rx_bc = getBufRec(statusBC);
+                        word32_t FF = 0xFFFFFFFF;
+                        devBC->write_F2(addr_rx_bc, (char*)(&FF), sizeof(word32_t));
                     }
 
                     // Оконный режим
@@ -1438,6 +1453,99 @@ void trmSingleObjToThread::perform()
                                 errorOccured = true;
                             }
                         }
+                        if (checkReceiving) // проверяем только, что буфер приёма ОУ переключился
+                        {
+                            if ((statusRT & fl_REG_STATUS_rx_num_buf) == (statusRTBefore & fl_REG_STATUS_rx_num_buf))
+                            {
+                                stdOutput(tr("Сообщение не принято оконечным устройством"), tr("RT did not receive package"));
+                                emit statsOutputReady("errReceive", 1);
+                                errorOccured = true;
+                            }
+                        }
+                        if (checkResponse)
+                        {
+                            bool errRW = false;
+                            if (broadcast)
+                            {
+                                // Не должно быть ответа. Проверим 3 вещи:
+                                // 1) ошибка в регистре состояния
+                                if (!checkStatusErrBC && ((statusBC & fl_REG_STATUS_yes_aw_gr_err)))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка получения ответа в статусе КШ"), tr("Flag yes_aw_gr_err in BC status"));
+                                }
+                                // 2) переключение буфера приёма КШ и буфера передачи ОУ
+                                if (getBufRec(statusBC) != addr_rx_bc)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера приёма КШ"), tr("BC receiving buffer switched"));
+                                }
+                                if ((statusRT & fl_REG_STATUS_tx_num_buf) != (statusRTBefore & fl_REG_STATUS_tx_num_buf))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера передачи ОУ"), tr("RT transmit buffer switched"));
+                                }
+                                // 3) изменилось ли первое слово буфера приёма
+                                word32_t comp;
+                                devBC->read_F2(addr_rx_bc, sizeof(word32_t), (char*)(&comp));
+                                if (comp != 0xFFFFFFFF)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка содержимого буфера приёма КШ"), tr("BC receiving buffer change content"));
+                                }
+                                if (errRW)
+                                {
+                                    emit statsOutputReady("errYesSW", 1);
+                                    errorOccured = true;
+                                }
+                            }
+                            else
+                            {
+                                // Тоже проверим 3 вещи:
+                                // 1) ошибка в регистре состояния
+                                if (!checkStatusErrBC && ((statusBC & fl_REG_STATUS_no_aw_err)))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка неполучения ответа в статусе КШ"), tr("Flag no_aw_err in BC status"));
+                                }
+                                // 2) переключение буфера приёма КШ и буфера передачи ОУ
+                                if (getBufRec(statusBC) == addr_rx_bc)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера приёма КШ"), tr("BC receiving buffer did not switch"));
+                                }
+                                if ((statusRT & fl_REG_STATUS_tx_num_buf) == (statusRTBefore & fl_REG_STATUS_tx_num_buf))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера передачи ОУ"), tr("RT transmit buffer did not switch"));
+                                }
+                                // 3) изменилось ли первое слово буфера приёма
+                                    word32_t comp;
+                                    devBC->read_F2(addr_rx_bc, sizeof(word32_t), (char*)(&comp));
+                                    if (checkResponse > 1)
+                                    {
+                                        if (getRtaFromResponse(&comp) != addr_dst || (comp&tgca_fl_SW_DATERR) != 0)
+                                        {
+                                            if (getRtaFromResponse(&comp) != addr_dst)
+                                                stdOutput(tr("Ошибка ответного слова: адрес ОУ"), tr("Wrong response: RT address"));
+                                            if (comp&tgca_fl_SW_DATERR)
+                                                stdOutput(tr("Ошибка ответного слова: флаг ошибки данных"), tr("Data error flag in response"));
+                                            emit statsOutputReady("errRW", 1);
+                                            errorOccured = true;
+                                        }
+                                    }
+                                    else if (comp == 0xFFFFFFFF)
+                                    {
+                                        errRW = true;
+                                        stdOutput(tr("Ошибка содержимого буфера приёма КШ"), tr("BC receiving buffer change content"));
+                                    }
+                                if (errRW)
+                                {
+                                    emit statsOutputReady("errNoSW", 1);
+                                    errorOccured = true;
+                                }
+                            }
+                        }
                     }
                 }  // BCtoRT
                 else  //  здесь RTtoBC, не циркулярный возврат
@@ -1484,21 +1592,21 @@ void trmSingleObjToThread::perform()
                         if (pauseTime > 0)
                             thread()->msleep(pauseTime);
 
-                        // Переписываем данные из буфера приёма в буфер передачи
-/*
-                        int test_size = trm_size-sizeof(word32_t);
-                        QByteArray readArrayW;
-                        readArrayW.resize(test_size);
-                        devRT->read_F2(getBufRec(statusRTBefore) + sizeof(word32_t), test_size, readArrayW.data());
-                        devRT->write_F2(getBufTrm(statusRT) + sizeof(word32_t), readArrayW.data(), test_size);
-*/
-                        // теперь новая функция
+                        // переписываем данные из буфера приёма в буфер передачи
                         devRT->cpyOnHard(getBufRec(statusRTBefore) + sizeof(word32_t), trm_size-sizeof(word32_t), getBufTrm(statusRT) + sizeof(word32_t));
 
                         statusRTBefore = statusRT;
                     }
+
+                    // Дальше общая часть для циркулярного возврата и просто передачи
                     devBC->write_F2(getBufTrm(statusBC), (char*)recData, rec_pk_size);
-                    int addr_rx = getBufRec(statusBC);
+                    int addr_rx_bc = getBufRec(statusBC);
+                    if (checkResponse)
+                    {
+                        // распишем первое слово буфера приёма КШ, чтобы можно было потом сравнить
+                        word32_t FF = 0xFFFFFFFF;
+                        devBC->write_F2(addr_rx_bc, (char*)(&FF), sizeof(word32_t));
+                    }
 
                     // Оконный режим
                     if(windowMode && devRT)
@@ -1562,27 +1670,121 @@ void trmSingleObjToThread::perform()
                     {
                         checkCounters(devRT);
 
-                        if (compEnableData > 0 /* || проверка ответного слова */)
+                        if (broadcast)
                         {
-                            // Чтение данных из буфера приёма КШ для сравнения
-                            QByteArray readArrayC;
-                            readArrayC.resize(trm_size);
-                            devBC->read_F2(addr_rx, trm_size, readArrayC.data());
-                            if (test.cmpPack((void*)(readArrayC.data()), trmData, trm_size/NUMBYTEINOFDMSYM - 1, true))
+                            if (checkResponse)
                             {
-                                if (it <= 1)
-                                    stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                                bool errRW=false;
+                                if (!checkStatusErrBC && ((statusBC & fl_REG_STATUS_yes_aw_gr_err)))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка получения ответа в статусе КШ"), tr("Flag yes_aw_gr_err in BC status"));
+                                }
+                                // Проверяем, что буфер приёма КШ и буфер передачи ОУ не переключились
+                                if (getBufRec(statusBC) != addr_rx_bc)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера приёма КШ"), tr("BC receiving buffer switched"));
+                                }
+                                if ((statusRT & fl_REG_STATUS_tx_num_buf) != (statusRTBefore & fl_REG_STATUS_tx_num_buf))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера передачи ОУ"), tr("RT transmit buffer switched"));
+                                }
+                                // Проверка первого слова буфера приёма КШ
+                                word32_t comp;
+                                devBC->read_F2(addr_rx_bc, sizeof(word32_t), (char*)(&comp));
+                                if (comp != 0xFFFFFFFF)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка содержимого буфера приёма КШ"), tr("BC receiving buffer change content"));
+                                }
+                                if (errRW)
+                                {
+                                    emit statsOutputReady("errYesSW", 1);
+                                    errorOccured = true;
+                                }
                             }
-                            else
+                        }
+                        else
+                        {
+                            if ((compEnableData > 0) || (checkResponse > 0))
                             {
-                                stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                               /* stdOutput(tr("Первое прочитанное слово = %1").arg(*(int*)(readArrayC.data()), 8, 16, QLatin1Char('0')),
-                                          tr("First read word = %1").arg(*(int*)(readArrayC.data()), 8, 16, QLatin1Char('0')));*/
-                                emit statsOutputReady("errCompare", 1);
+                                // Чтение данных из буфера приёма КШ для сравнения
+                                QByteArray readArrayC;
+                                readArrayC.resize(trm_size);
+                                devBC->read_F2(addr_rx_bc, trm_size, readArrayC.data());
+                                if (compEnableData)
+                                {
+                                    if (test.cmpPack((void*)(readArrayC.data()), trmData, trm_size/NUMBYTEINOFDMSYM - 1, true))
+                                    {
+                                        if (it <= 1)
+                                            stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                                    }
+                                    else
+                                    {
+                                        stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
+                                        stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                                       /* stdOutput(tr("Первое прочитанное слово = %1").arg(*(int*)(readArrayC.data()), 8, 16, QLatin1Char('0')),
+                                                  tr("First read word = %1").arg(*(int*)(readArrayC.data()), 8, 16, QLatin1Char('0')));*/
+                                        emit statsOutputReady("errCompare", 1);
+                                        errorOccured = true;
+                                    }
+                                } //сравнение данных
+                                if (checkResponse)
+                                {
+                                    bool errRW = false;
+                                    if (!checkStatusErrBC && ((statusBC & fl_REG_STATUS_no_aw_err)))
+                                    {
+                                        errRW = true;
+                                        stdOutput(tr("Ошибка неполучения ответа в статусе КШ"), tr("Flag no_aw_err in BC status"));
+                                    }
+                                    if (getBufRec(statusBC) == addr_rx_bc)
+                                    {
+                                        errRW = true;
+                                        stdOutput(tr("Ошибка переключения буфера приёма КШ"), tr("BC receiving buffer did not switch"));
+                                    }
+                                    if ((statusRT & fl_REG_STATUS_tx_num_buf) == (statusRTBefore & fl_REG_STATUS_tx_num_buf))
+                                    {
+                                        errRW = true;
+                                        stdOutput(tr("Ошибка переключения буфера передачи ОУ"), tr("RT transmit buffer did not switch"));
+                                    }
+                                    //  первое слово буфера приёма
+                                        word32_t comp = (word32_t)(*((word32_t*)(readArrayC.data())));
+                                        if (checkResponse > 1)
+                                        {
+                                            if (getRtaFromResponse(&comp) != addr_dst || (comp&tgca_fl_SW_DATERR) != 0)
+                                            {
+                                                if (getRtaFromResponse(&comp) != addr_dst)
+                                                    stdOutput(tr("Ошибка ответного слова: адрес ОУ"), tr("Wrong response: RT address"));
+                                                if (comp&tgca_fl_SW_DATERR)
+                                                    stdOutput(tr("Ошибка ответного слова: флаг ошибки данных"), tr("Data error flag in response"));
+                                                emit statsOutputReady("errRW", 1);
+                                                errorOccured = true;
+                                            }
+                                        }
+                                        else if (comp == 0xFFFFFFFF)
+                                        {
+                                            errRW = true;
+                                            stdOutput(tr("Ошибка содержимого буфера приёма КШ"), tr("BC receiving buffer change content"));
+                                        }
+                                    if (errRW)
+                                    {
+                                        emit statsOutputReady("errNoSW", 1);
+                                        errorOccured = true;
+                                    }
+                                }  // if (checkResponce)
+                            }
+                        } // не групповая команда
+                        if (checkReceiving) // проверяем только, что буфер приёма ОУ переключился
+                        {
+                            if ((statusRT & fl_REG_STATUS_rx_num_buf) == (statusRTBefore & fl_REG_STATUS_rx_num_buf))
+                            {
+                                stdOutput(tr("Сообщение не принято оконечным устройством"), tr("RT did not receive package"));
+                                emit statsOutputReady("errReceive", 1);
                                 errorOccured = true;
                             }
-                        } //сравнение данных
+                        }
                     }
                 } // передача ОУ-КШ или циркулярный возврат
 

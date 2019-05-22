@@ -473,7 +473,7 @@ static bool cmpBytes(char char1, char char2, int *num_wrong_bit, int max_wrong_b
     return ((*num_wrong_bit) <= max_wrong_bit);
 }
 
-/// Рекурсивная функция сравнения двух сассивов длины num_b.
+/// Рекурсивная функция сравнения двух массивов длины num_b.
 /// Число несовпавших бит добавляется к значению переменной num_wrong_bit.
 /// Если число несовпавших бит не превышает max_wrong_bit, функция возвращает true.
 /// Иначе функция возвращает false и значение *num_wrong_bit при этом может быть меньше

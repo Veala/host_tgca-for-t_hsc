@@ -1,8 +1,10 @@
 #include "nulltest.h"
 #include "../registers.h"
-
 #include "../testutil.h"
 #include "../ctestbc.h"
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 
 void NullTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
@@ -62,6 +64,10 @@ void NullTest::defineFields()
     lineEditErrBit = settings->findChild<QLineEdit*>("lineEditErrBit");
     comboBoxManType = settings->findChild<QComboBox*>("comboBoxManType");
     checkBoxCodec = settings->findChild<QCheckBox*>("checkBoxCodec");
+
+    lineEditTimeIter = settings->findChild<QLineEdit*>("lineEditTimeIter");
+    checkBoxBit = settings->findChild<QCheckBox*>("checkBoxBit");
+    lineEditMaxErrBit = settings->findChild<QLineEdit*>("lineEditMaxErrBit");
 }
 
 void NullTest::load(QString fName)
@@ -90,6 +96,11 @@ top_1
         checkBoxCodec->setChecked(!out.readLine().isEmpty());
         lineEditSleepTime->setText(out.readLine());
         lineEditErrBit->setText(out.readLine());
+
+        lineEditTimeIter->setText(out.readLine());
+        checkBoxBit->setChecked(!out.readLine().isEmpty());
+        lineEditMaxErrBit->setText(out.readLine());
+
 }
 
 void NullTest::save()
@@ -117,6 +128,9 @@ top_2(saveFileNameStr)
     in << (checkBoxCodec->isChecked() ? "1" : "") << endl;
     in << lineEditSleepTime->text() << endl;
     in << lineEditErrBit->text() << endl;
+    in << lineEditTimeIter->text() << endl;
+    in << (checkBoxBit->isChecked() ? "1" : "") << endl;
+    in << lineEditMaxErrBit->text() << endl;
 
     settingsFile.close();
 }
@@ -143,6 +157,10 @@ void NullTest::startTest()
     curThread->wrongBit = curThread->compTest ? lineEditErrBit->text().toInt() : 0;
     curThread->manType = comboBoxManType->currentIndex();
     curThread->codec = checkBoxCodec->isChecked();
+
+    curThread->timeIterCount = lineEditTimeIter->text().toInt();
+    curThread->errInOne = checkBoxBit->isChecked();
+    curThread->maxWrongBit = lineEditMaxErrBit->text().toInt();
 
     curThread->testData = dataGen.createData(dataGen.getDataLen(), 2);
 
@@ -247,6 +265,13 @@ void nullObjToThread::perform()
         }
     }
 
+    double timeM1=0,timeM2=0,timeM3=0,timeM4=0;
+
+#ifdef Q_OS_WIN
+    LARGE_INTEGER frequency;
+    QueryPerformanceFrequency(&frequency);
+#endif
+
     for (int iter=0; iter!=iterCount; iter++)
     {
         if (iterTime > 0)
@@ -254,64 +279,46 @@ void nullObjToThread::perform()
 
         if (bDebugOut && (iter%20 == 0))
             stdOutput(tr("Итерация %1").arg(iter), tr("Iter = %1").arg(iter));
-        qDebug() << "iter " << iter;
-
-   /*     QTime curTime;
-        curTime.start(); // = QTime::currentTime();
-        qDebug() << "Time before: " << curTime;
-
-        int time1 =  curTime.msecsSinceStartOfDay();
-
-        qDebug() << "time1 = " << time1;
-        qDebug() << "Time now: " << curTime;
-
-        thread()->msleep(5);
-
-          QTime newTime = QTime::currentTime();
-          qDebug() << "Time after: " << newTime;
-          int t1 = curTime.msecsTo(newTime); //(QTime::currentTime());
-          int t2 = curTime.elapsed();
-            int time2 =  newTime.msecsSinceStartOfDay();
-            int diff = time2 >= time1 ? time2-time1 : -1;
-
-            qDebug() << "msecsTo = " << t1;
-            qDebug() << "elapsed = " << t2;
-            qDebug() << "time2 = " << time2;
-            qDebug() << "diff = " << diff;*/
+        //qDebug() << "iter " << iter;
 
         if (timeTest)
         {
-        }
+                QTime time1 = QTime::currentTime();
+                //int time1 =  curTime.msecsSinceStartOfDay();
+                thread()->usleep(timeSleep);
+                int time = time1.msecsTo(QTime::currentTime());
+                timeM1 += time;
+                stdOutput(tr("Время как раньше = %1 мс").arg(time), tr("time Lena = %1 ms").arg(time));
 
-        if (compTest && testData!=0)
-        {
-            char trmBuf[MAXPACKAGESIZE];
-            CTestBC test;
-            test.setConfigFlds(manType, codec);
-            int mb = test.maxNumByte();
-            if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, testData, mb, 0, tgca_tr_REC, 0))
-            {
-                stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
-                emit statsOutputReady("otherErr", 1);
-                emit resultReady((int)AbstractTest::ErrorIsOccured);
-                    free (testData);
-                return;
-            }
-            // портим несколько бит
-            for (int i=0; i<wrongBit && i<256; i++)
-            {
-                trmBuf[i*NUMBYTEINOFDMSYM + 8] = trmBuf[i*NUMBYTEINOFDMSYM + 8]  ^ (char)1;
-            }
-            int err_1, err_eq, err_gt;
-            bool b_1  = test.cmpPackDataBit(trmBuf, testData, mb, &err_1, 1 );
-            qDebug() << 1 << " " << err_1 << " " << b_1;
-            bool b_eq = test.cmpPackDataBit(trmBuf, testData, mb, &err_eq, wrongBit+1 );
-            qDebug() << wrongBit+1 << " " << err_eq << " " << b_eq;
-            if (wrongBit > 2)
-            {
-                bool b_gt = test.cmpPackDataBit(trmBuf, testData, mb, &err_gt, wrongBit-1 );
-                qDebug() << wrongBit-1 << " " << err_gt << " " << b_gt;
-            }
+                QElapsedTimer curTime;
+                curTime.start();
+                thread()->usleep(timeSleep);
+                int t = curTime.elapsed();
+                timeM2 += t;
+                stdOutput(tr("Время как сейчас = %1 мс").arg(t), tr("time Igor = %1 ms").arg(t));
+
+#ifdef Q_OS_WIN
+                LARGE_INTEGER t1, t2;
+                QueryPerformanceCounter(&t1);
+                thread()->usleep(timeSleep);
+                QueryPerformanceCounter(&t2);
+                double elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
+                timeM3 += elapsedTime;
+                stdOutput(tr("Время с тиками = %1 мс").arg(elapsedTime), tr("time LVE = %1 ms").arg(elapsedTime));
+
+                    time1 = QTime::currentTime();
+                    QueryPerformanceCounter(&t1);
+                    QueryPerformanceCounter(&t2);
+                    //int time1 =  curTime.msecsSinceStartOfDay();
+                    while ((elapsedTime = double(1000000.0) * (t2.QuadPart - t1.QuadPart) / frequency.QuadPart) < timeSleep)
+                    {
+                        QueryPerformanceCounter(&t2);
+                    }
+
+                    time = time1.msecsTo(QTime::currentTime());
+                    timeM4 += time;
+                    stdOutput(tr("Время с таймером = %1 мс").arg(time), tr("time New = %1 ms").arg(time));
+#endif
         }
 
         if (pause_stop() == -1)
@@ -321,6 +328,37 @@ void nullObjToThread::perform()
             return;
         }
     }
+    if (timeTest && iterCount>0)
+    {
+        qDebug() << "Average times: " << timeM1/iterCount << " " << timeM2/iterCount << " " << timeM3/iterCount << " " << timeM4/iterCount;
+    }
+
+    if (compTest && testData!=0)
+    {
+        char trmBuf[MAXPACKAGESIZE];
+        CTestBC test;
+        test.setConfigFlds(manType, codec);
+        int mb = test.maxNumByte();
+        if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, testData, mb, 0, tgca_tr_REC, 0))
+        {
+            stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+            emit statsOutputReady("errOther", 1);
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+                free (testData);
+            return;
+        }
+        // портим несколько бит
+        for (int i=0; i<wrongBit && i<256; i++)
+        {
+            trmBuf[i*NUMBYTEINOFDMSYM + 8] = trmBuf[i*NUMBYTEINOFDMSYM + 8]  ^ (char)1;
+        }
+        int err_1;
+        if (test.cmpPackDataBit(trmBuf, testData, mb, &err_1, maxWrongBit))
+            stdOutput(tr("Сравнение успешно: найдено %1 ошибок").arg(err_1), tr("Comparison ok: %1 errors found").arg(err_1));
+        else
+            stdOutput(tr("Превышено число ошибок: найдено %1").arg(err_1), tr("Comparison failed: %1 errors found").arg(err_1));
+    }
+
     if (testData)
         free (testData);
     emit resultReady(errCounter == 0 ? (int)(AbstractTest::Completed) : (int)(AbstractTest::ErrorIsOccured));

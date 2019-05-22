@@ -364,6 +364,10 @@ AbstractTest::RunningState commonObjToThread::connectBC()
     {
         qDebug() << "Connection failed";
         stdOutput(tr("Нет соединения с КШ"), tr("BC: no connection"));
+
+        if (pause_stop() == -1)
+            return AbstractTest::Stopped;
+
         emit resultReady((int)AbstractTest::ErrorIsOccured);
         return AbstractTest::ErrorIsOccured;
     }

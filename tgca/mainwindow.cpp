@@ -28,12 +28,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //setWindowFlags(windowFlags() | Qt::WindowContextHelpButtonHint);
 
-    act_devMode1 = new QAction(tr("Включить секретный режим"), this);
+    act_devMode1 = new QAction(tr("Включить секретный режим"), 0);
     act_devMode1->setObjectName(QStringLiteral("act_devMode1"));
     addAction(act_devMode1);
     act_devMode1->setShortcut(QApplication::translate("MainWindow", "Alt+Shift+D", 0));
     connect(act_devMode1, SIGNAL(triggered()), this, SLOT(actDevMode()));
-    act_devMode2 = new QAction(tr("Включить секретный режим"), this);
+    act_devMode2 = new QAction(tr("Включить секретный режим"), 0);
     act_devMode2->setObjectName(QStringLiteral("act_devMode2"));
     addAction(act_devMode2);
     act_devMode2->setShortcut(QApplication::translate("MainWindow", "Ctrl+Alt+D", 0));
@@ -44,11 +44,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSettings project("../tgca/project.ini", QSettings::IniFormat);
     if (project.status() == QSettings::NoError && project.allKeys().size() >= 2 &&
-        project.value("Common/autoload").toString() == "1")
-            prjLoaded = loadProject(project);
+            project.value("Common/autoload").toString() == "1")
+        prjLoaded = loadProject(project);
 
     if (prjLoaded)
-            ui->actSavePrj->setEnabled(true);
+        ui->actSavePrj->setEnabled(true);
     else
         actDevMode();
 
@@ -113,6 +113,7 @@ static bool setupConnection(Device *device, QString ip, QString port, QString ho
 */
 bool MainWindow::loadProject(QSettings& settings)
 {
+    su = false;
     if (settings.value("Common/user").toString() == "su")
         actDevMode();
     QString log = settings.value("Common/output").toString();
@@ -276,6 +277,9 @@ void MainWindow::loadTest(AbstractTest* test)
     connect(test, SIGNAL(dragged()), this, SLOT(onDragged()));
     connect(test, SIGNAL(dropped()), this, SLOT(onDropped()));
     ui->tests->addWidget(test);
+    test->addAction(act_devMode1);
+    test->addAction(act_devMode2);
+    test->connectActions();
 }
 
 void MainWindow::applyToAllTests(QString& testType, QString& classType, QString& fieldName, QString& value)

@@ -25,6 +25,9 @@ private:
     QLineEdit *lineEditErrBit;       // число внесенных ошибочных бит
     QComboBox *comboBoxManType;
     QCheckBox *checkBoxCodec;
+    QLineEdit *lineEditTimeIter;
+    QCheckBox *checkBoxBit;
+    QLineEdit *lineEditMaxErrBit;
 
     // пауза между итерациями
     QLineEdit *lineEditPause;
@@ -60,6 +63,9 @@ public:
     int wrongBit;
     int manType;
     bool codec;
+    int timeIterCount;
+    bool errInOne;
+    int maxWrongBit;
 
 protected:
     void stdOutput(QString message_rus, QString message_eng);

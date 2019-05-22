@@ -64,6 +64,7 @@ public:
     virtual ~AbstractTest();
 
     virtual void setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2);
+    void connectActions();
     QString getName() const;
     bool isReady() const;
     void setUserLevel(bool b);

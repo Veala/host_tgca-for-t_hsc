@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>331</width>
-    <height>469</height>
+    <height>450</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../tgca/tgca.qrc">
-    <normaloff>:/pictogram/melee.png</normaloff>:/pictogram/melee.png</iconset>
+    <normaloff>:/pictogram/melee_green.png</normaloff>:/pictogram/melee_green.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
    <property name="leftMargin">
@@ -83,7 +83,7 @@ background-color: rgb(255, 255, 255);</string>
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QLabel" name="label_15">
+    <widget class="QLabel" name="labelErrFatal">
      <property name="text">
       <string>Фатальные ошибки</string>
      </property>
@@ -430,7 +430,7 @@ background-color: rgb(255, 255, 255);</string>
      <item>
       <widget class="QPushButton" name="save">
        <property name="text">
-        <string>Сохранить</string>
+        <string>Сохранить...</string>
        </property>
       </widget>
      </item>

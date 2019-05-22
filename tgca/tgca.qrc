@@ -45,6 +45,7 @@
         <file>../pictogram/cancel__red_2586.png</file>
         <file>../pictogram/control_repeat_blue_5356.png</file>
         <file>../pictogram/squarefacespriteXX.png</file>
-        <file>../pictogram/melee.png</file>
+        <file>../pictogram/melee_green.png</file>
+        <file>../pictogram/trash.png</file>
     </qresource>
 </RCC>

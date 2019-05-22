@@ -48,23 +48,37 @@ bool parseCommandWord(void* pComm, addr_t *rta, short* num_s, short* tr, short* 
     return true;
 }
 
-int getRtaFromCommand(void* pComm)
+word32_t getRtaFromCommand(void* pComm)
 {
     word32_t* ptr = (word32_t*)pComm;
     word32_t command = *ptr;
     return (command >> 16) & MAX_RT_ADDR;
 }
 
-int getTrbitFromCommand(void* pComm)
+word32_t getTrbitFromCommand(void* pComm)
 {
     word32_t* ptr = (word32_t*)pComm;
     word32_t command = *ptr;
     return (command & tgca_fl_CW_tr_bit) ? 1 : 0;;
 }
 
-int getPackLenFromCommand(void* pComm)
+word32_t getPackLenFromCommand(void* pComm)
 {
     word32_t* ptr = (word32_t*)pComm;
     word32_t command = *ptr;
     return (command >> 8) & 0xFF;
+}
+
+word32_t getRtaFromResponse(void* pData)
+{
+    word32_t* ptr = (word32_t*)pData;
+    word32_t rw = *ptr;
+    return (rw >> 16) & MAX_RT_ADDR;
+}
+
+word32_t getStatusFromResponse(void* pData)
+{
+    word32_t* ptr = (word32_t*)pData;
+    word32_t rw = *ptr;
+    return (rw & 0xFFFF);
 }

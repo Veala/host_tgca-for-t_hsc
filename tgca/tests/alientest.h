@@ -20,6 +20,7 @@ private:
 
     // параметры тестирования
     QComboBox *comboBoxBCIntErr;        // реакция на отсутствие признака завершения обмена КШ
+    QComboBox *comboBoxTR;              // приём или передача
     QLineEdit  *lineEditCycle;          // число итераций
 
     // параметры конфигурационного регистра
@@ -85,12 +86,13 @@ public:
     int code;
     bool useInt, loadRTA, initEnable;
     bool statusBCOut, statusRTOut;
-    bool checkStatusErrBC, checkСhangeStatusRT, noIntFatalBC;
+    bool checkStatusErrBC, checkChangeStatusRT, noIntFatalBC;
     int perOutBC, modeOutBC, perOutRT, modeOutRT;
     void *testData;
     long dataSize;
     bool codec;
     bool checkRTA;
+    int dir; // приём-передача
     void destroyData();
 
 protected:

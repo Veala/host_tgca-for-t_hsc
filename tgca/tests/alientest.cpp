@@ -16,7 +16,10 @@ void AlienTest::setStatSettings()
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
     statsMap.insert("otherErr", stats->findChild<QLabel*>("otherErr"));
+
     connectStatisticSlots();
+    stats->findChild<QLabel*>("errFatal")->setVisible(false);
+    stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
 }
 
 void AlienTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
@@ -31,6 +34,9 @@ void AlienTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, 
     setTestConnections();
 
     disableUnimplemented();    // отключить нереализованные настройки
+    checkBoxParamView->setVisible(false);
+    settings->findChild<QLabel*>("labelParamView")->setVisible(false);
+
 
     deviceLineEditList.append(lineEditDevBC);
     deviceLineEditList.append(lineEditDevRT);
@@ -80,6 +86,7 @@ void AlienTest::defineFields()
     comboBoxErrStatusBC = settings->findChild<QComboBox*>("comboBoxErrStatusBC");
     comboBoxErrStatusRT = settings->findChild<QComboBox*>("comboBoxErrStatusRT");
     comboBoxBCIntErr = settings->findChild<QComboBox*>("comboBoxBCIntErr");
+    comboBoxTR = settings->findChild<QComboBox*>("comboBoxTR");
 
     checkBoxParamView = settings->findChild<QCheckBox*>("checkBoxParamView");
     checkBoxCheckRTA = settings->findChild<QCheckBox*>("checkBoxCheckRTA");
@@ -130,6 +137,7 @@ top_1
     checkBoxRTOut->setChecked(!out.readLine().isEmpty());
     QString genDataLen = out.readLine();
     checkBoxCheckRTA->setChecked(!out.readLine().isEmpty());
+    comboBoxTR->setCurrentText(out.readLine());
     lineEditCode->setText(out.readLine());
 
     settingsFile.close();
@@ -180,6 +188,7 @@ top_2(saveFileNameStr)
     in << (checkBoxRTOut->isChecked() ? "1" : "") << endl;
     in << dataGen.dataLen() << endl;
     in << (checkBoxCheckRTA->isChecked() ? "1" : "") << endl;
+    in << comboBoxTR->currentText() << endl;
     in << lineEditCode->text() << endl;
 
     settingsFile.close();
@@ -258,7 +267,7 @@ void AlienTest::startTest()
         curThread->iterCycle = 1;
     curThread->pauseTime = lineEditPause->text().toInt(0, 10);
     curThread->checkStatusErrBC = (comboBoxErrStatusBC->currentIndex() > 0);
-    curThread->checkСhangeStatusRT = (comboBoxErrStatusRT->currentIndex() > 0);
+    curThread->checkChangeStatusRT = (comboBoxErrStatusRT->currentIndex() > 0);
     curThread->noIntFatalBC = (comboBoxBCIntErr->currentIndex() != 0);
     curThread->statusBCOut = checkBoxBCOut->isChecked();
     curThread->statusRTOut = checkBoxRTOut->isChecked();
@@ -267,6 +276,7 @@ void AlienTest::startTest()
     curThread->modeOutBC = comboBoxBCOutPref->currentIndex();
     curThread->modeOutRT = comboBoxRTOutPref->currentIndex();
     curThread->initEnable = checkBoxInit->isChecked();
+    curThread->dir = comboBoxTR->currentIndex();
     curThread->code = lineEditCode->text().toInt(0,16);
     if (curThread->code > MAX_COMMAND_CODE)
         curThread->code = 0;
@@ -356,14 +366,14 @@ bool alienObjToThread::checkStatusRegRT(int status, int it, bool *error)
 {
     bool bNoInt = false;
 
-    if ((status & fl_REG_STATUS_rt_bc_int) != 0 && (checkСhangeStatusRT))
+    if ((status & fl_REG_STATUS_rt_bc_int) != 0 && (checkChangeStatusRT))
     {
         stdOutput(tr("Итерация = %1   !Есть признак завершения обмена ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
                   tr("Iter = %1   !Interruption flag in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
         *error = true;
         bNoInt = true;
     }
-    if (checkСhangeStatusRT && ((status & fl_REG_STATUS_rs_err) != 0))
+    if (checkChangeStatusRT && ((status & fl_REG_STATUS_rs_err) != 0))
     {
         stdOutput(tr("Итерация = %1   Ошибка кодека в статусе ОУ: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')),
                   tr("Iter = %1   Codec error in RT status: %2").arg(it, 6).arg(status, 4, 16, QLatin1Char('0')));
@@ -481,13 +491,19 @@ void alienObjToThread::perform()
 
     for (int iter = 0; iter < iterCycle; iter++)
     {
+        for (int address=0; address<BRD_RT_ADDR; address++)
+        {
+            if (address == rtaddr)
+                continue;
                 for (int num=1; num<=MAXNUMSYM; num++)
                 {
+                    bool errorOccured = false;
                     int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
-                    int trbit = tgca_tr_REC;   // КШ-ОУ
+                    if (dir == 0)
                     {
+                        int trbit = tgca_tr_REC;   // КШ-ОУ
+
                         char trmBuf[MAXPACKAGESIZE];
-                        bool errorOccured = false;
                         int addr_rx = getBufRec(statusRT);
 
                         if (pos > dataSize)
@@ -496,7 +512,7 @@ void alienObjToThread::perform()
                         emit statsOutputReady("totalIter", 1);
 
                         // создание командного пакета и данных для передачи по МКПД
-                        if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, rtaddr, trbit, code))
+                        if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b, address, trbit, code))
                         {
                             stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
                             emit statsOutputReady("otherErr", 1);
@@ -532,48 +548,29 @@ void alienObjToThread::perform()
                             emit statsOutputReady("totalErr", 1);
                             errCounter ++;
                         }
+                        pos += num_b;
                     }
-
-                    it++;
-                    pos += num_b;
-                    if (pauseTime > 0)
-                        thread()->msleep(pauseTime);
-                    if (pause_stop() == -1)
-                        return;
-
-                    trbit = tgca_tr_TRM;   // ОУ-КШ
+                    else
                     {
-                        char trmBuf[MAXPACKAGESIZE];
+                        int trbit = tgca_tr_TRM;   // ОУ-КШ
+
                         char recBuf[NUMBYTEINOFDMSYM];
 
-                        bool errorOccured = false;
                         int addr_tr_rt = getBufTrm(statusRT);
                         int addr_rx_bc = getBufRec(statusBC);
-
-                        if (pos > dataSize)
-                            pos -= dataSize;
 
                         emit statsOutputReady("totalIter", 1);
 
                         // создание командного пакета и данных для передачи по МКПД
-                        if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, num_b, rtaddr, trbit, code))
+                        if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, num_b, address, trbit, code))
                         {
                             stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
                             emit statsOutputReady("otherErr", 1);
                             setErrorsWithinCycle(false);
                             return;
                         }
-                        if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), num_b))
-                        {
-                            stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
-                            emit statsOutputReady("otherErr", 1);
-                            setErrorsWithinCycle(false);
-                            return;
-                        }
                         // Запись командного пакета в буфер передачи КШ
                         devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
-                        // Запись данных в буфер передачи ОУ
-                        devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
 
                         // Оконный режим
                         switchWindow(1);
@@ -602,14 +599,16 @@ void alienObjToThread::perform()
                             errCounter ++;
                         }
                     }
+
                     it++;
-                    pos += num_b;
                     if (pauseTime > 0)
                         thread()->msleep(pauseTime);
                     if (pause_stop() == -1)
                         return;
 
+
                 } //length cycle
+        } // address
     } // iter cycle
 
     if (errCounter)

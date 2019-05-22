@@ -2,6 +2,7 @@
 #include "../testutil.h"
 #include "../ctestbc.h"
 #include "../codeselect.h"
+#include "../command.h"
 
 void VarCommandTest::setStatSettings()
 {
@@ -13,10 +14,15 @@ void VarCommandTest::setStatSettings()
     statsMap.insert("errCompare", stats->findChild<QLabel*>("errCompare"));
     statsMap.insert("errStatusRT", stats->findChild<QLabel*>("errStatusRT"));
     statsMap.insert("errStatusBC", stats->findChild<QLabel*>("errStatusBC"));
+    statsMap.insert("errReceive", stats->findChild<QLabel*>("errReceive"));
+    statsMap.insert("errRW", stats->findChild<QLabel*>("errRW"));
     statsMap.insert("errBefore", stats->findChild<QLabel*>("errBefore"));
     statsMap.insert("errFatal", stats->findChild<QLabel*>("errFatal"));
     statsMap.insert("otherErr", stats->findChild<QLabel*>("otherErr"));
+
     connectStatisticSlots();
+    stats->findChild<QLabel*>("errFatal")->setVisible(false);
+    stats->findChild<QLabel*>("labelErrFatal")->setVisible(false);
 }
 
 void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
@@ -31,6 +37,8 @@ void VarCommandTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tT
     setTestConnections();
 
     disableUnimplemented();    // отключить нереализованные настройки
+    checkBoxParamView->setVisible(false);
+    settings->findChild<QLabel*>("labelParamView")->setVisible(false);
 
     deviceLineEditList.append(lineEditDevBC);
     deviceLineEditList.append(lineEditDevRT);
@@ -236,12 +244,13 @@ void VarCommandTest::onCheckEnaInt()
 void VarCommandTest::disableUnimplemented()
 {
     // ПОКА НЕ РЕАЛИЗОВАНЫ
+    checkBoxParamView->setDisabled(true);
+    settings->findChild<QLabel*>("labelParamView")->setDisabled(true);
+    return;
     comboBoxCheckRW->setDisabled(true);                             // проверка ответного пакета
     settings->findChild<QLabel*>("labelCheckRW")->setDisabled(true);
     comboBoxRec->setDisabled(true);                                 // проверка, что сообщение от КШ принято ОУ
     settings->findChild<QLabel*>("labelReceived")->setDisabled(true);
-    checkBoxParamView->setDisabled(true);
-    settings->findChild<QLabel*>("labelParamView")->setDisabled(true);
 }
 
 void VarCommandTest::setEnabledSpecial(bool b)
@@ -339,6 +348,9 @@ void VarCommandTest::startTest()
     curThread->testData = dataGen.createData(curThread->dataSize, 2);
 
     curThread->codeMask = lineViewCodes->text();
+
+    curThread->checkResponse = comboBoxCheckRW->currentIndex();
+    curThread->checkReceiving = (comboBoxRec->currentIndex() > 0);
 
     emit startTestTh();
 }
@@ -543,7 +555,9 @@ void varCommandObjToThread::perform()
                     {
                         char trmBuf[MAXPACKAGESIZE];
                         bool errorOccured = false;
-                        int addr_rx = getBufRec(statusRT);
+                        int addr_rx_rt = getBufRec(statusRT);
+                        int addr_rx_bc, buf_tr_rt;
+                        int buff_rx_rt = statusRT & fl_REG_STATUS_rx_num_buf;
 
                         if (pos > dataSize)
                             pos -= dataSize;
@@ -560,6 +574,14 @@ void varCommandObjToThread::perform()
                         }
                         // Запись командного пакета в буфер передачи КШ
                         devBC->write_F2(getBufTrm(statusBC), trmBuf, num*NUMBYTEINOFDMSYM);
+                        if (checkResponse)
+                        {
+                            // распишем первое слово буфера приёма КШ, чтобы можно было потом сравнить
+                            buf_tr_rt = statusRT & fl_REG_STATUS_tx_num_buf;
+                            addr_rx_bc = getBufRec(statusBC);
+                            word32_t FF = 0xFFFFFFFF;
+                            devBC->write_F2(addr_rx_bc, (char*)(&FF), sizeof(word32_t));
+                        }
 
                         // Оконный режим
                         switchWindow(1);
@@ -589,7 +611,7 @@ void varCommandObjToThread::perform()
                             readArrayC.resize(num*NUMBYTEINOFDMSYM);
                             if (postponeTime > 0)
                                 thread()->msleep(postponeTime);
-                            devRT->read_F2(addr_rx, num*NUMBYTEINOFDMSYM, readArrayC.data());
+                            devRT->read_F2(addr_rx_rt, num*NUMBYTEINOFDMSYM, readArrayC.data());
                             if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
                             {
                                 if (it <= 1)
@@ -600,6 +622,61 @@ void varCommandObjToThread::perform()
                                 stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
                                 stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
                                 emit statsOutputReady("errCompare", 1);
+                                errorOccured = true;
+                            }
+                        }
+                        if (checkReceiving) // здесь проверяем, что буферы переключились, а содержимое буфера проверяли при compEnableMemBC
+                        {
+                            if ((statusRT & fl_REG_STATUS_rx_num_buf) == buff_rx_rt)
+                            {
+                                stdOutput(tr("Сообщение не принято оконечным устройством"), tr("RT did not receive package"));
+                                emit statsOutputReady("errReceive", 1);
+                                errorOccured = true;
+                            }
+                        }
+                        if (checkResponse)
+                        {
+                            bool errRW = false;
+                            // 1) ошибка в регистре состояния
+                            if (!checkStatusErrBC && ((statusBC & fl_REG_STATUS_no_aw_err)))
+                            {
+                                errRW = true;
+                                stdOutput(tr("Ошибка неполучения ответа в статусе КШ"), tr("Flag no_aw_err in BC status"));
+                            }
+                            // 2) переключение буфера приёма КШ и буфера передачи ОУ
+                            if (getBufRec(statusBC) == addr_rx_bc)
+                            {
+                                errRW = true;
+                                stdOutput(tr("Ошибка переключения буфера приёма КШ"), tr("BC receiving buffer did not switch"));
+                            }
+                            if ((statusRT & fl_REG_STATUS_tx_num_buf) == buf_tr_rt)
+                            {
+                                errRW = true;
+                                stdOutput(tr("Ошибка переключения буфера передачи ОУ"), tr("RT transmit buffer did not switch"));
+                            }
+                            // 3) должно измениться первое слово буфера приёма
+                            word32_t comp;
+                            devBC->read_F2(addr_rx_bc, sizeof(word32_t), (char*)(&comp));
+                            if (checkResponse > 1)
+                            {
+                                if (getRtaFromResponse(&comp) != rtaddr || (comp&tgca_fl_SW_DATERR) != 0)
+                                {
+                                    if (getRtaFromResponse(&comp) != rtaddr)
+                                        stdOutput(tr("Ошибка ответного слова: адрес ОУ"), tr("Wrong response: RT address"));
+                                    if (comp&tgca_fl_SW_DATERR)
+                                        stdOutput(tr("Ошибка ответного слова: флаг ошибки данных"), tr("Data error flag in response"));
+                                    emit statsOutputReady("errRW", 1);
+                                    errorOccured = true;
+                                }
+                            }
+                            else if (comp == 0xFFFFFFFF)
+                            {
+                                errRW = true;
+                                stdOutput(tr("Ошибка содержимого буфера приёма КШ"), tr("BC receiving buffer change content"));
+                            }
+                            if (errRW)
+                            {
+                                emit statsOutputReady("errNoSW", 1);
                                 errorOccured = true;
                             }
                         }
@@ -625,6 +702,7 @@ void varCommandObjToThread::perform()
                         bool errorOccured = false;
                         int addr_tr_rt = getBufTrm(statusRT);
                         int addr_rx_bc = getBufRec(statusBC);
+                        int buff_rx_rt = statusRT & fl_REG_STATUS_rx_num_buf;
 
                         if (pos > dataSize)
                             pos -= dataSize;
@@ -650,6 +728,12 @@ void varCommandObjToThread::perform()
                         devBC->write_F2(getBufTrm(statusBC), recBuf, NUMBYTEINOFDMSYM);
                         // Запись данных в буфер передачи ОУ
                         devRT->write_F2(addr_tr_rt + sizeof(word32_t), trmBuf + sizeof(word32_t), num*NUMBYTEINOFDMSYM - sizeof(word32_t));
+                        if (checkResponse)
+                        {
+                            // распишем первое слово буфера приёма КШ, чтобы можно было потом сравнить
+                            word32_t FF = 0xFFFFFFFF;
+                            devBC->write_F2(addr_rx_bc, (char*)(&FF), sizeof(word32_t));
+                        }
 
                         // Оконный режим
                         switchWindow(1);
@@ -672,22 +756,78 @@ void varCommandObjToThread::perform()
                             return;
                         }
 
-                        if (compEnableMemBC)
+                        // Проверки
+                        if (compEnableMemBC || (checkResponse > 0))
                         {
                             // Чтение данных из буфера приёма КШ для сравнения
                             QByteArray readArrayC;
                             readArrayC.resize(num*NUMBYTEINOFDMSYM);
                             devBC->read_F2(addr_rx_bc, num*NUMBYTEINOFDMSYM, readArrayC.data());
-                            if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                            if (compEnableMemBC)
                             {
-                                if (it <= 1)
-                                    stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                                if (test.cmpPackData((void*)(readArrayC.data()), (void*)(pData+pos), num_b, true))
+                                {
+                                    if (it <= 1)
+                                        stdOutput(tr("Сравнение буфера приёма КШ успешно"), tr("Comparison BC rec buffer OK"));
+                                }
+                                else
+                                {
+                                    stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
+                                    stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                                    emit statsOutputReady("errCompare", 1);
+                                    errorOccured = true;
+                                }
                             }
-                            else
+                            if (checkResponse)
                             {
-                                stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
-                                emit statsOutputReady("errCompare", 1);
+                                bool errRW = false;
+                                if (!checkStatusErrBC && ((statusBC & fl_REG_STATUS_no_aw_err)))
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка неполучения ответа в статусе КШ"), tr("Flag no_aw_err in BC status"));
+                                }
+                                if (getBufRec(statusBC) == addr_rx_bc)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера приёма КШ"), tr("BC receiving buffer did not switch"));
+                                }
+                                if (getBufTrm(statusRT) == addr_tr_rt)
+                                {
+                                    errRW = true;
+                                    stdOutput(tr("Ошибка переключения буфера передачи ОУ"), tr("RT transmit buffer did not switch"));
+                                }
+                                //  первое слово буфера приёма
+                                    word32_t comp = (word32_t)(*((word32_t*)(readArrayC.data())));
+                                    if (checkResponse > 1)
+                                    {
+                                        if (getRtaFromResponse(&comp) != rtaddr || (comp&tgca_fl_SW_DATERR) != 0)
+                                        {
+                                            if (getRtaFromResponse(&comp) != rtaddr)
+                                                stdOutput(tr("Ошибка ответного слова: адрес ОУ"), tr("Wrong response: RT address"));
+                                            if (comp&tgca_fl_SW_DATERR)
+                                                stdOutput(tr("Ошибка ответного слова: флаг ошибки данных"), tr("Data error flag in response"));
+                                            emit statsOutputReady("errRW", 1);
+                                            errorOccured = true;
+                                        }
+                                    }
+                                    else if (comp == 0xFFFFFFFF)
+                                    {
+                                        errRW = true;
+                                        stdOutput(tr("Ошибка содержимого буфера приёма КШ"), tr("BC receiving buffer change content"));
+                                    }
+                                if (errRW)
+                                {
+                                    emit statsOutputReady("errNoSW", 1);
+                                    errorOccured = true;
+                                }
+                            }  // if (checkResponce)
+                        }
+                        if (checkReceiving) // здесь проверяем, что буфер приёма переключился, а содержимое буфера проверяли при compEnableMemBC
+                        {
+                            if ((statusRT & fl_REG_STATUS_rx_num_buf) == buff_rx_rt)
+                            {
+                                stdOutput(tr("Сообщение не принято оконечным устройством"), tr("RT did not receive package"));
+                                emit statsOutputReady("errReceive", 1);
                                 errorOccured = true;
                             }
                         }

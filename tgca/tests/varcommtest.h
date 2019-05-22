@@ -103,6 +103,8 @@ public:
     bool checkRTA;
     QString codeMask;
     void destroyData();
+    bool checkReceiving;
+    int checkResponse;
 
 protected:
     void perform();
