@@ -50,7 +50,12 @@ SOURCES += main.cpp\
     codeselect.cpp \
     ctablewidget8x8codes.cpp \
     tests/alientest.cpp \
-    tests/invalidcommtest.cpp
+    tests/invalidcommtest.cpp \
+    tests/lsctest.cpp \
+    socketdriver.cpp \
+    basedevice.cpp \
+    lsctable.cpp \
+    lscgatewaythread.cpp
 
 HEADERS  += mainwindow.h \
     configuration.h \
@@ -88,19 +93,24 @@ HEADERS  += mainwindow.h \
     codeselect.h \
     ctablewidget8x8codes.h \
     tests/alientest.h \
-    tests/invalidcommtest.h
+    tests/invalidcommtest.h \
+    tests/lsctest.h \
+    socketdriver.h \
+    basedevice.h \
+    lsctable.h \
+    lscgatewaythread.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
     confselect.ui \
     connection.ui \
-    device.ui \
     ../default/settings_bulb_test.ui \
     ../default/settings_echo_test.ui \
     ../default/settings_mem_test.ui \
     ../default/settings_reg_test.ui \
     ../default/settings_trm_single_test.ui \
     ../default/settings_monitor_test.ui \
+    ../default/settings_lsc_test.ui \
     monitor.ui \
     ../default/settings_spi_part.ui \
     ../default/stats_mem_test.ui \
@@ -126,7 +136,8 @@ FORMS    += mainwindow.ui \
     ../default/settings_alien_test.ui \
     ../default/settings_invalid_test.ui \
     ../default/stats_alien_test.ui \
-    ../default/stats_invalid_test.ui
+    ../default/stats_invalid_test.ui \
+    basedevice.ui
 
 RESOURCES += \
     tgca.qrc

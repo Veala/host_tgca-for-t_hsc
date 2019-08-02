@@ -472,6 +472,7 @@ void varCommandObjToThread::perform()
         // Начальная конфигурация ОУ
         qDebug() << "start RT configuration";
         devRT->configuration.setChecked(config_NUMREG_cfg, false);
+        softReset(devRT);
         QByteArray regRT = devRT->configuration.getRegistersToWrite();
         if (regRT.size() > 0)
         {
@@ -512,6 +513,7 @@ void varCommandObjToThread::perform()
         // Начальная конфигурация КШ
         qDebug() << "start BC configuration";
         devBC->configuration.setChecked(config_NUMREG_cfg, false);
+        softReset(devBC);
         QByteArray regBC = devBC->configuration.getRegistersToWrite();
         if (regBC.size() > 0)
         {
@@ -525,7 +527,7 @@ void varCommandObjToThread::perform()
     devBC->writeReg(&devBC->reg_hsc_cfg);
     setRegWritten(devBC, devBC->reg_hsc_cfg);
 
-    if (pause_stop() == -1)
+    if (onPauseStop() == -1)
         return;
 
     initStartBC();
@@ -691,7 +693,7 @@ void varCommandObjToThread::perform()
                     pos += num_b;
                     if (pauseTime > 0)
                         thread()->msleep(pauseTime);
-                    if (pause_stop() == -1)
+                    if (onPauseStop() == -1)
                         return;
 
                     trbit = tgca_tr_TRM;   // ОУ-КШ
@@ -841,7 +843,7 @@ void varCommandObjToThread::perform()
                     pos += num_b;
                     if (pauseTime > 0)
                         thread()->msleep(pauseTime);
-                    if (pause_stop() == -1)
+                    if (onPauseStop() == -1)
                         return;
 
                 } //length cycle

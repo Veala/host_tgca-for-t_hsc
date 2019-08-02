@@ -28,10 +28,15 @@ public:
     void setHostIP(QString);
     void setHostPORT(QString);
     void setName(QString);
+    bool setFromFile(QString filename);
+    QString getFileName() const;
+
+public slots:
+    void save();
 
 private:
     Ui::Connection *ui;
-
+    QString file;
 };
 
 #endif // CONNECTIONFORM_H

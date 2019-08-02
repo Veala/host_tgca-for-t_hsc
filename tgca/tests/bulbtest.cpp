@@ -61,12 +61,6 @@ void bulbObjToThread::switchOff(int rs)
         dev->reg_aux_bulb.third=0; dev->reg_aux_bulb.fourth=0;
         dev->writeReg(&dev->reg_aux_bulb);
         dev->tryToDisconnect();
-//        int addr=REG_AUX_bulb, val=0;
-//        QByteArray array = cmdHead(1, 8);
-//        array.append((char*)&addr, 4);
-//        array.append((char*)&val, 4);
-//        dev->write_F1(array);
-     //   tcpSocket.abort();
     }
 }
 
@@ -74,7 +68,6 @@ void bulbObjToThread::doWork()
 {
     try
     {
-
         emit resultReady((int)AbstractTest::Running);
 //        tcpSocket.connectToHost(QHostAddress(ip), port);
 //        if (!tcpSocket.waitForConnected(5000)) {
@@ -114,7 +107,7 @@ void bulbObjToThread::doWork()
                 *(((quint32*)&dev->reg_aux_bulb)+1) &= vals[j];
                 dev->writeReg(&dev->reg_aux_bulb);
                 if (pause_stop() == -1) {
-                    dev->tryToDisconnect();
+                    emit resultReady(AbstractTest::Stopped);
                     return;
                 }
                 thread()->msleep(iterTime);

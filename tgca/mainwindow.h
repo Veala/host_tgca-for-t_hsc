@@ -10,6 +10,7 @@
 #include "configuration.h"
 #include "device.h"
 #include "tests/abstracttest.h"
+#include "lsctable.h"
 
 #include <QDebug>
 
@@ -17,7 +18,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, public GlobalState
+class MainWindow : public QMainWindow, public GlobalState, public LSCTable
 {
     Q_OBJECT
 signals:
@@ -83,6 +84,7 @@ private slots:
     void onDragged();
     void onDropped();
     void addDevice();
+    void delDevice(QString);
     void createTest();
     void openTest();
 

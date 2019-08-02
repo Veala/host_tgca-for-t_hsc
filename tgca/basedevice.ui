@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Device</class>
- <widget class="QFrame" name="Device">
+ <class>BaseDevice</class>
+ <widget class="QFrame" name="BaseDevice">
   <property name="geometry">
    <rect>
     <x>0</x>

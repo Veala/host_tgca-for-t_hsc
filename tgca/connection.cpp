@@ -3,6 +3,7 @@
 
 Connection::Connection(QWidget *parent) :
     QWidget(parent),
+    file(""),
     ui(new Ui::Connection)
 {
     ui->setupUi(this);
@@ -62,4 +63,53 @@ void Connection::setHostPORT(QString hostPort)
 void Connection::setName(QString name)
 {
     ui->labelTune->setText(tr("Настройки устройства %1").arg(name));
+}
+
+bool Connection::setFromFile(QString fileName)
+{
+    if (fileName.isEmpty())
+    {
+        file = "";
+        return false;
+    }
+
+    QSettings settings(fileName, QSettings::IniFormat);
+    if (settings.status() != QSettings::NoError)
+    {
+        qDebug() << "Error: " << settings.status();
+        file = "";
+        return false;
+    }
+
+    setServerIP(settings.value("Device/IP").toString());
+    setServerPORT(settings.value("Device/port").toString());
+    setHostIP(settings.value("Host/IP").toString());
+    setHostPORT(settings.value("Host/port").toString());
+
+    file = fileName;
+    return true;
+}
+
+QString Connection::getFileName() const
+{
+    return file;
+}
+
+void Connection::save()
+{
+    if (file.isEmpty())
+    {
+        QString deviceName = ui->labelTune->text();
+        if (deviceName.size() > 21)
+            deviceName = deviceName.mid(21);
+        else
+            deviceName = "device_default";
+        file = deviceName + QString(".dev");
+    }
+    QSettings devini(file, QSettings::IniFormat);
+    devini.clear();
+    devini.setValue("Device/IP", getServerIP());
+    devini.setValue("Device/port" ,getServerPORT());
+    devini.setValue("Host/IP", getHostIP());
+    devini.setValue("Host/port", getHostPORT());
 }

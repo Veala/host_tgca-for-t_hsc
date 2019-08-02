@@ -460,6 +460,7 @@ void varBroadObjToThread::perform()
         // Начальная конфигурация ОУ
         qDebug() << "start RT configuration";
         devRT->configuration.setChecked(config_NUMREG_cfg, false);
+        softReset(devRT);
         QByteArray regRT = devRT->configuration.getRegistersToWrite();
         if (regRT.size() > 0)
         {
@@ -475,6 +476,7 @@ void varBroadObjToThread::perform()
         // Начальная конфигурация КШ
         qDebug() << "start BC configuration";
         devBC->configuration.setChecked(config_NUMREG_cfg, false);
+        softReset(devBC);
         QByteArray regBC = devBC->configuration.getRegistersToWrite();
         if (regBC.size() > 0)
         {
@@ -504,7 +506,7 @@ void varBroadObjToThread::perform()
     int pos = 0;
     char *pData = (char*)testData;
 
-    if (pause_stop() == -1)
+    if (onPauseStop() == -1)
         return;
 
     for (int iter = 0; iter < iterCycle; iter++)
@@ -588,7 +590,7 @@ void varBroadObjToThread::perform()
                     pos += num_b;
                     if (pauseTime > 0)
                         thread()->msleep(pauseTime);
-                    if (pause_stop() == -1)
+                    if (onPauseStop() == -1)
                         return;
                 } //length cycle
             } // if (код в списке)

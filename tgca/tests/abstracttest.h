@@ -208,6 +208,7 @@ const QString testTypeTrash(QObject::tr("Тест trash"));
 const QString testTypeNoise(QObject::tr("Помехоустойчивость"));
 const QString testTypeAlien(QObject::tr("Команды с чужими адресами"));
 const QString testTypeInvalid(QObject::tr("Неопределённые команды"));
+const QString testTypeLSC(QObject::tr("Тест НСК"));
 
 
 namespace testLib {

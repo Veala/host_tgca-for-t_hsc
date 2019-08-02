@@ -12,6 +12,13 @@ enum ExchangeFormat {
     cpy_on_hard = 7
 };
 
+enum DeviceMode {
+    LSC_BC,
+    LSC_RT_st,
+    LSC_RT_al,
+    LSC_MC
+};
+
 struct Head {
     Head(quint32 cmd = 0, quint32 dsz = 0) : cmd(cmd), dsz(dsz) { }
     quint32 cmd;

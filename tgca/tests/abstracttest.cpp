@@ -14,6 +14,7 @@
 #include "varbroadtest.h"
 #include "alientest.h"
 #include "invalidcommtest.h"
+#include "lsctest.h"
 
 #include "../picts.h"
 
@@ -384,7 +385,7 @@ void AbstractTest::deletingDevice_part()
 #ifdef debug_AT
         qDebug() << "senderName" << senderName;
 #endif
-        if (senderName == "Device") {
+        if (senderName == "BaseDevice") {
             devices->removeWidget((Device*)sender());
         }
     }
@@ -717,7 +718,7 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
              << testTypeBulbs << testTypeMonitor << testTypeTrmSingle
              << testTypeLoadSPI << testTypeVariation << testTypeBuffers
              << testTypeTrash << testTypeNoise << testTypeGroupVar
-             << testTypeAlien << testTypeInvalid;
+             << testTypeAlien << testTypeInvalid << testTypeLSC;
     if (su)
         allTests << testTypeNull;
 
@@ -761,6 +762,8 @@ AbstractTest *testLib::createTest(QVBoxLayout *devices, QTextBrowser *pB, QTextB
         defFileStr = QObject::tr("../default/invalid_test");
     } else if (testType == testTypeNoise) {
         defFileStr = QObject::tr("../default/noise_test");
+    } else if (testType == testTypeLSC) {
+        defFileStr = QObject::tr("../default/lsc_test");
     }
 
 //    if(!QFile::copy(defFileStr,newFileStr)) {
@@ -864,6 +867,10 @@ AbstractTest *testLib::loadTest(QString settingsFileStr, QVBoxLayout *devices, Q
         uiFileStr = QObject::tr("../default/settings_var_broad_test.ui");
         uiFileStr_stats = QObject::tr("../default/stats_var_broad_test.ui");
         test = new VarBroadTest(0);
+    } else if (testType == testTypeLSC) {
+        uiFileStr = QObject::tr("../default/settings_lsc_test.ui");
+        uiFileStr_stats = QObject::tr("../default/stats_lsc_test.ui");
+        test = new LscTest(0);
     } else {
         qDebug() << "unknown test";
         return NULL;
@@ -913,11 +920,11 @@ int absObjToThread::pause_stop()
         }
         else {
         //if (threadState == AbstractTest::Stopped) {
-            emit resultReady((int)AbstractTest::Stopped);
+            //emit resultReady((int)AbstractTest::Stopped);
             return -1;
         }
     } else if (threadState == AbstractTest::Stopped) {
-        emit resultReady((int)AbstractTest::Stopped);
+        //emit resultReady((int)AbstractTest::Stopped);
         return -1;
     } else {
         return 0;

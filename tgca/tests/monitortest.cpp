@@ -173,7 +173,7 @@ void monitorObjToThread::doWork()
             prepTerminate();
             return;
         }
-        if (pause_stop() == -1)
+        if (onPauseStop() == -1)
         {
             qDebug() << "pause_stop";
             prepTerminate();

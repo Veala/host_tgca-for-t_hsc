@@ -129,10 +129,16 @@ bool MainWindow::loadProject(QSettings& settings)
         {
             Device *device = new Device(this, name, ui->projectBrowser);
             ui->devices->addWidget(device);
-            device->connection.setServerIP(settings.value("IP").toString());
-            device->connection.setServerPORT(settings.value("port").toString());
-            device->connection.setHostIP(settings.value("hostIP").toString());
-            device->connection.setHostPORT(settings.value("hostPort").toString());
+            LSCTable::addDevice(name);
+            connect(device, SIGNAL(sigDelete(QString)), this, SLOT(delDevice(QString)), Qt::DirectConnection);
+            emit newDev(name);
+            if (!device->connection.setFromFile(settings.value("connections").toString()))
+            {
+                device->connection.setServerIP(settings.value("IP").toString());
+                device->connection.setServerPORT(settings.value("port").toString());
+                device->connection.setHostIP(settings.value("hostIP").toString());
+                device->connection.setHostPORT(settings.value("hostPort").toString());
+            }
             device->configuration.initFrom(settings.value("configuration").toString(), 0);
         }
     }
@@ -199,11 +205,17 @@ bool MainWindow::onSavePrj()
 
         ini.setArrayIndex(j);
         ini.setValue("name", dev->getName());
-        ini.setValue("IP", dev->connection.getServerIP());
-        ini.setValue("port", dev->connection.getServerPORT());
-        ini.setValue("hostIP", dev->connection.getHostIP());
-        ini.setValue("hostPort", dev->connection.getHostPORT());
         ini.setValue("configuration", dev->configuration.getName());
+        QString fname = dev->connection.getFileName();
+        if (fname.isEmpty())
+        {
+            ini.setValue("IP", dev->connection.getServerIP());
+            ini.setValue("port", dev->connection.getServerPORT());
+            ini.setValue("hostIP", dev->connection.getHostIP());
+            ini.setValue("hostPort", dev->connection.getHostPORT());
+        }
+        else
+            ini.setValue("connections", fname);
     }
     ini.endArray();
 
@@ -247,6 +259,10 @@ void MainWindow::addDevice()
         QMessageBox::information(this, tr("Добавить устройство"), tr("Не задано имя устройства"));
         return;
     }
+    if (name.at(name.size()-1) == QChar('_')) {
+        QMessageBox::information(this, tr("Добавить устройство"), tr("Запрещено использовать символ \'_\' в конце имени устройства"));
+        return;
+    }
     Device* dev;
     for (int i=0; i<ui->devices->count(); i++) {
         dev = (Device*)ui->devices->itemAt(i)->widget();
@@ -255,12 +271,20 @@ void MainWindow::addDevice()
             return;
         }
     }
-    ui->devices->addWidget(new Device(this, name, ui->projectBrowser));
+    dev = new Device(this, name, ui->projectBrowser);
+    ui->devices->addWidget(dev);
     ui->projectBrowser->append(tr("Устройство %1 добавлено").arg(name));
+    LSCTable::addDevice(name);
+    connect(dev, SIGNAL(sigDelete(QString)), this, SLOT(delDevice(QString)), Qt::DirectConnection);
     emit newDev(name);
 
     //if (tstLoaded)
-      //  ui->actRun->setEnabled(true);
+    //  ui->actRun->setEnabled(true);
+}
+
+void MainWindow::delDevice(QString name)
+{
+    LSCTable::delDevice(name);
 }
 
 void MainWindow::loadTest(AbstractTest* test)

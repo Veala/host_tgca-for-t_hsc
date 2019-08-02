@@ -580,6 +580,7 @@ void noiseObjToThread::perform()
         qDebug() << "start RT configuration";
         if (writeCfg)
             devRT->configuration.setChecked(config_NUMREG_cfg, false);
+        softReset(devRT);
         QByteArray regRT = devRT->configuration.getRegistersToWrite();
         if (regRT.size() > 0)
         {
@@ -695,6 +696,7 @@ void noiseObjToThread::perform()
         qDebug() << "start BC configuration";
         if (writeCfg)
             devBC->configuration.setChecked(config_NUMREG_cfg, false);
+        softReset(devBC);
         QByteArray regBC = devBC->configuration.getRegistersToWrite();
         if (regBC.size() > 0)
         {
@@ -773,7 +775,7 @@ void noiseObjToThread::perform()
         stdOutput(tr("Использование прерывание КШ не разрешено"), tr("Interruption is not enabled in BC configuration"));
     }
 
-    if (pause_stop() == -1)
+    if (onPauseStop() == -1)
         return;
 //skipDevices:
     initStartBC();
@@ -948,7 +950,7 @@ void noiseObjToThread::perform()
         if (pauseTime > 0)
             thread()->msleep(pauseTime);
 
-        if (pause_stop() == -1)
+        if (onPauseStop() == -1)
             return;
 
         pos += n_byte;

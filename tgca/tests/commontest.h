@@ -125,12 +125,14 @@ public:
     void setOutEnabled(bool b) { outEnable = b; }
     virtual void destroyData() {}
     Device *devBC, *devRT;
+    int onPauseStop();
 protected:
     bool outEnable;
     static const quint32 delayTime = 5;
     virtual void stdOutput(QString message_rus, QString message_eng);
     virtual void perform() = 0;
-    virtual void switchWindow(int n);
+    void switchWindow(int n);
+    void softReset(Device* dev);
     AbstractTest::RunningState connectBC();
     AbstractTest::RunningState connectRT();
     bool isRunning();

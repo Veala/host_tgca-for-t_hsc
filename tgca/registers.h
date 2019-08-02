@@ -28,12 +28,12 @@ typedef unsigned short  reg16_t;
 
 
 ///  АДРЕСА ВСПОМОГАТЕЛЬНЫХ РЕГИСТРОВ
-/*
+
 #define REG_AUX_T_rtaddr                 0x180   // вспомогательный регистр: адрес ОУ
 #define REG_AUX_T_interruption           0x184   // вспомогательный регистр: прерывание
-#define REG_AUX_T_win_mode               0x190   // вспомогательный регистр: оконный режим
+#define REG_AUX_T_win_mode_reset         0x190   // вспомогательный регистр: оконный режим
 #define REG_AUX_T_bulb                   0x194   // регистр "лампочек"
-*/
+
 
 ///  АДРЕСА РЕГИСТРОВ ВСК
 
@@ -79,8 +79,8 @@ typedef unsigned short  reg16_t;
 #define   REG_VSK_g_1_sp_low            0xF8
 #define   REG_VSK_pll_reg               0xFC
 
-#define   REG_VSK_BEGIN_ADDR             0x80
-#define   REG_VSK_END_ADDR             0xFC
+#define   REG_VSK_BEGIN_ADDR            0x80
+#define   REG_VSK_END_ADDR              0xFC
 
 #define VSK_ReadStatusReg(data)   VSK_ReadReg(data, REG_VSK_status)
 #define VSK_WriteConfigReg_(data) VSK_WriteReg(data, REG_VSK_cfg)

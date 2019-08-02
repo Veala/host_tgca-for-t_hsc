@@ -51,7 +51,7 @@ void echoObjToThread::doWork()
     }
     catch (const QString& exception) {
            if (exception == "connection") {
-               if (pause_stop() == -1) return;
+               if (pause_stop() == -1) { emit resultReady(AbstractTest::Stopped); return; }
                emit resultReady((int)AbstractTest::ErrorIsOccured);
            } else if (exception == "socket") {
                //if (pause_stop() == -1) return;

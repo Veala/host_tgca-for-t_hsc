@@ -1001,7 +1001,7 @@ void trmSingleObjToThread::perform()
         stdOutput(tr("ОУ не используется"), tr("RT not used"));
     }
 
-    if (pause_stop() == -1)
+    if (onPauseStop() == -1)
         return;
 
     if (devRT)
@@ -1011,6 +1011,7 @@ void trmSingleObjToThread::perform()
             qDebug() << "start RT configuration";
             if (writeCfg)
                 devRT->configuration.setChecked(config_NUMREG_cfg, false);
+            softReset(devRT);
             QByteArray regRT = devRT->configuration.getRegistersToWrite();
             if (regRT.size() > 0)
             {
@@ -1192,6 +1193,7 @@ void trmSingleObjToThread::perform()
             {
                 devBC->configuration.setChecked(config_NUMREG_cfg, false);
             }
+            softReset(devBC);
             QByteArray regBC = devBC->configuration.getRegistersToWrite();
             if (regBC.size() > 0)
             {
@@ -1322,7 +1324,7 @@ void trmSingleObjToThread::perform()
             for (uint it = 0; it!=iterCycle; it++)
             {
                 bool errorOccured = false;
-                if (pause_stop() == -1)
+                if (onPauseStop() == -1)
                 {
                     averageSpeed();
                     return;

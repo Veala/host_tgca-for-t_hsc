@@ -365,7 +365,7 @@ AbstractTest::RunningState commonObjToThread::connectBC()
         qDebug() << "Connection failed";
         stdOutput(tr("Нет соединения с КШ"), tr("BC: no connection"));
 
-        if (pause_stop() == -1)
+        if (onPauseStop() == -1)
             return AbstractTest::Stopped;
 
         emit resultReady((int)AbstractTest::ErrorIsOccured);
@@ -385,6 +385,10 @@ AbstractTest::RunningState commonObjToThread::connectRT()
     {
         qDebug() << "Connection failed";
         stdOutput(tr("Нет соединения с ОУ"), tr("RT: no connection"));
+
+        if (onPauseStop() == -1)
+            return AbstractTest::Stopped;
+
         emit resultReady((int)AbstractTest::ErrorIsOccured);
         return AbstractTest::ErrorIsOccured;
     }
@@ -393,10 +397,19 @@ AbstractTest::RunningState commonObjToThread::connectRT()
 // Оконный режим
 void commonObjToThread::switchWindow(int n)
 {
-    devRT->reg_aux_winmode.mode = n;
-    devBC->reg_aux_winmode.mode = n;
-    devRT->writeReg(&devRT->reg_aux_winmode);
-    devBC->writeReg(&devBC->reg_aux_winmode);
+    devRT->reg_aux_winmode_reset.winmode = n;
+    devBC->reg_aux_winmode_reset.winmode = n;
+    devRT->writeReg(&devRT->reg_aux_winmode_reset);
+    devBC->writeReg(&devBC->reg_aux_winmode_reset);
+}
+
+void commonObjToThread::softReset(Device* dev)
+{
+    dev->reg_aux_winmode_reset.reset = 1;
+    dev->writeReg(&dev->reg_aux_winmode_reset);
+    thread()->msleep(1000);
+    dev->reg_aux_winmode_reset.reset = 0;
+    dev->writeReg(&dev->reg_aux_winmode_reset);
 }
 
 bool commonObjToThread::isRunning()
@@ -421,6 +434,14 @@ void commonObjToThread::terminate(int )
             devRT->tryToDisconnect();
         this->destroyData();
     }
+}
+
+int commonObjToThread::onPauseStop()
+{
+    int ret = pause_stop();
+    if (ret == -1)
+        emit resultReady((int)AbstractTest::Stopped);
+    return ret;
 }
 
 ///////////////////////////////////////////////////

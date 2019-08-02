@@ -305,6 +305,7 @@ void nullObjToThread::perform()
                 double elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
                 timeM3 += elapsedTime;
                 stdOutput(tr("Время с тиками = %1 мс").arg(elapsedTime), tr("time LVE = %1 ms").arg(elapsedTime));
+                qDebug() << tr("QueryPerformanceCounter = %1 мс  QueryPerformanceFrequency = %2 мс").arg(t2.QuadPart).arg(frequency.QuadPart);
 
                     time1 = QTime::currentTime();
                     QueryPerformanceCounter(&t1);
@@ -321,7 +322,7 @@ void nullObjToThread::perform()
 #endif
         }
 
-        if (pause_stop() == -1)
+        if (onPauseStop() == -1)
         {
             if (testData)
                 free (testData);

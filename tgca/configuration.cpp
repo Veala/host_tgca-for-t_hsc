@@ -1571,6 +1571,9 @@ void Configuration::setChecked(int num, bool ch)
     if (num < config_NUMREG_BEGIN_VSK)
         ui->tableWidgetNSK->item(num, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
     else
+        ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
+    /*
+    в else:
     {
         QTableWidgetItem *it = ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check);
         Qt::CheckState chs = ch ? Qt::Checked : Qt::Unchecked;
@@ -1578,10 +1581,7 @@ void Configuration::setChecked(int num, bool ch)
         qDebug() << "before setCheckState  ";
         it->setCheckState(chs);
         qDebug() << "after setCheckState(false)";
-
-//        ui->tableWidgetVSK->item(num-config_NUMREG_BEGIN_VSK, rcn_Name_Check)->setCheckState(ch ? Qt::Checked : Qt::Unchecked);
-
-    }
+    }*/
 }
 
 bool Configuration::disInt()
