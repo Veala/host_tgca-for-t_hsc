@@ -2,6 +2,7 @@
 #define LSCGATEWAY_H
 
 #include <QThread>
+#include <QDebug>
 
 class Device;
 
@@ -11,6 +12,7 @@ class LSCGatewayThread : public QThread
     Device* dev;
 public:
     explicit LSCGatewayThread(QObject *parent = 0) : QThread(parent) { }
+    ~LSCGatewayThread() { qDebug() << "~LSCGatewayThread()"; }
     void setDevice(Device* d)  { dev = d; }
     QString state;
 protected:

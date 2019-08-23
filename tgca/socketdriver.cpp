@@ -1,10 +1,13 @@
 #include "socketdriver.h"
 
 SocketDriver::~SocketDriver() {
+    qDebug() << "~SocketDriver() start";
     if (socket->state() != QAbstractSocket::UnconnectedState)
         socket->abort();
     timer->stop();
+    //mutex->unlock();
     delete mutex;
+    qDebug() << "~SocketDriver() end";
 }
 
 void SocketDriver::init()
@@ -27,7 +30,7 @@ void SocketDriver::init()
 void SocketDriver::stop()
 {
     timer->stop();
-    mutex->unlock();
+    //mutex->unlock();
     socket->abort();
 }
 
@@ -47,6 +50,7 @@ void SocketDriver::disconnectedSlot()
 
 void SocketDriver::readyReadSlot()
 {
+
     qint64 bytesAvailable = socket->bytesAvailable();
     //qDebug() << "In readyReadSlot(); bytesAvailable(): " << bytesAvailable;
     qint64 bytesRead = socket->read(allData.tempArray, bytesAvailable);
@@ -157,7 +161,6 @@ void SocketDriver::tryToExchange()
     default:
         qDebug() << "Error on SocketDriver thread: unknown format from tryToExchange()!";
         return;
-        //break;
     }
     allData.allDataToWrite = head_and_Data.size();
     allData.curPointer = 0;

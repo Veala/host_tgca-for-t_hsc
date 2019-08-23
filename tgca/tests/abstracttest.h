@@ -22,21 +22,11 @@
 #include "../device.h"
 #include "../data_structs.h"
 #include "../animatedspinnericon.h"
+#include "../globalstate.h"
 
 //#define debug_AT
 
-#define FREE 0
-#define BUSY 1
-
 class absObjToThread;
-class GlobalState
-{
-private:
-    static int globalState;
-public:
-    void setGlobalState(int);
-    int getGlobalState() const;
-};
 
 class AbstractTest : public QFrame, public GlobalState
 {
@@ -132,7 +122,7 @@ protected:
     static AbstractTest* yellowTest, *beginTest, *endTest;
 
     bool userMode() const { return !su; }
-    void message(QString);
+    void message(QString m = "", QString browser = "project");
     void setConnections(Device*);
     void setDisconnections(Device*);
     virtual void setEnabledSpecial(bool b);
@@ -179,6 +169,7 @@ class absObjToThread : public QObject//, public DeviceDriver
 
 public:
     explicit absObjToThread(QObject* parent = 0);
+    ~absObjToThread() { qDebug() << "~absObjToThread()"; }
     AbstractTest::RunningState threadState;
 
 public slots:
@@ -209,6 +200,7 @@ const QString testTypeNoise(QObject::tr("Помехоустойчивость"))
 const QString testTypeAlien(QObject::tr("Команды с чужими адресами"));
 const QString testTypeInvalid(QObject::tr("Неопределённые команды"));
 const QString testTypeLSC(QObject::tr("Тест НСК"));
+const QString testTypeLSCMes(QObject::tr("Тест передачи по НСК"));
 
 
 namespace testLib {

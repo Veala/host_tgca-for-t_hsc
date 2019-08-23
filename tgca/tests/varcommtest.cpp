@@ -265,13 +265,13 @@ void VarCommandTest::setEnabledSpecial(bool b)
     {
         comboBoxRTA->setEnabled(true);
         checkBoxRTALoad->setEnabled(true);
-        checkBoxCodec->setEnabled(true);
-        settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
+        //checkBoxCodec->setEnabled(true);
+        //settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTARegLoad")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderRegisters")->setEnabled(true);
 
-        dataGen.enable(true);
+        //dataGen.enable(true);
 
         settings->findChild<QLabel*>("labelHeaderPause")->setEnabled(true);
         settings->findChild<QLabel*>("labelTime")->setEnabled(true);

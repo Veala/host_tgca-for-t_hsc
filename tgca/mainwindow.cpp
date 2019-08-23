@@ -57,12 +57,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "~MainWindow() start";
     if (su && devConf!=0)
         delete devConf;
 
     clearProject();
 
     delete ui;
+    qDebug() << "~MainWindow() end";
 }
 
 void MainWindow::onAbout()
@@ -273,7 +275,7 @@ void MainWindow::addDevice()
     }
     dev = new Device(this, name, ui->projectBrowser);
     ui->devices->addWidget(dev);
-    ui->projectBrowser->append(tr("Устройство %1 добавлено").arg(name));
+    //ui->projectBrowser->append(tr("Устройство %1 добавлено").arg(name));
     LSCTable::addDevice(name);
     connect(dev, SIGNAL(sigDelete(QString)), this, SLOT(delDevice(QString)), Qt::DirectConnection);
     emit newDev(name);
@@ -306,7 +308,7 @@ void MainWindow::loadTest(AbstractTest* test)
     test->connectActions();
 }
 
-void MainWindow::applyToAllTests(QString& testType, QString& classType, QString& fieldName, QString& value)
+void MainWindow::applyToAllTests(QString& , QString& classType, QString& fieldName, QString& value)
 {
     for (int i=0; i<ui->tests->count(); i++)
     {

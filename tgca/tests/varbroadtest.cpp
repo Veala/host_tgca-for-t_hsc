@@ -242,8 +242,8 @@ void VarBroadTest::setEnabledSpecial(bool b)
     }
     else
     {
-        checkBoxCodec->setEnabled(true);
-        settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
+        //checkBoxCodec->setEnabled(true);
+        //settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
 
 //        dataGen.enable(true);

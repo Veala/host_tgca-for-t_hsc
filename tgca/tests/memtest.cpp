@@ -167,6 +167,9 @@ void memObjToThread::doWork()
         } else if (exception == "finish") {
             dev->tryToDisconnect();
             emit resultReady(AbstractTest::Completed);
+        } else {
+            qDebug() << "else from memtest";
+            emit resultReady(AbstractTest::Stopped);
         }
     }
 }

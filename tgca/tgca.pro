@@ -15,7 +15,7 @@ TEMPLATE = app
 RC_FILE = tgca.rc
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+    mainwindow.cpp \
     configuration.cpp \
     confselect.cpp \
     connection.cpp \
@@ -52,10 +52,15 @@ SOURCES += main.cpp\
     tests/alientest.cpp \
     tests/invalidcommtest.cpp \
     tests/lsctest.cpp \
+    #tests/lscmessagetest.cpp \
     socketdriver.cpp \
     basedevice.cpp \
     lsctable.cpp \
-    lscgatewaythread.cpp
+    lscgatewaythread.cpp \
+    globalstate.cpp \
+    lscformat.cpp \
+    writedevicememory.cpp \
+    comboboxnoscroll.cpp
 
 HEADERS  += mainwindow.h \
     configuration.h \
@@ -95,10 +100,16 @@ HEADERS  += mainwindow.h \
     tests/alientest.h \
     tests/invalidcommtest.h \
     tests/lsctest.h \
+    #tests/lscmessagetest.h \
     socketdriver.h \
     basedevice.h \
     lsctable.h \
-    lscgatewaythread.h
+    lscgatewaythread.h \
+    globalstate.h \
+    regNSK.h \
+    lscformat.h \
+    writedevicememory.h \
+    comboboxnoscroll.h
 
 FORMS    += mainwindow.ui \
     configuration.ui \
@@ -111,6 +122,7 @@ FORMS    += mainwindow.ui \
     ../default/settings_trm_single_test.ui \
     ../default/settings_monitor_test.ui \
     ../default/settings_lsc_test.ui \
+    ../default/settings_lsc_message_test.ui \
     monitor.ui \
     ../default/settings_spi_part.ui \
     ../default/stats_mem_test.ui \

@@ -126,7 +126,8 @@ void NoiseTest::setEnabledSpecial(bool b)
     else
     {
         comboBoxRTA->setEnabled(true);
-        checkBoxCodec->setEnabled(true);
+        //checkBoxCodec->setEnabled(true);
+        //settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
 
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
@@ -135,10 +136,8 @@ void NoiseTest::setEnabledSpecial(bool b)
         lineEditNumS->setEnabled(true);
 
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
-        settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelManType")->setEnabled(true);
         comboBoxManType->setEnabled(true);
-        checkBoxCodec->setEnabled(true);
 
         settings->findChild<QLabel*>("labelHeaderTest")->setEnabled(true);
         settings->findChild<QLabel*>("labelTime")->setEnabled(true);
@@ -150,7 +149,7 @@ void NoiseTest::setEnabledSpecial(bool b)
         comboBoxSpeed->setEnabled(true);
         lineEditOver->setEnabled(true);
 
-        dataGen.enable(true);
+        //dataGen.enable(true);
     }
 }
 

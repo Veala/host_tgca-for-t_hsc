@@ -13,7 +13,7 @@ class SocketDriver : public QObject
     Q_OBJECT
 
 public:
-    explicit SocketDriver(QObject *parent = 0) : QObject(parent), timer(NULL), socket(NULL), mutex(NULL) { }
+    explicit SocketDriver(QObject *parent = 0) : QObject(parent) { } //, timer(NULL), socket(NULL), mutex(NULL) { }
     ~SocketDriver();
     QAbstractSocket::SocketState getSocketState() {
         return socket->state();

@@ -31,6 +31,7 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
 
 Device::~Device()
 {
+    qDebug() << "~Device() start";
 #ifdef Q_OS_WIN32
     CloseHandle(tgcaEvent);
     CloseHandle(rtl2Event);
@@ -38,6 +39,7 @@ Device::~Device()
     sharedMemory.detach();
     delete memoryFrom;
     delete memoryTo;
+    qDebug() << "~Device() end";
 }
 
 void Device::startLSCGateway()
@@ -50,6 +52,14 @@ void Device::startLSCGateway()
     int ref_startAddr = 4*sizeof(int), startAddr = 0;
     int ref_count = 5*sizeof(int), count = 0;
     int ref_array = 6*sizeof(int);
+
+    QElapsedTimer timer;
+    QElapsedTimer timerW;
+    QElapsedTimer timerR;
+    int ms=0, s=0, min=0;
+    int msW=0, sW=0, minW=0;
+    int msR=0, sR=0, minR=0;
+
     try {
         if (sharedMemory.isAttached() == false) {
             //message("Невозможно запустить НСК шлюз");
@@ -135,24 +145,64 @@ void Device::startLSCGateway()
             case ExchangeFormat::write_f1:
                 memcpy((char*)&size, (char*)sharedMemory.data()+ref_size, sizeof(int));
                 memcpy(memoryFrom, (char*)sharedMemory.data()+ref_array, size);
+                timerW.start();
                 write_F1(memoryFrom, size);
+                msW += timerW.elapsed();
+                while (msW>=1000) {
+                    msW-=1000;
+                    sW+=1;
+                }
+                while (sW>=60) {
+                    sW-=60;
+                    minW+=1;
+                }
                 break;
             case ExchangeFormat::write_f2:
                 memcpy((char*)&size, (char*)sharedMemory.data()+ref_size, sizeof(int));
                 memcpy((char*)&startAddr, (char*)sharedMemory.data()+ref_startAddr, sizeof(int));
                 memcpy(memoryFrom, (char*)sharedMemory.data()+ref_array, size);
+                timerW.start();
                 write_F2(startAddr, memoryFrom, size);
+                msW += timerW.elapsed();
+                while (msW>=1000) {
+                    msW-=1000;
+                    sW+=1;
+                }
+                while (sW>=60) {
+                    sW-=60;
+                    minW+=1;
+                }
                 break;
             case ExchangeFormat::read_f1:
                 memcpy((char*)&size, (char*)sharedMemory.data()+ref_size, sizeof(int));
                 memcpy(memoryFrom, (char*)sharedMemory.data()+ref_array, size);
+                timerR.start();
                 read_F1(memoryFrom, memoryTo, size);
+                msR += timerR.elapsed();
+                while (msR>=1000) {
+                    msR-=1000;
+                    sR+=1;
+                }
+                while (sR>=60) {
+                    sR-=60;
+                    minR+=1;
+                }
                 memcpy((char*)sharedMemory.data()+ref_array, memoryTo, size);
                 break;
             case ExchangeFormat::read_f2:
                 memcpy((char*)&startAddr, (char*)sharedMemory.data()+ref_startAddr, sizeof(int));
                 memcpy((char*)&count, (char*)sharedMemory.data()+ref_count, sizeof(int));
+                timerR.start();
                 read_F2(startAddr, count, memoryTo);
+                msR += timerR.elapsed();
+                while (msR>=1000) {
+                    msR-=1000;
+                    sR+=1;
+                }
+                while (sR>=60) {
+                    sR-=60;
+                    minR+=1;
+                }
                 memcpy((char*)sharedMemory.data()+ref_array, memoryTo, count);
                 break;
             default:
@@ -187,5 +237,8 @@ void Device::startLSCGateway()
         //message(QString("Ошибка сокета при работе шлюза НСК: шлюз остановлен."));
         //throw QString(exception);
         lscGatewayThread.state = exception;
+        //qDebug() << "min: " << QString::number(min) << " s: " << QString::number(s) << " ms: " << QString::number(ms);
+        qDebug() << "minW: " << QString::number(minW) << " sW: " << QString::number(sW) << " msW: " << QString::number(msW);
+        qDebug() << "minR: " << QString::number(minR) << " sR: " << QString::number(sR) << " msR: " << QString::number(msR);
     }
 }

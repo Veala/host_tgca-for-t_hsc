@@ -15,7 +15,7 @@ BaseDevice::BaseDevice(QWidget *parent, QString name, QTextBrowser *tB) :
     act = menu.addAction(tr("Конфигурация"));
     connect(act, SIGNAL(triggered(bool)), &configuration, SLOT(show()));
     act = menu.addAction(tr("Удалить"));
-    connect(act, SIGNAL(triggered(bool)), this, SLOT(deleteLater()));
+    connect(act, SIGNAL(triggered(bool)), this, SLOT(tryToDelete()));
 
     connect(&connection, SIGNAL(checkDevice(bool)), this, SLOT(checkDevice()));
     //connect(sock, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(doError(QAbstractSocket::SocketError)));
@@ -39,19 +39,24 @@ BaseDevice::BaseDevice(QWidget *parent, QString name, QTextBrowser *tB) :
     toSocketDriver.start();
     emit tcpInit();
     socketDriver.mutex->lock();
+    message(tr("Устройство добавлено"));
 }
 
 BaseDevice::~BaseDevice()
 {
     //---------------------------------когда тесты работают - добавить корректное удаление девайса
     //sock->abort();
-    //emit stop
+    qDebug() << "~BaseDevice() start";
+    emit stopAll();
     socketDriver.mutex->unlock();
     toSocketDriver.quit();
+    //toSocketDriver.terminate();
     toSocketDriver.wait();
     emit sigDelete(getName());
     qDebug() << "Device " << getName() << " deleted.";
+    message(tr("Устройство удалено"));
     delete ui;
+    qDebug() << "~BaseDevice() end";
 }
 
 void BaseDevice::mousePressEvent(QMouseEvent *event)
@@ -235,4 +240,14 @@ void BaseDevice::checkDevice()
 void BaseDevice::doError(QAbstractSocket::SocketError err)
 {
     //message(tr("Ошибка: %1").arg());
+}
+
+void BaseDevice::tryToDelete()
+{
+    if (getGlobalState() == FREE) {
+        deleteLater();
+    }
+    else {
+        message(tr("Ошибка: устройство не может быть удалено при работающих тестах."));
+    }
 }

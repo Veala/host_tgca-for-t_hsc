@@ -19,7 +19,9 @@ LSCTable::LSCTable() : devCount(0), nativeHeadKey("LSC.devices")
 
 LSCTable::~LSCTable()
 {
+    qDebug() << "~LSCTable() start";
     sharedMemory.detach();
+    qDebug() << "~LSCTable() end";
 }
 
 void LSCTable::addDevice(QString name)

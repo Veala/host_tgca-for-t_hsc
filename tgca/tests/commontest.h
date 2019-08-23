@@ -3,6 +3,7 @@
 
 #include "abstracttest.h"
 #include <QRadioButton>
+//#include "../comboboxnoscroll.h"
 
 class dataGeneration : public QObject
 {
@@ -91,7 +92,7 @@ protected:
 
     dataGeneration dataGen;
     // общие поля для разных типов тестов
-    QComboBox *comboBoxRTA;             // адрес ОУ
+    QComboBox *comboBoxRTA;             // адрес ОУ  //ComboBoxNoScroll
     QLineEdit *lineEditTime;            // максимальное время ожидания завершения цикла обмена, в т.ч. прерывания КШ и завершения обмена по SPI
     QLineEdit *lineEditPause;           // пауза между итерациями
     QLineEdit *lineEditReservePause;    // задержка для оконного режима

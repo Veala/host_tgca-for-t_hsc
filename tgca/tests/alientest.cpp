@@ -234,8 +234,8 @@ void AlienTest::setEnabledSpecial(bool b)
     {
         comboBoxRTA->setEnabled(true);
         checkBoxRTALoad->setEnabled(true);
-        checkBoxCodec->setEnabled(true);
-        settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
+        //checkBoxCodec->setEnabled(true);
+        //settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTARegLoad")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderRegisters")->setEnabled(true);
@@ -339,7 +339,7 @@ bool alienObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, 
     }
 
     if ( checkStatusErrBC && ( (codec && ((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
-        (statusBC & fl_REG_STATUS_no_aw_err) != 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
+        (statusBC & fl_REG_STATUS_no_aw_err) == 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
     {
             stdOutput(tr("Итерация = %1   Ошибка в статусе КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')),
                       tr("Iter = %1   Errors in BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0')));

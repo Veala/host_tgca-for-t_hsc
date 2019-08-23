@@ -15,12 +15,13 @@
 #include "configuration.h"
 #include "funclib.h"
 #include "data_structs.h"
+#include "globalstate.h"
 
 namespace Ui {
 class BaseDevice;
 }
 
-class BaseDevice : public QFrame
+class BaseDevice : public QFrame, public GlobalState
 {
     Q_OBJECT
 
@@ -97,6 +98,7 @@ private:
 private slots:
     void checkDevice();
     void doError(QAbstractSocket::SocketError err);
+    void tryToDelete();
 };
 
 #endif // BASEDEVICE_H

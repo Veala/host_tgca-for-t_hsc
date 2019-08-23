@@ -6,6 +6,8 @@
 
 #include <QElapsedTimer>
 
+/////#define READBEFORESTART
+
 void TrmSingleTest::setStatSettings()
 {
     statsMap.insert("totalIter", stats->findChild<QLabel*>("totalIter"));
@@ -391,8 +393,8 @@ void TrmSingleTest::setEnabledSpecial(bool b)
     }
     else
     {
-        checkBoxCodec->setEnabled(true);
-        settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
+        //checkBoxCodec->setEnabled(true);
+        //settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
 
@@ -413,7 +415,7 @@ void TrmSingleTest::setEnabledSpecial(bool b)
         }
         else
         {
-            dataGen.enable(true);
+            //dataGen.enable(true);
 
             if (!checkBoxEnaAddr->isChecked())
             {
@@ -445,6 +447,7 @@ void TrmSingleTest::setEnabledSpecial(bool b)
             else
             {
                 /// Подтип теста - СКОРОСТЬ
+                checkBoxCodec->setEnabled(true);
                 lineEditOver->setEnabled(true);
                 settings->findChild<QLabel*>("labelOver")->setEnabled(true);
             }
@@ -797,9 +800,10 @@ bool trmSingleObjToThread::checkStatusRegBC(int statusBC, int interruption, int 
         recbuf = statusBC&fl_REG_STATUS_rx_num_buf ? 1 : 0;
     }
 
+    bool bErr = false;
     if (checkStatusErrBC && (devRT != 0))
     {
-        bool bErr = false;
+
 
         if (codec && (statusBC & fl_REG_STATUS_rs_err) != 0)
         {
@@ -838,7 +842,9 @@ bool trmSingleObjToThread::checkStatusRegBC(int statusBC, int interruption, int 
             *error = true;
         }
     }
-    else if (bNoInt)
+    if (!bErr)
+    {
+    if (bNoInt)
     {
         if (statusBCOut)
             stdOutput(QString(tr("Статус КШ: %1  буфер передачи %2  буфер приёма %3").
@@ -857,6 +863,7 @@ bool trmSingleObjToThread::checkStatusRegBC(int statusBC, int interruption, int 
         else
             stdOutput(QString(tr("Итерация = %1   Статус КШ: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0'))),
                       QString(tr("Iter = %1   BC status: %2").arg(it, 6).arg(statusBC, 4, 16, QLatin1Char('0'))));
+    }
     }
     return bNoInt;
 }
@@ -1381,6 +1388,11 @@ void trmSingleObjToThread::perform()
                     }
 
                     // Старт обмена
+#ifdef READBEFORESTART
+                    char adapterbuf[4];
+                    devRT->read_F2(0x40000, 4, adapterbuf);
+                    devBC->read_F2(0x40000, 4, adapterbuf);
+#endif
 //                    QTime curTime;
 //                    if (timeCompose)
 //                        curTime = QTime::currentTime();
@@ -1620,6 +1632,12 @@ void trmSingleObjToThread::perform()
                     if (!BCtoRT)
                         emit statsOutputReady("totalIter", 1);
 
+                    // Старт обмена
+#ifdef READBEFORESTART
+                    char adapterbuf[4];
+                    devRT->read_F2(0x40000, 4, adapterbuf);
+                    devBC->read_F2(0x40000, 4, adapterbuf);
+#endif
 //                    QTime curTime;
 //                    if (timeCompose)
 //                        curTime = QTime::currentTime();
@@ -1627,7 +1645,6 @@ void trmSingleObjToThread::perform()
                     if (timeCompose)
                         curTime.start();
 
-                    // Старт обмена
                     devBC->writeReg(&devBC->reg_hsc_creg);
 
                     int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
