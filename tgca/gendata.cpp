@@ -52,7 +52,7 @@ void *createRandomData(long length, int init, int minval, int maxval, int numcha
     if (data)
     {
         srand(init);
-        int scaleParam = maxval - minval + 1;
+        int scaleParam = maxval - minval;
         if (scaleParam <= 0)
         {
             scaleParam = 255;

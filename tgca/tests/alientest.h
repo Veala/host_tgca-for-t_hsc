@@ -21,7 +21,9 @@ private:
     // параметры тестирования
     QComboBox *comboBoxBCIntErr;        // реакция на отсутствие признака завершения обмена КШ
     QComboBox *comboBoxTR;              // приём или передача
-    QLineEdit  *lineEditCycle;          // число итераций
+    QComboBox *comboBoxA1;              // приём или передача
+    QComboBox *comboBoxA2;              // приём или передача
+    QLineEdit  *lineEditAddLen;         // число итераций
 
     // параметры конфигурационного регистра
     QComboBox *comboBoxManType;         // КШ и ОУ
@@ -80,11 +82,11 @@ class alienObjToThread : public commonObjToThread
 public:
     alienObjToThread();
 
-    quint32  waitTime, pauseTime;
-    int iterCycle;
+    int step;
     int rtaddr;
+    int addr1, addr2;
     int code;
-    bool useInt, loadRTA, initEnable;
+    bool loadRTA, initEnable;
     bool statusBCOut, statusRTOut;
     bool checkStatusErrBC, checkChangeStatusRT, noIntFatalBC;
     int perOutBC, modeOutBC, perOutRT, modeOutRT;

@@ -1,7 +1,7 @@
 
 #include "noisetest.h"
-#include "../testutil.h"
 #include "../ctestbc.h"
+#include "../testutil.h"
 
 void NoiseTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
@@ -126,14 +126,17 @@ void NoiseTest::setEnabledSpecial(bool b)
     else
     {
         comboBoxRTA->setEnabled(true);
-        //checkBoxCodec->setEnabled(true);
-        //settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
+        checkBoxCodec->setEnabled(true);
+        settings->findChild<QLabel*>("labelCodec")->setEnabled(true);
+        checkBoxRTALoad->setEnabled(true);
+        settings->findChild<QLabel*>("labelRTARegLoad")->setEnabled(true);
 
         settings->findChild<QLabel*>("labelHeaderCommand")->setEnabled(true);
         settings->findChild<QLabel*>("labelRTA")->setEnabled(true);
-        settings->findChild<QLabel*>("labelNumS")->setEnabled(true);
+        //settings->findChild<QLabel*>("labelNumS")->setEnabled(true);
         comboBoxRTA->setEnabled(true);
-        lineEditNumS->setEnabled(true);
+        //comboBoxShow->setEnabled(true);
+        //lineEditNumS->setEnabled(true);
 
         settings->findChild<QLabel*>("labelHeaderConfig")->setEnabled(true);
         settings->findChild<QLabel*>("labelManType")->setEnabled(true);
@@ -142,11 +145,12 @@ void NoiseTest::setEnabledSpecial(bool b)
         settings->findChild<QLabel*>("labelHeaderTest")->setEnabled(true);
         settings->findChild<QLabel*>("labelTime")->setEnabled(true);
         settings->findChild<QLabel*>("labelPause")->setEnabled(true);
-        settings->findChild<QLabel*>("labelSpeed")->setEnabled(true);
+        //settings->findChild<QLabel*>("labelSpeed")->setEnabled(true);
         settings->findChild<QLabel*>("labelOver")->setEnabled(true);
+        //settings->findChild<QLabel*>("labelShow")->setEnabled(true);
         lineEditTime->setEnabled(true);
         lineEditPause->setEnabled(true);
-        comboBoxSpeed->setEnabled(true);
+        //comboBoxSpeed->setEnabled(true);
         lineEditOver->setEnabled(true);
 
         //dataGen.enable(true);
@@ -321,6 +325,8 @@ void NoiseTest::startTest()
     curreg->type_man = comboBoxManType->currentIndex();
     curreg->en_rt_bc_int = checkBoxEnaInt->isChecked() ? 1 : 0;
     curreg->ena_codec = checkBoxCodec->isChecked() ? 1 : 0;
+    if (curreg->type_man == 2)
+        curreg->ena_codec = 1;
 
     curThread->devRT = deviceList.at(1);
     curreg = &(curThread->devRT->reg_hsc_cfg);
@@ -331,6 +337,8 @@ void NoiseTest::startTest()
 //        прерывание ОУ не включается настройками теста, его можно изменить в файле начальной конфигурации
 //        curreg->en_rt_bc_int = checkBoxEnaInt->isChecked() ? 1 : 0;
     curreg->ena_codec = checkBoxCodec->isChecked() ? 1 : 0;
+    if (curreg->type_man == 2)
+        curreg->ena_codec = 1;
     curreg->rtavsk_ena = checkBoxEnaAddr->isChecked() ? 1 : 0;
     if (checkBoxEnaAddr->isChecked())
         curreg->rtavsk = curThread->rtaddr;
@@ -353,9 +361,9 @@ void NoiseTest::startTest()
     curThread->compEnableReg = comboBoxErrRegComp->currentIndex();
 
     curThread->dataSize = dataGen.getDataLen();
-    int dataSizeRequired = curThread->numOFDM * calcNumWordInSymbol(comboBoxManType->currentIndex(), curThread->codec?1:0) - sizeof(word32_t);
-    if (curThread->dataSize < dataSizeRequired)
-        curThread->dataSize = dataSizeRequired;
+    curThread->numByteInPackage = (curThread->numOFDM +1) * calcNumWordInSymbol(comboBoxManType->currentIndex(), curThread->codec?1:0) * sizeof(word32_t);
+    if (curThread->dataSize < curThread->numByteInPackage - sizeof(word32_t))
+        curThread->dataSize = curThread->numByteInPackage - sizeof(word32_t);
     curThread->testData = dataGen.createData(curThread->dataSize, 2);
 
     emit startTestTh();
@@ -405,6 +413,7 @@ bool noiseObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, 
         *error = true;
         bNoInt = true;
     }
+#if CHECKFINBIT
     if ((statusBC & fl_REG_STATUS_rt_bc_int) == 0)
     {
         stdOutput(tr("Итерация = %1   Нет признака завершения обмена КШ").arg(it, 6),
@@ -412,6 +421,7 @@ bool noiseObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, 
         *error = true;
         bNoInt = true;
     }
+#endif
 
     if ( checkStatusErrBC && ( (codec && ((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
         (statusBC & fl_REG_STATUS_no_aw_err) != 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
@@ -440,12 +450,24 @@ void noiseObjToThread::checkStatusRT(REG_HSC_status &status, int it, bool *error
     if (checkStatusErrRT && (status.rt_bc_int == 0 || status.rs_err != 0))
     {
         quint32 status_data = status.getData();
-        if (status.rt_bc_int == 0)
+        bool fin = (status.rt_bc_int != 0);
+        if (fin)
+        {
+            do
+            {
+                REG_HSC_status st;
+                devRT->readReg(&st);
+                fin = (st.rt_bc_int != 0);
+            }
+            while(fin);
+        }
+        else
         {
             stdOutput(tr("Итерация = %1   Нет признака завершения обмена ОУ: %2").arg(it, 6).arg(status_data, 4, 16, QLatin1Char('0')),
                       tr("Iter = %1   No interruption flag in RT status: %2").arg(it, 6).arg(status_data, 4, 16, QLatin1Char('0')));
             *error = true;
         }
+
         if (codec && (status.rs_err != 0))
         {
             stdOutput(tr("Итерация = %1   Ошибка кодека в статусе ОУ: %2").arg(it, 6).arg(status_data, 4, 16, QLatin1Char('0')),
@@ -461,7 +483,6 @@ bool noiseObjToThread::outInfoEnable(quint64 curbit, quint64 prevbit, bool err) 
 {
     if (curbit == 0)
         return true;
-
     quint64 compbit;
     switch(outMode)
     {
@@ -501,7 +522,7 @@ bool noiseObjToThread::outTimeEnable(quint64 curbit, quint64 prevbit) const
 
 void noiseObjToThread::printCurrInfo(int iter, quint64 curbit, quint64 prevbit, bool err)
 {
-    if (outInfoEnable(curbit, prevbit, err))
+    if (outInfoEnable(curbit, curbit-prevbit, err))
     {
         QString rus1 = tr("Итерация %1: ").arg(iter);
         QString eng1 = tr("Iteration %1: ").arg(iter);
@@ -535,8 +556,8 @@ void noiseObjToThread::averageSpeed(long time_ms, long wholePackBits, int iter)
             int mb = wholePackBits / time_sec;
             QString word = formattedLongInteger(mb);
 
-            QString rus = tr("Оценка скорости передачи данных - ") + word + tr(" бит/с");
-            QString eng = tr("Estimated transmission speed = ") + word + tr(" bps");
+            QString rus = tr("Оценка средней скорости передачи данных - ") + word + tr(" бит/с");
+            QString eng = tr("Estimated average transmission speed = ") + word + tr(" bps");
             stdOutput(rus, eng);//tr("Оценка скорости передачи данных - %1 бит/с").arg(mb),
         }
         else if (timeMeasure > 1)
@@ -627,9 +648,7 @@ void noiseObjToThread::perform()
     {
         REG_HSC_cfg cfg;
         devRT->readReg(&cfg);
-        qDebug() << "RT cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
-                 << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
-        if (cfg.rt_bc != CFG_MODE_RT || cfg.ena_codec != codec ||
+        if (cfg.rt_bc != CFG_MODE_RT /*|| cfg.ena_codec != codec*/ ||
             cfg.type_man != devRT->reg_hsc_cfg.type_man || cfg.rtavsk_ena != devRT->reg_hsc_cfg.rtavsk_ena)
             cfg_err = true;
         /*else if (useInt && (devRT->reg_hsc_cfg.en_rt_bc_int != cfg.en_rt_bc_int))  // прерывание ОУ сейчас не используется, поэтому признак разрешения прерывания не важен
@@ -749,9 +768,7 @@ void noiseObjToThread::perform()
         devBC->readReg(&cfg);
         // здесь значение регистра devBC->reg_hsc_cfg не может отличаться от настроечного, так как
         // даже если бы оно было прочитано из устройства, то при несовпадении был бы выход по ошибке
-        qDebug() << "BC cfg  " << cfg.ena_aru << " " << cfg.ena_codec << " " << cfg.ena_mem_vsk << " " << cfg.en_rt_bc_int << " "
-                 << cfg.rtavsk << " " << cfg.rtavsk_ena << " " << cfg.rt_bc << " " << cfg.type_man;
-        if (cfg.rt_bc != CFG_MODE_BC || cfg.ena_codec != codec ||
+        if (cfg.rt_bc != CFG_MODE_BC || /*cfg.ena_codec != codec ||*/
             cfg.type_man != devBC->reg_hsc_cfg.type_man || (useInt && (cfg.en_rt_bc_int != devBC->reg_hsc_cfg.en_rt_bc_int)))
             cfg_err = true;
         if (useInt && (cfg.en_rt_bc_int == 0))
@@ -784,7 +801,7 @@ void noiseObjToThread::perform()
 
     quint64 nBitSpecification = 1000000000;
     qint64 nByteIterated = nBitSpecification / 8 * iterCycle;
-    int nByteMax = test.numWordInSymbol() * sizeof(word32_t) * numOFDM;
+    int nByteMax = test.numWordInSymbol() * sizeof(word32_t) * (numOFDM+1);
 
     quint32 curBitErr = 0;
 
@@ -798,15 +815,16 @@ void noiseObjToThread::perform()
     int pos = 0;
     char *pData = (char*)testData;
 
-    qDebug() << "numIter = " << nByteIterated / numOFDM;
-    qDebug() << "nByte = " << nByteIterated << "  " << test.numWordInSymbol() << "  " << numOFDM;
+    qDebug() << "Begin: numIterExpected = " << (nByteIterated / numOFDM) << "   nByte = " << nByteIterated << "  " << test.numWordInSymbol() << "  " << numOFDM;
 
     int iter = 0;
     long totalTime = 0;
     //int timeCounter = 0;
     quint64 totalBit = 0;
 
-    QTime beginTime = QTime::currentTime();
+    //QTime beginTime = QTime::currentTime();
+    int wholePackBits = numByteInPackage * 8;
+
     while (nByteIterated != 0)
     {
         char trmBuf[MAXPACKAGESIZE];
@@ -831,7 +849,6 @@ void noiseObjToThread::perform()
         totalBit += n_cur_bit;
         quint32 curMaxBitErr = totalBit / nBitSpecification + 1 - curBitErr;
 
-
         emit statsOutputReady("totalIter", 1);
         emit statsOutputReadyLongLong("totalBit", n_cur_bit);
 
@@ -841,6 +858,7 @@ void noiseObjToThread::perform()
             if (!test.createCommandPack((void*)recBuf, NUMBYTEINOFDMSYM, 0, n_byte, rtaddr, trbit, 0))
             {
                 stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                averageSpeed(totalTime, wholePackBits, iter);
                 emit statsOutputReady("otherErr", 1);
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
                 return;
@@ -848,6 +866,7 @@ void noiseObjToThread::perform()
             if (!test.array2Pack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), n_byte))
             {
                 stdOutput(tr("Ошибка создания тестового образца данных"), tr("Test data etalon creation error"));
+                averageSpeed(totalTime, wholePackBits, iter);
                 emit statsOutputReady("otherErr", 1);
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
                 return;
@@ -863,6 +882,7 @@ void noiseObjToThread::perform()
             if (!test.createCommandPack((void*)trmBuf, MAXPACKAGESIZE, (void*)(pData+pos), n_byte, rtaddr, trbit, 0))
             {
                 stdOutput(tr("Ошибка создания командного пакета"), tr("Command pack creation error"));
+                averageSpeed(totalTime, wholePackBits, iter);
                 emit statsOutputReady("otherErr", 1);
                 emit resultReady((int)AbstractTest::ErrorIsOccured);
                 return;
@@ -881,7 +901,7 @@ void noiseObjToThread::perform()
 
         // Старт обмена
         devBC->writeReg(&devBC->reg_hsc_creg);
-        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+        int interruption = waitForInterruptionBC(&statusBC, false);
 
         if (timeMeasure)
         {
@@ -904,8 +924,9 @@ void noiseObjToThread::perform()
         if (!isOk)
         {
             // сообщение об ошибке было внутри checkStatusRegBC()
+            averageSpeed(totalTime, wholePackBits, iter);
             emit statsOutputReady("errPack", 1);
-            emit resultReady((int)AbstractTest::ErrorIsOccured);
+            emit resultReady((int)AbstractTest::TestFault);
             return;
         }
 
@@ -932,12 +953,14 @@ void noiseObjToThread::perform()
                 devBC->read_F2(addr_rx_bc, NUMBYTEINOFDMSYM, recBuf);
             }
         }
-        if (!test.cmpPackDataBit((void*)responseBuf, (void*)(pData+pos), n_byte, &n_cur_bit, curMaxBitErr))
+        int curWrongBit;
+        if (!test.cmpPackDataBit((void*)responseBuf, (void*)(pData+pos), n_byte, &curWrongBit, curMaxBitErr))
         {
             stdOutput(tr("Ошибка сравнения переданных данных"), tr("Data comparison error"));
+            emit statsOutputReady("errBit", curWrongBit);
+            wrongBit += curWrongBit;
             errorOccured = true;
         }
-
         printCurrInfo(iter, totalBit, n_cur_bit, errorOccured);
 
         if (errorOccured)
@@ -950,12 +973,15 @@ void noiseObjToThread::perform()
             thread()->msleep(pauseTime);
 
         if (onPauseStop() == -1)
+        {
+            averageSpeed(totalTime, wholePackBits, iter);
             return;
+        }
 
         pos += n_byte;
         iter++;
 
     } // while
 
-    emit resultReady(errCounter == 0 ? (int)AbstractTest::Completed : (int)AbstractTest::ErrorIsOccured);
+    emit resultReady(errCounter == 0 ? (int)AbstractTest::Completed : (int)AbstractTest::TestFault);
 }

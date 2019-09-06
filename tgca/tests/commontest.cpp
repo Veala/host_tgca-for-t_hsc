@@ -1,6 +1,7 @@
 #include "commontest.h"
 #include "../registers.h"
 #include "../gendata.h"
+#include "../testutil.h"
 
 ////////////////////////////////////////////////.////////////////////////////
 ///   CommonTest - базовый класс для группы тестов с двумя устройствами   ///
@@ -167,10 +168,10 @@ void CommonTest::connectThread()
     objToThread->moveToThread(&testThread);
 
     connect(&testThread,SIGNAL(finished()), objToThread,SLOT(deleteLater()));
+    connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(terminate(int)));
     connect(objToThread,SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
     connect(objToThread,SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
     connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
-    connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(terminate(int)));
 }
 
 void CommonTest::updateSettings()
@@ -220,7 +221,7 @@ void CommonTest::applyEnaAddr() { applyCurrent(checkBoxEnaAddr); }
 void CommonTest::applyOutputMode() { applyCurrent(checkBoxOut); }
 
 void CommonTest::applyOverTime() { applyCurrent(lineEditOver);
-                                 qDebug() << "This id different case!!!"; }
+                                 qDebug() << "This is different case!!!"; }
 
 void CommonTest::applyCurrent(QWidget* wid)
 {
@@ -412,9 +413,9 @@ void commonObjToThread::softReset(Device* dev)
     dev->writeReg(&dev->reg_aux_winmode_reset);
 }
 
-bool commonObjToThread::isRunning()
+bool commonObjToThread::isTestRunning(int st)
 {
-    return threadState == AbstractTest::Running || threadState == AbstractTest::Paused;
+    return st == AbstractTest::Running || st == AbstractTest::Paused;
 }
 
 void commonObjToThread::initStartBC()
@@ -424,9 +425,9 @@ void commonObjToThread::initStartBC()
     devBC->reg_hsc_creg.start_bc = 1;
 }
 
-void commonObjToThread::terminate(int )
+void commonObjToThread::terminate(int st)
 {
-    if (!isRunning())
+    if (!isTestRunning(st))
     {
         if (devBC)
             devBC->tryToDisconnect();
@@ -442,6 +443,66 @@ int commonObjToThread::onPauseStop()
     if (ret == -1)
         emit resultReady((int)AbstractTest::Stopped);
     return ret;
+}
+
+int commonObjToThread::waitForInterruptionBC(int *status, bool extended)
+{
+    int interruption = 1;
+
+    if (useInt)
+    {
+        QTimer timer;
+        timer.setInterval(waitTime);
+        timer.start();
+        do
+        {
+            devBC->readReg(&devBC->reg_aux_interruption);
+            interruption = devBC->reg_aux_interruption.inter;
+        }
+        while (interruption == 0 && timer.remainingTime() > 0);
+        //timer.killTimer();
+        if (interruption == 0)
+        {
+            devBC->readReg(&devBC->reg_aux_interruption);
+            interruption = devBC->reg_aux_interruption.inter;
+        }
+
+        *status = readRegVal(devBC, &devBC->reg_hsc_status);
+
+        if (extended)
+        {
+            int flags = (*status) & FL_REG_STATUS_ERR_flags;
+            while (flags)
+            {
+                REG_HSC_status st;
+                flags = readRegVal(devBC, &st) & FL_REG_STATUS_ERR_flags;
+            }
+        }
+    }
+    else
+    {
+        QTimer timer;
+        timer.setInterval(waitTime);
+        timer.start();
+        do
+        {
+            *status = readRegVal(devBC, &devBC->reg_hsc_status);
+        }
+        while ((((*status) & fl_REG_STATUS_rt_bc_int) == 0) && (timer.remainingTime() > 0));
+        if (((*status) & fl_REG_STATUS_rt_bc_int) == 0)
+            *status = readRegVal(devBC, &devBC->reg_hsc_status);
+
+        if (extended)
+        {
+            int flags = (*status) & FL_REG_STATUS_ERR_flags;
+            while (flags)
+            {
+                REG_HSC_status st;
+                flags = readRegVal(devBC, &st) & FL_REG_STATUS_ERR_flags;
+            }
+        }
+    }
+    return interruption;
 }
 
 ///////////////////////////////////////////////////

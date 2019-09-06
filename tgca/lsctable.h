@@ -3,6 +3,7 @@
 
 #include <QSharedMemory>
 #include <QDebug>
+#include "funclib.h"
 
 #ifdef Q_OS_LINUX
 #include <QFile>

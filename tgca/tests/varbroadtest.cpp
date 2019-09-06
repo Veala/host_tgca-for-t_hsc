@@ -323,6 +323,7 @@ bool varBroadObjToThread::checkStatusRegBC(int statusBC, int interruption, int i
         *error = true;
         bNoInt = true;
     }
+#if CHECKFINBIT
     if ((statusBC & fl_REG_STATUS_rt_bc_int) == 0)
     {
         stdOutput(tr("Итерация = %1   Нет признака завершения обмена КШ").arg(it, 6),
@@ -330,6 +331,7 @@ bool varBroadObjToThread::checkStatusRegBC(int statusBC, int interruption, int i
         *error = true;
         bNoInt = true;
     }
+#endif
     if ((statusBC & fl_REG_STATUS_rx_num_buf) != buf_rx_bc)
     {
         buf_rx_bc = statusBC & fl_REG_STATUS_rx_num_buf;
@@ -544,7 +546,7 @@ void varBroadObjToThread::perform()
 
                     // Старт обмена
                     devBC->writeReg(&devBC->reg_hsc_creg);
-                    int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+                    int interruption = waitForInterruptionBC(&statusBC, false);
 
                     // Оконный режим
                     switchWindow(0);
@@ -575,7 +577,7 @@ void varBroadObjToThread::perform()
                         else
                         {
                             stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
-                            stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                            //stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
                             emit statsOutputReady("errCompare", 1);
                             errorOccured = true;
                         }
@@ -598,7 +600,7 @@ void varBroadObjToThread::perform()
     } // iter cycle
 
     if (errCounter)
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        emit resultReady((int)AbstractTest::TestFault);
     else
         emit resultReady((int)AbstractTest::Completed);
 }
@@ -614,7 +616,7 @@ void varBroadObjToThread::setErrorsBeforeCycle(int errors)
 
 void varBroadObjToThread::setErrorsWithinCycle(bool fatal)
 {
-    emit resultReady((int)AbstractTest::ErrorIsOccured);
+    emit resultReady((int)AbstractTest::TestFault);
     if (fatal)
         emit statsOutputReady("errFatal", 1);
     emit statsOutputReady("totalErr", 1);

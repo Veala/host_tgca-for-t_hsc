@@ -1,6 +1,5 @@
 #include "lscmessagetest.h"
 #include "../regNSK.h"
-#include <time.h>
 
 void LscMessageTest::setSettings(QVBoxLayout *b, QDialog *d, bool ch, QString tType, QString fName, QString markStr, QTextBrowser *pB, QTextBrowser *tB, QWidget *d2)
 {
@@ -19,11 +18,11 @@ top_1
     objToThread = new lscMessageObjToThread();
     objToThread->moveToThread(&testThread);
     connect(&testThread,SIGNAL(finished()), objToThread,SLOT(deleteLater()));
+    connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(terminate(int)));
     connect(objToThread,SIGNAL(resultReady(int)), this, SLOT(setRunningState(int)));
     connect(objToThread,SIGNAL(outputReady(QString)), this, SLOT(testOutout(QString)));
     connect(objToThread,SIGNAL(statsOutputReady(QString,long)), this, SLOT(statsTestOutput(QString,long)));
     connect(this,SIGNAL(startTestTh()), objToThread, SLOT(doWork()));
-    connect(objToThread, SIGNAL(resultReady(int)), objToThread, SLOT(terminate(int)));
     testThread.start();
 }
 
@@ -90,7 +89,7 @@ void lscMessageObjToThread::doWork()
             emit outputReady(QString("Время начала теста: ")+QString(buftime));
             */
             QDateTime local(QDateTime::currentDateTime());
-            emit outputReady(QString("Время начала теста: ") + local.toString(tr("dd.MM.yyyy hh:mm:ss")));
+            emit outputReady(QString("Время начала цикла: ") + local.toString(tr("dd.MM.yyyy hh:mm:ss")));
         }
 
         emit resultReady((int)AbstractTest::Running);
@@ -388,14 +387,14 @@ AbstractTest::RunningState lscMessageObjToThread::connectRT()
     }
 }
 
-bool lscMessageObjToThread::isRunning()
+bool lscMessageObjToThread::isTestRunning(int st)
 {
-    return threadState == AbstractTest::Running || threadState == AbstractTest::Paused;
+    return st == AbstractTest::Running || st == AbstractTest::Paused;
 }
 
-void lscMessageObjToThread::terminate(int )
+void lscMessageObjToThread::terminate(int st)
 {
-    if (!isRunning())
+    if (!isTestRunning(st))
     {
         devBC->tryToDisconnect();
         devRT->tryToDisconnect();

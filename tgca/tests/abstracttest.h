@@ -81,6 +81,7 @@ public:
         Stopped,
         Completed,
         ErrorIsOccured,
+        TestFault,
         Deleting
     };
 private:
@@ -169,7 +170,11 @@ class absObjToThread : public QObject//, public DeviceDriver
 
 public:
     explicit absObjToThread(QObject* parent = 0);
-    ~absObjToThread() { qDebug() << "~absObjToThread()"; }
+    virtual ~absObjToThread() {
+#ifdef PRINT_START_END_DESTRUCTOR
+        qDebug() << "~absObjToThread()";
+#endif
+    }
     AbstractTest::RunningState threadState;
 
 public slots:

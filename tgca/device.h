@@ -14,6 +14,7 @@
 #include <windows.h>
 #include <synchapi.h>
 #endif
+//#define TIMING
 
 class Device : public BaseDevice
 {

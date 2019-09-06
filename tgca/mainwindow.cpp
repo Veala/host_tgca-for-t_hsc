@@ -14,8 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     curIndex(0)
 {
     ui->setupUi(this);
-
-    //su = true; // LLL!!!
+    ui->actHelp->setVisible(false);
 
     connect(ui->actRun, SIGNAL(triggered(bool)), this, SLOT(prepare()));
     connect(ui->actRun, SIGNAL(triggered(bool)), this, SLOT(onRunTst()));
@@ -57,19 +56,36 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~MainWindow() start";
+#endif
     if (su && devConf!=0)
         delete devConf;
 
     clearProject();
 
     delete ui;
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~MainWindow() end";
+#endif
 }
 
 void MainWindow::onAbout()
 {
-    QMessageBox::about(this, tr("Справка"), tr("Шифр: \"Обработка 30\"\nВерсия: 1.0\n"));
+#ifdef QT_DEBUG
+    QString configuration("Debug");
+#else
+    QString configuration("Release");
+#endif
+    QString myText("---");
+    QFile file(":/version");
+    if(file.open(QFile::ReadOnly | QFile::Text))
+    {
+        //QTextStream in(&file);
+        myText = QTextStream(&file).readAll();
+        file.close();
+    }
+    QMessageBox::about(this, tr("Справка"), tr("Шифр: \"Обработка 30\"\nВерсия: %1 %2").arg(configuration).arg(myText));
 }
 
 bool MainWindow::clearProject()
@@ -139,7 +155,6 @@ bool MainWindow::loadProject(QSettings& settings)
                 device->connection.setServerIP(settings.value("IP").toString());
                 device->connection.setServerPORT(settings.value("port").toString());
                 device->connection.setHostIP(settings.value("hostIP").toString());
-                device->connection.setHostPORT(settings.value("hostPort").toString());
             }
             device->configuration.initFrom(settings.value("configuration").toString(), 0);
         }
@@ -159,20 +174,22 @@ bool MainWindow::loadProject(QSettings& settings)
                 loadTest(at);
                 QString ena = settings.value("enabled").toString();
                 if (!ena.isEmpty())
+                {
                     at->setEnable(ena != "0");
-                //tstLoaded = true;
-                //ui->actRun->setEnabled(true);
+                    //tstLoaded = true;
+                }
             }
         }
     }
     settings.endArray();
+    message(QString("Проект %1 загружен").arg(settings.fileName()));
     return true;
 }
 
 void MainWindow::onLoadPrj()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Открыть файл проекта"), tr(""));
+    tr("Загрузить проект из файла"), "/home/", tr("*.ini"));
 
     if (!fileName.isEmpty())
     {
@@ -214,7 +231,6 @@ bool MainWindow::onSavePrj()
             ini.setValue("IP", dev->connection.getServerIP());
             ini.setValue("port", dev->connection.getServerPORT());
             ini.setValue("hostIP", dev->connection.getHostIP());
-            ini.setValue("hostPort", dev->connection.getHostPORT());
         }
         else
             ini.setValue("connections", fname);
@@ -231,6 +247,7 @@ bool MainWindow::onSavePrj()
         ini.setValue("enabled", test->getEnable() ? "1" : "0");
     }
     ini.endArray();
+    message(QString("Проект %1 сохранен").arg(fileName));
     return true;
 }
 
@@ -279,9 +296,6 @@ void MainWindow::addDevice()
     LSCTable::addDevice(name);
     connect(dev, SIGNAL(sigDelete(QString)), this, SLOT(delDevice(QString)), Qt::DirectConnection);
     emit newDev(name);
-
-    //if (tstLoaded)
-    //  ui->actRun->setEnabled(true);
 }
 
 void MainWindow::delDevice(QString name)

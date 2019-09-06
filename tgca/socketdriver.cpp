@@ -1,13 +1,17 @@
 #include "socketdriver.h"
 
 SocketDriver::~SocketDriver() {
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~SocketDriver() start";
+#endif
     if (socket->state() != QAbstractSocket::UnconnectedState)
         socket->abort();
     timer->stop();
     //mutex->unlock();
     delete mutex;
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~SocketDriver() end";
+#endif
 }
 
 void SocketDriver::init()
@@ -38,14 +42,14 @@ void SocketDriver::connectedSlot()
 {
     timer->stop();
     mutex->unlock();
-    qDebug() << "connectedSlot() OK";
+    //qDebug() << "connectedSlot() OK";
 }
 
 void SocketDriver::disconnectedSlot()
 {
 //    timer->stop();
 //    mutex.unlock();
-    qDebug() << "disconnectedSlot() OK";
+    //qDebug() << "disconnectedSlot() OK";
 }
 
 void SocketDriver::readyReadSlot()

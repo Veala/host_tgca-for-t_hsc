@@ -5,6 +5,8 @@
 #include <QRadioButton>
 //#include "../comboboxnoscroll.h"
 
+#define CHECKFINBIT  1
+
 class dataGeneration : public QObject
 {
     Q_OBJECT
@@ -122,10 +124,12 @@ public slots:
 protected slots:
     virtual void terminate(int);
 public:
-    explicit commonObjToThread() : absObjToThread(), devBC(0), devRT(0) {}
+    explicit commonObjToThread() : absObjToThread(), devBC(0), devRT(0), waitTime(50), pauseTime(300), postponeTime(0), useInt(false) {}
     void setOutEnabled(bool b) { outEnable = b; }
     virtual void destroyData() {}
     Device *devBC, *devRT;
+    bool useInt;
+    quint32 waitTime, pauseTime, postponeTime;
     int onPauseStop();
 protected:
     bool outEnable;
@@ -136,10 +140,11 @@ protected:
     void softReset(Device* dev);
     AbstractTest::RunningState connectBC();
     AbstractTest::RunningState connectRT();
-    bool isRunning();
+    bool isTestRunning(int st);
     void initStartBC();
+    int waitForInterruptionBC(int *status, bool extended);
 signals:
-    void statsOutputReady(QString,long);
+//    void statsOutputReady(QString,long);
 };
 
 inline void setRegWritten(Device *dev, BaseReg &reg)

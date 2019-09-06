@@ -42,7 +42,7 @@ private:
 
     QComboBox *comboBoxTestType;        // тип: приём/передача/циркулярный возврат
     QComboBox *comboBoxSpeed;           // включение измерения скорости передачи данных
-    QCheckBox *checkBoxWinMode;         // включение оконного режима
+    QCheckBox *checkBoxInquire;         // включение режима дополнительных проверок и выводов
     QComboBox *comboBoxBCIntErr;        // реакция на отсутствие признака завершения обмена КШ
     QComboBox *comboBoxRTIntErr;        // реакция на отсутствие признака завершения обмена ОУ
     // QCheckBox *checkBoxOut;             // включение вывода в окно тестов   поле определено в CommonTest
@@ -128,10 +128,10 @@ class trmSingleObjToThread : public commonObjToThread
     void setErrorsBeforeCycle(int numerr);
     void setErrorsWithinCycle(bool fatal);
     bool checkSPI(Device* dev);
-    //int  waitForInterruption(int *status);
     void averageSpeed();
     long wholePackBits;
     long totalTime;
+    long minTime;
     int timeCounter;
     QTime beginTime;
     void initTimeMeasure();
@@ -139,15 +139,16 @@ class trmSingleObjToThread : public commonObjToThread
 public:
     trmSingleObjToThread();
 
-    quint32 amplBC, amplRT, waitTime, pauseTime, trm_size, postponeTime;
+    quint32 amplBC, amplRT, trm_size;
     int iterCycle;
     int nwrd;
     bool BCtoRT, RTtoBC;
     //bool trm_mode;
     int rtaddr;
     int addr_dst;
-    bool useInt, initEnable, writeCfg, checkCountersEnable;
+    bool initEnable, writeCfg, checkCountersEnable;
     bool statusBCOut, statusRTOut, windowMode;
+    bool inquireMode;
     bool checkStatusErrBC, checkStatusErrRT, noIntFatalBC, checkLoadCfg;
     int noIntFatalRT;
     int checkFinSPI;

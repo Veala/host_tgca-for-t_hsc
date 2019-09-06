@@ -57,7 +57,6 @@ private:
     int prepareFirstStart;
 
     QAction *act_devMode1, *act_devMode2;  //"Секретный режим"
-    //QSettings project;
 
     bool loadProject(QSettings& settings);
     void loadTest(AbstractTest* test);

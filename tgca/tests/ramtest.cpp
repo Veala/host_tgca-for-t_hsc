@@ -205,7 +205,7 @@ void ramObjToThread::perform()
         if (sz != answerRT.size())
         {
             stdOutput(tr("Ошибка чтения памяти: длина массивов не совпадает"), tr("Error memory reading: different size"));
-            emit resultReady(AbstractTest::ErrorIsOccured);
+            emit resultReady(AbstractTest::TestFault);
             return;
         }
         emit statsOutputReady("totalIter", sz/4);

@@ -5,7 +5,6 @@
 #include "gendata.h"
 #include "device.h"
 
-int waitForInterruption(Device* dev, bool useInt, int waitTime, int *status);
 int readRegVal(Device* dev, BaseReg *reg);
 int getStatusReg(Device * dev);
 

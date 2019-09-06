@@ -46,17 +46,23 @@ BaseDevice::~BaseDevice()
 {
     //---------------------------------когда тесты работают - добавить корректное удаление девайса
     //sock->abort();
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~BaseDevice() start";
+#endif
     emit stopAll();
     socketDriver.mutex->unlock();
     toSocketDriver.quit();
     //toSocketDriver.terminate();
     toSocketDriver.wait();
     emit sigDelete(getName());
+    #ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "Device " << getName() << " deleted.";
+#endif
     message(tr("Устройство удалено"));
     delete ui;
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~BaseDevice() end";
+#endif
 }
 
 void BaseDevice::mousePressEvent(QMouseEvent *event)
@@ -218,9 +224,11 @@ void BaseDevice::message(QString m)
 void BaseDevice::checkDevice()
 {
     QTcpSocket sock1;
-    if (!sock1.bind(QHostAddress(connection.getHostIP()))) {
-        message(sock1.errorString());
-        return;
+    if (connection.forBind) {
+        if (!sock1.bind(QHostAddress(connection.getHostIP()))) {
+            message(sock1.errorString());
+            return;
+        }
     }
     sock1.connectToHost(QHostAddress(connection.getServerIP()), connection.getServerPORT().toUShort());
     if (!sock1.waitForConnected(5000)) {

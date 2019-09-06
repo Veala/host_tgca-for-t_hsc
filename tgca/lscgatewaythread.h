@@ -12,7 +12,11 @@ class LSCGatewayThread : public QThread
     Device* dev;
 public:
     explicit LSCGatewayThread(QObject *parent = 0) : QThread(parent) { }
-    ~LSCGatewayThread() { qDebug() << "~LSCGatewayThread()"; }
+    ~LSCGatewayThread() {
+#ifdef PRINT_START_END_DESTRUCTOR
+        qDebug() << "~LSCGatewayThread()";
+#endif
+    }
     void setDevice(Device* d)  { dev = d; }
     QString state;
 protected:

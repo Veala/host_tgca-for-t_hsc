@@ -104,6 +104,7 @@ void regObjToThread::doWork()
                 dev->write_F1(writeArray.data(), dsz*2);
                 if (pause_stop() == -1) throw QString("stopped");
             }
+            throw QString("finish");
         } else if (mode == "r") {
             for (uint i=addr; i+3<=range; i+=addrinc)
                 readArray.append((char*)&i, 4);
@@ -116,6 +117,7 @@ void regObjToThread::doWork()
                 }
                 if (pause_stop() == -1) throw QString("stopped");
             }
+            throw QString("finish");
         } else if (mode == "wr") {
             uint final;
             for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
@@ -126,10 +128,11 @@ void regObjToThread::doWork()
             }
             answer.resize(readArray.size());
 
+            ulong same=0, diff=0;
             for (; it<inCycle; it=it+1+decrement) {
                 dev->write_F1(writeArray.data(), writeArray.size());
 
-                ulong same=0, diff=0;
+                same=0; diff=0;
                 uint w,r;
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
                 for (int i=0, j=12; i<answer.size(); i+=4, j+=8) {
@@ -141,6 +144,10 @@ void regObjToThread::doWork()
                 emit outputReady(tr("Write!=Read: %1;    Write==Read: %2").arg(QString::number(diff)).arg(QString::number(same)));
                 if (pause_stop() == -1) throw QString("stopped");
             }
+            if (!diff)
+                throw QString("finish");
+            else
+                throw QString("finishWithErrors");
         }
         throw QString("finish");
     } catch (const QString& exception) {
@@ -156,6 +163,9 @@ void regObjToThread::doWork()
         } else if (exception == "finish") {
             dev->tryToDisconnect();
             emit resultReady(AbstractTest::Completed);
+        } else if (exception == "finishWithErrors") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::TestFault);
         }
     }
 }

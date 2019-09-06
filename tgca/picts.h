@@ -26,9 +26,10 @@ const std::string strPictTestButtonStop(":/pictogram/gtk-media-stop_9402.png");
 //const std::string strPictTestStatusRunning(":/pictogram/control_play_blue_7261.png");
 const std::string strPictTestStatusInPause(":/pictogram/control_pause_blue_1763.png");
 const std::string strPictTestStatusInterrupted(":/pictogram/searchCancelPressed.png");  // gtk-media-stop_9402.png  // /pictogram/Qt/x.png
-const std::string strPictTestStatusNotStarted(":/pictogram/flag_yellow_8318.png");    // catch.png    // gtk-media-stop_9402.png
+const std::string strPictTestStatusNotStarted(":/pictogram/catch.png");    // catch.png    // gtk-media-stop_9402.png
 const std::string strPictTestStatusFinishedOk(":/pictogram/ok.png");         // confirm_3843.png
-const std::string strPictTestStatusFinishedErr(":/pictogram/button_cancel_6086.png"); // (":/pictogram/close_5496.png");  // (":/pictogram/cancel_8315.png");
+const std::string strPictTestStatusFinishedFail(":/pictogram/button_cancel_6086.png");
+const std::string strPictTestStatusFinishedErr(":/pictogram/agt_action_fail1_3562.png"); // (":/pictogram/close_5496.png");  // (":/pictogram/cancel_8315.png");
 
 /// маркеры начала и конца запуска
 const std::string strPictTestMarkerStart(":/pictogram/down.png");

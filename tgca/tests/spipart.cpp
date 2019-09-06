@@ -90,19 +90,26 @@ void spiObjToThread::doWork()
                 dev->reg_hsc_dr_spi_lsw.data=data.at(i);
                 *(((quint32*)&dev->reg_hsc_cr_spi)+1) = data.at(i+1);
                 dev->writeRegs(regs);
-                int n = 0;
+//                int n = 0;
+                QTimer timer;
+                timer.setInterval(50);
+                timer.start();
                 while (1) {
                     dev->readReg(&dev->reg_hsc_cr_spi);
                     if (dev->reg_hsc_cr_spi.spif == 1) {
-                        emit outputReady(tr("reg_cr_spi.spif == %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
+                        //emit outputReady(tr("reg_cr_spi.spif == %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
                         break;
                     } else {
-                        n++;
-                        emit outputReady(tr("reg_cr_spi.spif != %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
-                        if (n>1000) throw QString("unknownHardError");
+//                        n++;
+                        //emit outputReady(tr("reg_cr_spi.spif != %1").arg(dev->reg_hsc_cr_spi.spif,0,16));
+//                        if (n>1000) throw QString("unknownHardError");
+                        if (timer.remainingTime() <= 0) throw QString("SPI Finalization Error");
                     }
                 }
 
+                dev->reg_hsc_cr_spi.spif = 0;
+                if (dev->reg_hsc_cr_spi.getData() != data.at(i+1))
+                    throw QString("SPI Comparison Error");
                 //threadState = AbstractTest::Paused;
                 if (pause_stop() == -1) throw QString("stopped");
             }
@@ -124,6 +131,9 @@ void spiObjToThread::doWork()
             dev->tryToDisconnect();
             emit resultReady(AbstractTest::Completed);
         } else if (exception == "unknownHardError") {
+            dev->tryToDisconnect();
+            emit resultReady((int)AbstractTest::ErrorIsOccured);
+        } else {
             dev->tryToDisconnect();
             emit resultReady((int)AbstractTest::ErrorIsOccured);
         }

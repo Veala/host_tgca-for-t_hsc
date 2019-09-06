@@ -34,7 +34,7 @@ public:
 private:
     AbstractTest::RunningState connectBC();
     AbstractTest::RunningState connectRT();
-    bool isRunning();
+    bool isTestRunning(int st);
 //    void writeRegInitBC();
     void writeRegSingleBC(word32_t num, word32_t value);
 //    void writeRegAddBC(word32_t num, word32_t value);

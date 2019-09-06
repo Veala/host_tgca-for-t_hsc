@@ -1,8 +1,8 @@
 #include "varcommtest.h"
-#include "../testutil.h"
 #include "../ctestbc.h"
 #include "../codeselect.h"
 #include "../command.h"
+#include "../testutil.h"
 
 void VarCommandTest::setStatSettings()
 {
@@ -365,6 +365,7 @@ bool varCommandObjToThread::checkStatusRegBC(int statusBC, int interruption, int
         *error = true;
         bNoInt = true;
     }
+#if CHECKFINBIT
     if ((statusBC & fl_REG_STATUS_rt_bc_int) == 0)
     {
         stdOutput(tr("Итерация = %1   Нет признака завершения обмена КШ").arg(it, 6),
@@ -372,6 +373,7 @@ bool varCommandObjToThread::checkStatusRegBC(int statusBC, int interruption, int
         *error = true;
         bNoInt = true;
     }
+#endif
 
     if ( checkStatusErrBC && ( (codec && ((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
         (statusBC & fl_REG_STATUS_no_aw_err) != 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
@@ -591,7 +593,7 @@ void varCommandObjToThread::perform()
 
                         // Старт обмена
                         devBC->writeReg(&devBC->reg_hsc_creg);
-                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+                        int interruption = waitForInterruptionBC(&statusBC, false);
 
                         // Оконный режим
                         switchWindow(0);
@@ -622,7 +624,7 @@ void varCommandObjToThread::perform()
                             else
                             {
                                 stdOutput(tr("Ошибка сравнения буфера приёма ОУ"), tr("Comparison RT rec buffer wrong"));
-                                stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                                //stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
                                 emit statsOutputReady("errCompare", 1);
                                 errorOccured = true;
                             }
@@ -743,7 +745,7 @@ void varCommandObjToThread::perform()
 
                         // Старт обмена
                         devBC->writeReg(&devBC->reg_hsc_creg);
-                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+                        int interruption = waitForInterruptionBC(&statusBC, false);
 
                         // Оконный режим
                         switchWindow(0);
@@ -775,7 +777,7 @@ void varCommandObjToThread::perform()
                                 else
                                 {
                                     stdOutput(tr("Ошибка сравнения буфера приёма КШ"), tr("Comparison BC rec buffer wrong"));
-                                    stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
+                                    //stdOutput(tr("Длина данных = %1 байт").arg(readArrayC.size()), tr("Data size = %1").arg(readArrayC.size()));
                                     emit statsOutputReady("errCompare", 1);
                                     errorOccured = true;
                                 }
@@ -852,7 +854,7 @@ void varCommandObjToThread::perform()
     } // iter cycle
 
     if (errCounter)
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        emit resultReady((int)AbstractTest::TestFault);
     else
         emit resultReady((int)AbstractTest::Completed);
 }
@@ -868,7 +870,7 @@ void varCommandObjToThread::setErrorsBeforeCycle(int errors)
 
 void varCommandObjToThread::setErrorsWithinCycle(bool fatal)
 {
-    emit resultReady((int)AbstractTest::ErrorIsOccured);
+    emit resultReady((int)AbstractTest::TestFault);
     if (fatal)
         emit statsOutputReady("errFatal", 1);
     emit statsOutputReady("totalErr", 1);

@@ -111,6 +111,7 @@ void memObjToThread::doWork()
                 if (pause_stop() == -1) throw QString("stopped");
             }
             emit statsOutputReady("counter_iter", 1);
+            throw QString("finish");
         } else if (mode == "r") {
             for (uint i=addr; i+3<=range; i+=addrinc)
                 readArray.append((char*)&i, 4);
@@ -125,6 +126,7 @@ void memObjToThread::doWork()
                 if (pause_stop() == -1) throw QString("stopped");
                 emit statsOutputReady("counter_iter", 1);
             }
+            throw QString("finish");
         } else if (mode == "wr") {
             uint final;
             for (uint i=addr, j=data; i+3<=range; i+=addrinc, j+=datainc) {
@@ -135,10 +137,10 @@ void memObjToThread::doWork()
             }
             answer.resize(readArray.size());
 
+            ulong same=0, diff=0;
             for (; it<inCycle; it=it+1+decrement) {
                 dev->write_F1(writeArray.data(), writeArray.size());
-
-                ulong same=0, diff=0;
+                same=0; diff=0;
                 uint w,r;
                 dev->read_F1(readArray.data(), answer.data(), readArray.size());
                 for (int i=0, j=4; i<answer.size(); i+=4, j+=8) {
@@ -152,8 +154,11 @@ void memObjToThread::doWork()
                 emit statsOutputReady("counter_err", diff);
                 if (pause_stop() == -1) throw QString("stopped");
             }
+            if (!diff)
+                throw QString("finish");
+            else
+                throw QString("finishWithErrors");
         }
-        throw QString("finish");
     } catch (const QString& exception) {
         if (exception == "connection") {
             if (pause_stop() == -1) return;
@@ -167,6 +172,9 @@ void memObjToThread::doWork()
         } else if (exception == "finish") {
             dev->tryToDisconnect();
             emit resultReady(AbstractTest::Completed);
+        } else if (exception == "finishWithErrors") {
+            dev->tryToDisconnect();
+            emit resultReady(AbstractTest::TestFault);
         } else {
             qDebug() << "else from memtest";
             emit resultReady(AbstractTest::Stopped);

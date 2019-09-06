@@ -47,5 +47,8 @@
         <file>../pictogram/squarefacespriteXX.png</file>
         <file>../pictogram/melee_green.png</file>
         <file>../pictogram/trash.png</file>
+        <file>../pictogram/agt_action_fail1_3562.png</file>
+        <file>../pictogram/catch.png</file>
+        <file>../version</file>
     </qresource>
 </RCC>

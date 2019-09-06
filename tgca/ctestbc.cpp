@@ -193,23 +193,29 @@ bool CTestBC::cmpPack(void* vsk_buf1, void* vsk_buf2, int n_sym, bool without_cw
     if (without_cw)
         nb -= sizeof(word32_t);
 
-    int i = memcmp((void*)cmp_data1, (void*)cmp_data2, nb);
+    int cmp = memcmp((void*)cmp_data1, (void*)cmp_data2, nb);
 
-    if (i)
+    if (cmp)
     {
         char *ptr1 = cmp_data1;
         char *ptr2 = cmp_data2;
+        int err_found = 0;
         for (int i=0; i<nb; i++)
         {
+            //qDebug() << i << " " << int(*(ptr1+i)) << " " << int(*(ptr2+i));
             if ( (*(ptr1+i)) != (*(ptr2+i)) )
             {
-                qDebug() << "Difference: i = " << i << "  " << (uint)(*(ptr1+i)) << "  " << (uint)(*(ptr2+i));
-                return false;
+                //qDebug() << "Difference: i = " << i << "  " << (int)(*(ptr1+i)) << "  " << (int)(*(ptr2+i));
+                //qDebug() << "without_cw=" << without_cw << "  nb=" << nb;
+                qDebug() << QString("Difference: i=%1  %2  %3").arg(i, 8, 16, QChar('0')).
+                            arg(((int)(*(ptr1+i)))&0xFF, 2, 16, QChar('0')).arg(((int)(*(ptr2+i)))&0xFF, 2, 16, QChar('0'));
+                if (err_found++ > 5)
+                    break;
             }
         }
 
-        qDebug() << "Difference not found";
-
+        if (err_found == 0)
+            qDebug() << "Difference not found";
         return false;
     }
 
@@ -236,21 +242,25 @@ bool CTestBC::cmpPackData(void* vsk_buf, void* raw_data, int num_b, bool without
     if (!pack2Array(cmp_data, MAXPACKAGESIZE, (char*)vsk_buf, n_sym, without_cw))
         return false;
 
-    int i = memcmp((void*)cmp_data, raw_data, num_b);
-
-    if (i)
+    if (memcmp((void*)cmp_data, raw_data, num_b))
     {
         char * ptr1 = cmp_data;
         char* ptr2 = (char*) raw_data;
+        int err_found = 0;
         for (int i=0; i<num_b; i++)
         {
+            //qDebug() << i << " " << int(*(ptr1+i)) << " " << int(*(ptr2+i));
             if ( (*(ptr1+i)) != (*(ptr2+i)) )
             {
-                qDebug() << "Difference: i = " << i << "  " << (uint)(*(ptr1+i)) << "  " << (uint)(*(ptr2+i));
-                return false;
+                //qDebug() << "without_cw=" << without_cw << "  nb=" << num_b;
+                qDebug() << QString("Difference: i=%1  %2  %3").arg(i, 8, 16, QChar('0')).
+                            arg(((int)(*(ptr1+i)))&0xFF, 2, 16, QChar('0')).arg(((int)(*(ptr2+i)))&0xFF, 2, 16, QChar('0'));
+                if (err_found++ > 5)
+                    break;
             }
         }
 
+        if (err_found == 0)
         qDebug() << "Difference not found";
 
         return false;

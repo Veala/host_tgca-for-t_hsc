@@ -186,7 +186,7 @@ void monitorObjToThread::doWork()
 
 void monitorObjToThread::prepTerminate()
 {
-    qDebug() << "monitortest terminates";
+    qDebug() << "monitortest is terminating";
     if (devBC)
         devBC->tryToDisconnect();
     if (devRT)

@@ -127,7 +127,7 @@ AbstractTest::AbstractTest(QWidget *parent):
     statusIcon->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     statusIcon->setMinimumWidth(forIconSize * 2);
 
-    statusIcon->setPixmap((QPixmap(tr(strPictTestStatusNotStarted.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+    statusIcon->setPixmap((QPixmap(tr(strPictTestStatusNotStarted.c_str()))).scaled(forIconSize/2, forIconSize/2, Qt::KeepAspectRatio));
 
     layout->addWidget(statusIcon);
 
@@ -147,7 +147,9 @@ AbstractTest::AbstractTest(QWidget *parent):
 
 AbstractTest::~AbstractTest()
 {
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~AbstractTest() start";
+#endif
 
     stopTest();
     testThread.quit();
@@ -162,7 +164,9 @@ AbstractTest::~AbstractTest()
     delete settings;
     delete stats;
     message(tr("Тест удален (файл: %1, имя: %2)").arg(fileName->text()).arg(mark->text()));
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~AbstractTest() end";
+#endif
 }
 
 void AbstractTest::mousePressEvent(QMouseEvent *event)
@@ -613,13 +617,13 @@ void AbstractTest::setRunningState(int rs)
     case AbstractTest::Completed:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedOk.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
         setStatusText(statusTxt, tr("Успех"), true, "color: rgb(0, 0, 0)"); // Qt::blue color: rgb(0, 0, 255)
-        message(QObject::tr("Тест \"%1\" закончен").arg(mark->text()), "tests");
+        message(QObject::tr("Тест \"%1\" закончен успешно").arg(mark->text()), "tests");
         setGlobalState(FREE);
         emit unsetEmit(startButton, pauseButton, stopButton);
         break;
     case AbstractTest::ErrorIsOccured:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedErr.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
-        setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
+        setStatusText(statusTxt, tr("Неисправность"), true, "color: rgb(255, 0, 0)"); // Qt::red)
         message(QObject::tr("Тест \"%1\" остановлен из-за ошибки").arg(mark->text()), "tests");
         setGlobalState(FREE);
 //        Device* dev;
@@ -629,9 +633,16 @@ void AbstractTest::setRunningState(int rs)
         break;
 //    case AbstractTest::Deleting:
 //        break;
+    case AbstractTest::TestFault:
+        statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedFail.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
+        setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
+        message(QObject::tr("Тест \"%1\" обнаружил ошибки").arg(mark->text()), "tests");
+        setGlobalState(FREE);
+        emit unsetEmit(startButton, pauseButton, stopButton);
+        break;
     default:
         statusIcon->setPixmap((QPixmap(tr(strPictTestStatusFinishedErr.c_str()))).scaled(forIconSize, forIconSize, Qt::KeepAspectRatio));
-        setStatusText(statusTxt, tr("Ошибка"), true, "color: rgb(255, 0, 0)"); // Qt::red)
+        setStatusText(statusTxt, tr("Неисправность"), true, "color: rgb(255, 0, 0)"); // Qt::red)
         message(tr("Внутренняя ошибка: неизвестное состояние теста"), "tests");
         message(QObject::tr("Тест \"%1\" остановлен из-за ошибки").arg(mark->text()), "tests");
         setGlobalState(FREE);
@@ -713,7 +724,7 @@ void AbstractTest::stopTest()
         message(tr("Ошибка: проблема с устройствами теста (файл: %1, имя: %2)").arg(fileName->text()).arg(mark->text()));
         return;
     }
-    if ((getRunningState() == Stopped) || (getRunningState() == Completed) || (getRunningState() == ErrorIsOccured)) {   ///  || (getRunningState() == Deleting)  ???
+    if ((getRunningState() == Stopped) || (getRunningState() == Completed) || (getRunningState() == ErrorIsOccured) || (getRunningState() == TestFault)) {   ///  || (getRunningState() == Deleting)  ???
     //if (!isRunning()) {
         message(tr("Предупреждение: тест не запущен (файл: %1, имя: %2)").arg(fileName->text()).arg(mark->text()));
         return;

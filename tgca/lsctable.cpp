@@ -14,14 +14,18 @@ LSCTable::LSCTable() : devCount(0), nativeHeadKey("LSC.devices")
 #ifdef Q_OS_LINUX
     unix_key = ftok(QFile::encodeName(nativeHeadKey).constData(), qHash(QFile::encodeName(nativeHeadKey), 'Q'));
 #endif
-    qDebug() << "table key:" << (uint)unix_key;
+    //qDebug() << "table key:" << (uint)unix_key;
 }
 
 LSCTable::~LSCTable()
 {
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~LSCTable() start";
+#endif
     sharedMemory.detach();
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~LSCTable() end";
+#endif
 }
 
 void LSCTable::addDevice(QString name)
@@ -45,7 +49,7 @@ void LSCTable::addDevice(QString name)
     int ref2 = ref1 + sizeof(nameSize);
     memcpy((char*)sharedMemory.data()+ref2, name.toUtf8().data(), nameSize);
     int ref3 = ref2 + 16;
-    qDebug() << "sizeof(key_t):" << sizeof(key_t);
+    //qDebug() << "sizeof(key_t):" << sizeof(key_t);
     key_t unix_key=0;
     #ifdef Q_OS_LINUX
     unix_key = ftok(QFile::encodeName(name).constData(), qHash(QFile::encodeName(name), 'Q'));
@@ -78,7 +82,9 @@ void LSCTable::delDevice(QString name)
         }
     }
     delete readName;
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "Deleting device #" << i;
+#endif
     if (i>=devCount) {
         qDebug() << "i>=devCount: НСК устройство не найдено";
         return;

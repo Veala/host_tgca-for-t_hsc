@@ -10,8 +10,16 @@ Connection::Connection(QWidget *parent) :
 
     connect(ui->pushButtonCheckDevice, SIGNAL(clicked(bool)), this, SIGNAL(checkDevice(bool)));
     QShortcut* sc = new QShortcut(QKeySequence("Esc"), this);
+    QShortcut* sc_host = new QShortcut(QKeySequence("Ctrl+H"), this);
     connect(sc,SIGNAL(activated()),this,SLOT(hide()));
+    connect(sc_host,SIGNAL(activated()),this,SLOT(show_hide_host()));
     setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+    show_hide_host();
+    ui->labelParam->setVisible(false);
+    ui->labelIPPCNet->setVisible(false);
+    ui->lineEditIPPCNet->setVisible(false);
+    resize(width(), 100);
+    forBind = false;
     //setWindowFlags(Qt::WindowCloseButtonHint);
 }
 
@@ -35,11 +43,6 @@ QString Connection::getHostIP() const
     return ui->lineEditIPPCNet->text();
 }
 
-QString Connection::getHostPORT() const
-{
-    return ui->lineEditPortIOPCNet->text();
-}
-
 void Connection::setServerIP(QString serverIp)
 {
     ui->lineEditIPDevice->setText(serverIp);
@@ -53,11 +56,6 @@ void Connection::setServerPORT(QString PORT)
 void Connection::setHostIP(QString hostIp)
 {
     ui->lineEditIPPCNet->setText(hostIp);
-}
-
-void Connection::setHostPORT(QString hostPort)
-{
-    ui->lineEditPortIOPCNet->setText(hostPort);
 }
 
 void Connection::setName(QString name)
@@ -84,7 +82,6 @@ bool Connection::setFromFile(QString fileName)
     setServerIP(settings.value("Device/IP").toString());
     setServerPORT(settings.value("Device/port").toString());
     setHostIP(settings.value("Host/IP").toString());
-    setHostPORT(settings.value("Host/port").toString());
 
     file = fileName;
     return true;
@@ -111,5 +108,20 @@ void Connection::save()
     devini.setValue("Device/IP", getServerIP());
     devini.setValue("Device/port" ,getServerPORT());
     devini.setValue("Host/IP", getHostIP());
-    devini.setValue("Host/port", getHostPORT());
+}
+
+void Connection::show_hide_host()
+{
+    if (ui->labelParam->isVisible()) {
+        ui->labelParam->setVisible(false);
+        ui->labelIPPCNet->setVisible(false);
+        ui->lineEditIPPCNet->setVisible(false);
+        resize(width(), 100);
+        forBind = false;
+    } else {
+        ui->labelParam->setVisible(true);
+        ui->labelIPPCNet->setVisible(true);
+        ui->lineEditIPPCNet->setVisible(true);
+        forBind = true;
+    }
 }

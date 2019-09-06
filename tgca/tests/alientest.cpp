@@ -1,7 +1,7 @@
 #include "alientest.h"
-#include "../testutil.h"
-#include "../ctestbc.h"
 #include "../codeselect.h"
+#include "../ctestbc.h"
+#include "../testutil.h"
 
 void AlienTest::setStatSettings()
 {
@@ -72,7 +72,7 @@ void AlienTest::defineFields()
     lineEditDevBC = settings->findChild<QLineEdit*>("lineEditDevBC");
     lineEditDevRT = settings->findChild<QLineEdit*>("lineEditDevRT");
 
-    lineEditCycle = settings->findChild<QLineEdit*>("lineEditCycle");
+    lineEditAddLen = settings->findChild<QLineEdit*>("lineEditAddLen");
 
     checkBoxRTALoad = settings->findChild<QCheckBox*>("checkBoxRTALoad");
 
@@ -87,6 +87,8 @@ void AlienTest::defineFields()
     comboBoxErrStatusRT = settings->findChild<QComboBox*>("comboBoxErrStatusRT");
     comboBoxBCIntErr = settings->findChild<QComboBox*>("comboBoxBCIntErr");
     comboBoxTR = settings->findChild<QComboBox*>("comboBoxTR");
+    comboBoxA1 = settings->findChild<QComboBox*>("comboBoxA1");
+    comboBoxA2 = settings->findChild<QComboBox*>("comboBoxA2");
 
     checkBoxParamView = settings->findChild<QCheckBox*>("checkBoxParamView");
     checkBoxCheckRTA = settings->findChild<QCheckBox*>("checkBoxCheckRTA");
@@ -120,7 +122,7 @@ top_1
 
     checkBoxParamView->setChecked(!out.readLine().isEmpty());
     checkBoxInit->setChecked(!out.readLine().isEmpty());
-    lineEditCycle->setText(out.readLine());
+    lineEditAddLen->setText(out.readLine());
     checkBoxRTALoad->setChecked(!out.readLine().isEmpty());
 
     comboBoxBCOutPref->setCurrentText(out.readLine());
@@ -138,6 +140,8 @@ top_1
     QString genDataLen = out.readLine();
     checkBoxCheckRTA->setChecked(!out.readLine().isEmpty());
     comboBoxTR->setCurrentText(out.readLine());
+    comboBoxA1->setCurrentText(out.readLine());
+    comboBoxA2->setCurrentText(out.readLine());
     lineEditCode->setText(out.readLine());
 
     settingsFile.close();
@@ -171,7 +175,7 @@ top_2(saveFileNameStr)
 
     in << (checkBoxParamView->isChecked() ? "1" : "") << endl;
     in << (checkBoxInit->isChecked() ? "1" : "") << endl;
-    in << lineEditCycle->text() << endl;
+    in << lineEditAddLen->text() << endl;
     in << (checkBoxRTALoad->isChecked() ? "1" : "") << endl;
 
     in << comboBoxBCOutPref->currentText() << endl;
@@ -189,6 +193,8 @@ top_2(saveFileNameStr)
     in << dataGen.dataLen() << endl;
     in << (checkBoxCheckRTA->isChecked() ? "1" : "") << endl;
     in << comboBoxTR->currentText() << endl;
+    in << comboBoxA1->currentText() << endl;
+    in << comboBoxA2->currentText() << endl;
     in << lineEditCode->text() << endl;
 
     settingsFile.close();
@@ -249,7 +255,13 @@ void AlienTest::setEnabledSpecial(bool b)
         lineEditPause->setEnabled(true);
 
         lineEditCode->setEnabled(true);
+        lineEditAddLen->setEnabled(true);
+        comboBoxA1->setEnabled(true);
+        comboBoxA2->setEnabled(true);
         settings->findChild<QLabel*>("labelCodes")->setEnabled(true);
+        settings->findChild<QLabel*>("labelA1")->setEnabled(true);
+        settings->findChild<QLabel*>("labelA2")->setEnabled(true);
+        settings->findChild<QLabel*>("labelAddLen")->setEnabled(true);
     }
 }
 
@@ -261,10 +273,12 @@ void AlienTest::startTest()
     curThread->setOutEnabled(checkBoxOut->isChecked());
     curThread->waitTime = lineEditTime->text().toInt(0, 16);
     curThread->rtaddr = comboBoxRTA->currentIndex();
+    curThread->addr1 = comboBoxA1->currentIndex();
+    curThread->addr2 = comboBoxA2->currentIndex();
 
-    curThread->iterCycle = lineEditCycle->text().toInt(0, 10);
-    if (curThread->iterCycle <= 0)
-        curThread->iterCycle = 1;
+    curThread->step = lineEditAddLen->text().toInt(0, 10);
+    if (curThread->step <= 0)
+        curThread->step = 255;
     curThread->pauseTime = lineEditPause->text().toInt(0, 10);
     curThread->checkStatusErrBC = (comboBoxErrStatusBC->currentIndex() > 0);
     curThread->checkChangeStatusRT = (comboBoxErrStatusRT->currentIndex() > 0);
@@ -330,6 +344,7 @@ bool alienObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, 
         *error = true;
         bNoInt = true;
     }
+#if CHECKFINBIT
     if ((statusBC & fl_REG_STATUS_rt_bc_int) == 0)
     {
         stdOutput(tr("Итерация = %1   Нет признака завершения обмена КШ").arg(it, 6),
@@ -337,6 +352,7 @@ bool alienObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, 
         *error = true;
         bNoInt = true;
     }
+#endif
 
     if ( checkStatusErrBC && ( (codec && ((statusBC & fl_REG_STATUS_rs_err) != 0)) ||
         (statusBC & fl_REG_STATUS_no_aw_err) == 0 || (statusBC & fl_REG_STATUS_yes_aw_gr_err) != 0) )
@@ -360,6 +376,17 @@ bool alienObjToThread::checkStatusRegBC(int statusBC, int interruption, int it, 
         emit statsOutputReady("errNoFinBC", 1);
 
     return bNoInt;
+}
+
+
+static word32_t waitForResetRT(Device* dev)
+{
+    while (1)
+    {
+        word32_t status = readRegVal(dev, &dev->reg_hsc_status);
+        if ((status & FL_REG_STATUS_ERR_flags) == 0)
+            return status;
+    }
 }
 
 bool alienObjToThread::checkStatusRegRT(int status, int it, bool *error)
@@ -483,7 +510,7 @@ void alienObjToThread::perform()
     test.setConfigFlds(devBC->reg_hsc_cfg.type_man, devBC->reg_hsc_cfg.ena_codec!=0);
     int n_wrd = test.numWordInSymbol();
 
-    int statusRT = getStatusReg(devRT);
+    int statusRT = waitForResetRT(devRT);
     int statusBC = getStatusReg(devBC);
 
     int it = 0;
@@ -491,13 +518,15 @@ void alienObjToThread::perform()
     int pos = 0;
     char *pData = (char*)testData;
 
-    for (int iter = 0; iter < iterCycle; iter++)
-    {
         for (int address=0; address<BRD_RT_ADDR; address++)
         {
             if (address == rtaddr)
                 continue;
-                for (int num=1; num<=MAXNUMSYM; num++)
+            if (addr1!=31 && address!=addr1 && address!=addr2)
+                continue;
+
+            //qDebug() << "rta=" << address;
+                for (int num=1; num<=MAXNUMSYM; num+=step)
                 {
                     bool errorOccured = false;
                     int num_b = (n_wrd * num - 1) * sizeof(word32_t); // число байт данных в пакете из num символов
@@ -530,7 +559,7 @@ void alienObjToThread::perform()
 
                         // Старт обмена
                         devBC->writeReg(&devBC->reg_hsc_creg);
-                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+                        int interruption = waitForInterruptionBC(&statusBC, false);
 
                         // Оконный режим
                         switchWindow(0);
@@ -580,7 +609,7 @@ void alienObjToThread::perform()
 
                         // Старт обмена
                         devBC->writeReg(&devBC->reg_hsc_creg);
-                        int interruption = waitForInterruption(devBC, useInt, waitTime, &statusBC);
+                        int interruption = waitForInterruptionBC(&statusBC, false);
 
                         // Оконный режим
                         switchWindow(0);
@@ -611,10 +640,9 @@ void alienObjToThread::perform()
 
                 } //length cycle
         } // address
-    } // iter cycle
 
     if (errCounter)
-        emit resultReady((int)AbstractTest::ErrorIsOccured);
+        emit resultReady((int)AbstractTest::TestFault);
     else
         emit resultReady((int)AbstractTest::Completed);
 }
@@ -630,7 +658,7 @@ void alienObjToThread::setErrorsBeforeCycle(int errors)
 
 void alienObjToThread::setErrorsWithinCycle(bool fatal)
 {
-    emit resultReady((int)AbstractTest::ErrorIsOccured);
+    emit resultReady((int)AbstractTest::TestFault);
     if (fatal)
         emit statsOutputReady("errFatal", 1);
     emit statsOutputReady("totalErr", 1);

@@ -1,6 +1,7 @@
 #ifndef FUNCLIB_H
 #define FUNCLIB_H
 #include "QByteArray"
+//#define PRINT_START_END_DESTRUCTOR
 
 enum ExchangeFormat {
     zero,

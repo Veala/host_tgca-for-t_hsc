@@ -390,10 +390,13 @@ p, li { white-space: pre-wrap; }
     <string>Справка о программе</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+?</string>
+    <string>Ctrl+H</string>
    </property>
   </action>
   <action name="actHelp">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Помощь</string>
    </property>

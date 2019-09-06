@@ -52,7 +52,7 @@ SOURCES += main.cpp\
     tests/alientest.cpp \
     tests/invalidcommtest.cpp \
     tests/lsctest.cpp \
-    #tests/lscmessagetest.cpp \
+    tests/lscmessagetest.cpp \
     socketdriver.cpp \
     basedevice.cpp \
     lsctable.cpp \
@@ -100,7 +100,7 @@ HEADERS  += mainwindow.h \
     tests/alientest.h \
     tests/invalidcommtest.h \
     tests/lsctest.h \
-    #tests/lscmessagetest.h \
+    tests/lscmessagetest.h \
     socketdriver.h \
     basedevice.h \
     lsctable.h \

@@ -1,49 +1,6 @@
 
 #include "testutil.h"
 
-//#include <QDebug>
-
-int waitForInterruption(Device* dev, bool useInt, int waitTime, int *status)
-{
-    int interruption = 1;
-
-    if (useInt)
-    {
-        QTimer timer;
-        timer.setInterval(waitTime);
-        timer.start();
-        do
-        {
-            dev->readReg(&dev->reg_aux_interruption);
-            interruption = dev->reg_aux_interruption.inter;
-        }
-        while (interruption == 0 && timer.remainingTime() > 0);
-        //timer.killTimer();
-        if (interruption == 0)
-        {
-            dev->readReg(&dev->reg_aux_interruption);
-            interruption = dev->reg_aux_interruption.inter;
-        }
-
-        *status = readRegVal(dev, &dev->reg_hsc_status);
-    }
-    else
-    {
-        QTimer timer;
-        timer.setInterval(waitTime);
-        timer.start();
-        do
-        {
-            *status = readRegVal(dev, &dev->reg_hsc_status);
-        }
-        while ((((*status) & fl_REG_STATUS_rt_bc_int) == 0) && (timer.remainingTime() > 0));
-        if (((*status) & fl_REG_STATUS_rt_bc_int) == 0)
-            *status = readRegVal(dev, &dev->reg_hsc_status);
-        //timer.killTimer();
-    }
-    return interruption;
-}
-
 int readRegVal(Device* dev, BaseReg *reg)
 {
     dev->readReg(reg);

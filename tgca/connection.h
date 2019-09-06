@@ -1,4 +1,4 @@
-﻿#ifndef CONNECTIONFORM_H
+#ifndef CONNECTIONFORM_H
 #define CONNECTIONFORM_H
 
 #include <QWidget>
@@ -22,17 +22,17 @@ public:
     QString getServerIP() const;
     QString getServerPORT() const;
     QString getHostIP() const;
-    QString getHostPORT() const;
     void setServerIP(QString);
     void setServerPORT(QString);
     void setHostIP(QString);
-    void setHostPORT(QString);
     void setName(QString);
     bool setFromFile(QString filename);
     QString getFileName() const;
+    bool forBind;
 
 public slots:
     void save();
+    void show_hide_host();
 
 private:
     Ui::Connection *ui;

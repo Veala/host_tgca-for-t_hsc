@@ -31,7 +31,9 @@ Device::Device(QWidget *parent, QString name, QTextBrowser *tB) :
 
 Device::~Device()
 {
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~Device() start";
+#endif
 #ifdef Q_OS_WIN32
     CloseHandle(tgcaEvent);
     CloseHandle(rtl2Event);
@@ -39,7 +41,9 @@ Device::~Device()
     sharedMemory.detach();
     delete memoryFrom;
     delete memoryTo;
+#ifdef PRINT_START_END_DESTRUCTOR
     qDebug() << "~Device() end";
+#endif
 }
 
 void Device::startLSCGateway()
@@ -53,13 +57,12 @@ void Device::startLSCGateway()
     int ref_count = 5*sizeof(int), count = 0;
     int ref_array = 6*sizeof(int);
 
-    QElapsedTimer timer;
+#ifdef TIMING
     QElapsedTimer timerW;
     QElapsedTimer timerR;
-    int ms=0, s=0, min=0;
     int msW=0, sW=0, minW=0;
     int msR=0, sR=0, minR=0;
-
+#endif
     try {
         if (sharedMemory.isAttached() == false) {
             //message("Невозможно запустить НСК шлюз");
@@ -145,8 +148,11 @@ void Device::startLSCGateway()
             case ExchangeFormat::write_f1:
                 memcpy((char*)&size, (char*)sharedMemory.data()+ref_size, sizeof(int));
                 memcpy(memoryFrom, (char*)sharedMemory.data()+ref_array, size);
+#ifdef TIMING
                 timerW.start();
+#endif
                 write_F1(memoryFrom, size);
+#ifdef TIMING
                 msW += timerW.elapsed();
                 while (msW>=1000) {
                     msW-=1000;
@@ -156,13 +162,17 @@ void Device::startLSCGateway()
                     sW-=60;
                     minW+=1;
                 }
+#endif
                 break;
             case ExchangeFormat::write_f2:
                 memcpy((char*)&size, (char*)sharedMemory.data()+ref_size, sizeof(int));
                 memcpy((char*)&startAddr, (char*)sharedMemory.data()+ref_startAddr, sizeof(int));
                 memcpy(memoryFrom, (char*)sharedMemory.data()+ref_array, size);
+#ifdef TIMING
                 timerW.start();
+#endif
                 write_F2(startAddr, memoryFrom, size);
+#ifdef TIMING
                 msW += timerW.elapsed();
                 while (msW>=1000) {
                     msW-=1000;
@@ -172,12 +182,16 @@ void Device::startLSCGateway()
                     sW-=60;
                     minW+=1;
                 }
+#endif
                 break;
             case ExchangeFormat::read_f1:
                 memcpy((char*)&size, (char*)sharedMemory.data()+ref_size, sizeof(int));
                 memcpy(memoryFrom, (char*)sharedMemory.data()+ref_array, size);
+#ifdef TIMING
                 timerR.start();
+#endif
                 read_F1(memoryFrom, memoryTo, size);
+#ifdef TIMING
                 msR += timerR.elapsed();
                 while (msR>=1000) {
                     msR-=1000;
@@ -187,13 +201,17 @@ void Device::startLSCGateway()
                     sR-=60;
                     minR+=1;
                 }
+#endif
                 memcpy((char*)sharedMemory.data()+ref_array, memoryTo, size);
                 break;
             case ExchangeFormat::read_f2:
                 memcpy((char*)&startAddr, (char*)sharedMemory.data()+ref_startAddr, sizeof(int));
                 memcpy((char*)&count, (char*)sharedMemory.data()+ref_count, sizeof(int));
+#ifdef TIMING
                 timerR.start();
+#endif
                 read_F2(startAddr, count, memoryTo);
+#ifdef TIMING
                 msR += timerR.elapsed();
                 while (msR>=1000) {
                     msR-=1000;
@@ -203,6 +221,7 @@ void Device::startLSCGateway()
                     sR-=60;
                     minR+=1;
                 }
+#endif
                 memcpy((char*)sharedMemory.data()+ref_array, memoryTo, count);
                 break;
             default:
@@ -237,8 +256,9 @@ void Device::startLSCGateway()
         //message(QString("Ошибка сокета при работе шлюза НСК: шлюз остановлен."));
         //throw QString(exception);
         lscGatewayThread.state = exception;
-        //qDebug() << "min: " << QString::number(min) << " s: " << QString::number(s) << " ms: " << QString::number(ms);
+#ifdef TIMING
         qDebug() << "minW: " << QString::number(minW) << " sW: " << QString::number(sW) << " msW: " << QString::number(msW);
         qDebug() << "minR: " << QString::number(minR) << " sR: " << QString::number(sR) << " msR: " << QString::number(msR);
+#endif
     }
 }

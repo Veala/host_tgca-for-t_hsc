@@ -89,10 +89,9 @@ class varCommandObjToThread : public commonObjToThread
 public:
     varCommandObjToThread();
 
-    quint32  waitTime, pauseTime, postponeTime;
     int iterCycle;
     int rtaddr;
-    bool useInt, loadRTA, initEnable;
+    bool loadRTA, initEnable;
     bool checkStatusErrBC, checkStatusErrRT, noIntFatalBC;
     int noIntFatalRT;
     bool compEnableMemBC, compEnableMemRT;

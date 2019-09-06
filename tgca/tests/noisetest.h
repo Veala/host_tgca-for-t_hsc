@@ -81,10 +81,10 @@ public:
     int trbit;
     void *testData;
     long dataSize;
-    quint32 waitTime, pauseTime, postponeTime;
     quint16 numOFDM;
+    int numByteInPackage;
     int rtaddr;
-    bool useInt, initEnable, writeCfg;
+    bool initEnable, writeCfg;
     int iterCycle;
     int timeMeasure;
     int timeOverhead;

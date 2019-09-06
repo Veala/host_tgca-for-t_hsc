@@ -85,9 +85,8 @@ class varBroadObjToThread : public commonObjToThread
 public:
     varBroadObjToThread();
 
-    quint32  waitTime, pauseTime, postponeTime;
     int iterCycle;
-    bool useInt, initEnable;
+    bool initEnable;
     bool statusBCOut, statusRTOut;
     bool checkStatusErrBC, checkStatusErrRT, noIntFatalBC;
     bool compEnableMemRT;

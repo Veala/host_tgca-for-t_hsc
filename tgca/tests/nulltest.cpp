@@ -1,6 +1,5 @@
 #include "nulltest.h"
 #include "../registers.h"
-#include "../testutil.h"
 #include "../ctestbc.h"
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -362,5 +361,5 @@ void nullObjToThread::perform()
 
     if (testData)
         free (testData);
-    emit resultReady(errCounter == 0 ? (int)(AbstractTest::Completed) : (int)(AbstractTest::ErrorIsOccured));
+    emit resultReady(errCounter == 0 ? (int)(AbstractTest::Completed) : (int)(AbstractTest::TestFault));
 }
