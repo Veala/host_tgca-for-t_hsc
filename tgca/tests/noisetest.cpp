@@ -311,7 +311,7 @@ void NoiseTest::startTest()
     else
         curThread->iterCycle = 1;
 
-//  Сейчас не реализована ветка с итерациями. Будет передано ровно 1 000 000 000 бит.
+//  Сейчас не реализована ветка с итерациями. Будет передано ровно 1 000 000 000 битов.
     curThread->iterCycle = 1;
 
     curThread->codec = checkBoxCodec->isChecked();
@@ -362,7 +362,7 @@ void NoiseTest::startTest()
 
     curThread->dataSize = dataGen.getDataLen();
     curThread->numByteInPackage = (curThread->numOFDM +1) * calcNumWordInSymbol(comboBoxManType->currentIndex(), curThread->codec?1:0) * sizeof(word32_t);
-    if (curThread->dataSize < curThread->numByteInPackage - sizeof(word32_t))
+    if (curThread->dataSize < long(curThread->numByteInPackage - sizeof(word32_t)))
         curThread->dataSize = curThread->numByteInPackage - sizeof(word32_t);
     curThread->testData = dataGen.createData(curThread->dataSize, 2);
 
@@ -537,7 +537,7 @@ void noiseObjToThread::printCurrInfo(int iter, quint64 curbit, quint64 prevbit, 
             eng1 += tr("ok");
         }
         QString strCurBit = formattedLongInteger(curbit);
-        QString rus2 = tr(". Всего передано %1 вит. Ошибочных пакетов %2. Ошибочных бит %3").arg(strCurBit).arg(errCounter).arg(wrongBit);
+        QString rus2 = tr(". Всего передано %1 битов. Ошибочных пакетов %2. Ошибочных битов %3").arg(strCurBit).arg(errCounter).arg(wrongBit);
         QString eng2 = tr(". Total bit sent %1. Wrong packages: %2. Wrong bit: %3").arg(strCurBit).arg(errCounter).arg(wrongBit);
         stdOutput(rus1+rus2, eng1+eng2);
     }
@@ -549,7 +549,7 @@ void noiseObjToThread::averageSpeed(long time_ms, long wholePackBits, int iter)
     if (timeMeasure>0 && iter>0)
     {
         double time_sec = ((double)time_ms) * 0.001 / iter;
-        stdOutput(tr("Среднее время передачи %1 бит равно %2 секунд").arg(wholePackBits).arg(time_sec),
+        stdOutput(tr("Среднее время передачи %1 битов равно %2 секунд").arg(wholePackBits).arg(time_sec),
                   tr("Average transmission time for %1 bit is %2 seconds").arg(wholePackBits).arg(time_sec));
         if (wholePackBits > 0 && time_sec > 0)
         {
@@ -801,7 +801,7 @@ void noiseObjToThread::perform()
 
     quint64 nBitSpecification = 1000000000;
     qint64 nByteIterated = nBitSpecification / 8 * iterCycle;
-    int nByteMax = test.numWordInSymbol() * sizeof(word32_t) * (numOFDM+1);
+    int nByteMax = test.numWordInSymbol() * sizeof(word32_t) * (numOFDM+1) - sizeof(word32_t);
 
     quint32 curBitErr = 0;
 
@@ -809,8 +809,6 @@ void noiseObjToThread::perform()
     devRT->readReg(&regStatusRT);
     int statusBC = getStatusReg(devBC);
 
-
-//stdOutput();
 
     int pos = 0;
     char *pData = (char*)testData;
@@ -910,7 +908,7 @@ void noiseObjToThread::perform()
                 t -= timeOverhead;
             totalTime += t;
             if (outTimeEnable(totalBit, totalBit-n_cur_bit))
-                stdOutput(tr("Время передачи %1 мс, полное время %2 мс, данных %3 бит").arg(t).arg(totalTime).arg(n_cur_bit),
+                stdOutput(tr("Время передачи %1 мс, полное время %2 мс, данных %3 бит.").arg(t).arg(totalTime).arg(n_cur_bit),
                           tr("Transmission time = %1 ms, total time = %2 ms, data size = %3 bit").arg(t).arg(totalTime).arg(n_cur_bit));
         }
 

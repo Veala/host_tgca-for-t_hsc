@@ -347,7 +347,7 @@ void nullObjToThread::perform()
                 free (testData);
             return;
         }
-        // портим несколько бит
+        // портим несколько битов
         for (int i=0; i<wrongBit && i<256; i++)
         {
             trmBuf[i*NUMBYTEINOFDMSYM + 8] = trmBuf[i*NUMBYTEINOFDMSYM + 8]  ^ (char)1;

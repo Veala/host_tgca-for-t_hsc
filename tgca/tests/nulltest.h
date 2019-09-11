@@ -22,7 +22,7 @@ private:
     QRadioButton *radioButtonEnter;     // длина цикла задаётся параметром spinBoxCycle
 
     QLineEdit *lineEditSleepTime;    // пауза, которую должна определить функция измерения времени
-    QLineEdit *lineEditErrBit;       // число внесенных ошибочных бит
+    QLineEdit *lineEditErrBit;       // число внесенных ошибочных битов
     QComboBox *comboBoxManType;
     QCheckBox *checkBoxCodec;
     QLineEdit *lineEditTimeIter;

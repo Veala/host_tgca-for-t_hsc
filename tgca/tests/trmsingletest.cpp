@@ -1904,7 +1904,7 @@ void trmSingleObjToThread::averageSpeed()
         {
             total -= timeOverhead;
             stdOutput(tr("Среднее время передачи одного пакета: %1 мсек.").arg(total), tr("Average package transmission time is %1 ms.").arg(total));
-            stdOutput(tr("Всего данных в пакете %1 бит, полезных данных %4 бит, %2 %3.").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(wholePackBits),
+            stdOutput(tr("Всего данных в пакете %1 битов, полезных данных %4 битов, %2 %3.").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(wholePackBits),
                       tr("Total bits in package - %1, useful data - %4 bit, %2 %3.").arg(trm_size*8).arg(manipulation).arg(codec ? "with codec" : "w/o codec").arg(wholePackBits));
 
             long abps = wholePackBits * 1000 / totalTime;
@@ -1922,7 +1922,7 @@ void trmSingleObjToThread::averageSpeed()
     else // timeMeasure равно 1 или 2 и здесь timeCounter > 0
     {
         double time_sec = ((double)totalTime) * 0.001 / timeCounter;
-        stdOutput(tr("Среднее время передачи %1 бит равно %2 секунд.").arg(wholePackBits).arg(time_sec),
+        stdOutput(tr("Среднее время передачи %1 битов равно %2 секунд.").arg(wholePackBits).arg(time_sec),
                   tr("Average transmission time for %1 bit is %2 seconds.").arg(wholePackBits).arg(time_sec));
         if (wholePackBits > 0 && time_sec > 0)
         {
@@ -1945,7 +1945,7 @@ void trmSingleObjToThread::averageSpeed()
         }
         else if (timeMeasure > 1)
             stdOutput(tr("Оценка скорости невозможна."), tr("Speed estimation is impossible."));
-        stdOutput(tr("Всего данных в пакете %1 бит, %2 %3, %4 итераций.").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(timeCounter),
+        stdOutput(tr("Всего данных в пакете %1 битов, %2 %3, %4 итераций.").arg(trm_size*8).arg(manipulation).arg(codec ? "с кодеком" : "без кодека").arg(timeCounter),
                   tr("Total bits in package - %1, %2 %3, %4 iterations.").arg(trm_size*8).arg(manipulation).arg(codec ? "with codec" : "w/o codec").arg(timeCounter));
     }
 }

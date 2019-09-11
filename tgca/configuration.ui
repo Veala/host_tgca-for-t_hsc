@@ -1784,7 +1784,7 @@
            </font>
           </property>
           <property name="text">
-           <string> • Постоянный порог деманипуляции QAM64 высокие биты</string>
+           <string>•Постоянный порог деманипуляции QAM64 высокие разряды</string>
           </property>
          </widget>
         </item>
@@ -1804,7 +1804,7 @@
            </font>
           </property>
           <property name="text">
-           <string> • Постоянный порог деманипуляции QAM64 средние биты</string>
+           <string>•Постоянный порог деманипуляции QAM64 средние разряды</string>
           </property>
          </widget>
         </item>
@@ -1864,7 +1864,7 @@
            </font>
           </property>
           <property name="text">
-           <string> • Постоянный порог деманипуляции QAM64 низкие биты</string>
+           <string>•Постоянный порог деманипуляции QAM64 низкие разряды</string>
           </property>
          </widget>
         </item>
@@ -1903,7 +1903,7 @@
            </font>
           </property>
           <property name="text">
-           <string> • Постоянный порог деманипуляции QAM16</string>
+           <string>•Постоянный порог деманипуляции QAM16</string>
           </property>
          </widget>
         </item>
@@ -1944,7 +1944,7 @@
         </font>
        </property>
        <property name="text">
-        <string>• Время ожидания ответного слова (мкс)</string>
+        <string>•Время ожидания ответного слова (мкс)</string>
        </property>
       </widget>
       <widget class="QGroupBox" name="groupBoxCreg">
@@ -3172,12 +3172,12 @@
           </property>
           <item>
            <property name="text">
-            <string>8 бит</string>
+            <string>8 битов</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>16 бит</string>
+            <string>16 битов</string>
            </property>
           </item>
           <item>

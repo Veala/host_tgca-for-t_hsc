@@ -532,7 +532,7 @@
    <item row="19" column="0" colspan="4">
     <widget class="QLabel" name="labelErrBit">
      <property name="text">
-      <string>Число испорченных бит</string>
+      <string>Число испорченных битов</string>
      </property>
     </widget>
    </item>
@@ -658,7 +658,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Подсчёт ошибочных бит</string>
+      <string>Подсчёт ошибочных битов</string>
      </property>
     </widget>
    </item>

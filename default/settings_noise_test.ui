@@ -33,7 +33,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-359</y>
         <width>459</width>
         <height>1136</height>
        </rect>
@@ -593,7 +593,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>6</number>
+          <number>0</number>
          </property>
          <item>
           <property name="text">
@@ -612,22 +612,22 @@
          </item>
          <item>
           <property name="text">
-           <string>Каждые 1 000 000 переданных бит</string>
+           <string>Каждые 1 000 000 переданных бит.</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Каждые 10 000 000 переданных бит</string>
+           <string>Каждые 10 000 000 переданных бит.</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Каждые 20 000 000 переданных бит</string>
+           <string>Каждые 20 000 000 переданных бит.</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Каждые 100 000 000 переданных бит</string>
+           <string>Каждые 100 000 000 переданных бит.</string>
           </property>
          </item>
         </widget>
@@ -1111,7 +1111,7 @@
          </item>
          <item>
           <property name="text">
-           <string>Завершение передачи заданного числа бит</string>
+           <string>Завершение передачи заданного числа бит.</string>
           </property>
          </item>
         </widget>
@@ -1426,7 +1426,7 @@
          </item>
          <item>
           <property name="text">
-           <string>Вывод через 20 000 000 бит</string>
+           <string>Вывод через 20 000 000 бит.</string>
           </property>
          </item>
          <item>
@@ -1452,7 +1452,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroupRepeat"/>
   <buttongroup name="buttonGroupData"/>
+  <buttongroup name="buttonGroupRepeat"/>
  </buttongroups>
 </ui>
